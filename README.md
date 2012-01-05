@@ -12,6 +12,13 @@ DEPENDENCIES
 designed for linux; need GTK2, Python, & gpg or gpg2
 
 
+INSTALLATION
+------------
+Simply download *a8crypt.py*, make sure it's executable, and run it. Ta da!
+
+Note: *a4crypt.py* is terminal-only precursor app to a8crypt--you don't need that.
+
+
 BACKGROUND
 ----------
 
