@@ -19,7 +19,9 @@ The original goal of this project was to make symmetric text {en,de}cryption mor
 
 First I developed a super-simple wrapper for the commandline. (To see an evolution of that, check out [a3crypt](/ryran/a7crypt/blob/master/a3crypt-noX). Screenshots of terminal action at the end of the [moarSCREENSHOTS](/ryran/a7crypt/blob/master/moarSCREENSHOTS.md) page.) Once that was complete, I decided it was time to the fill the hole of a GUI for symmetric encryption, and began fleshing it out and adding features, quickly adding the ability to pick files (and have the script automatically choose ASCII or binary output type based on the chosen file). I implemented that in BASH with the help of Zenity and called it [a7crypt](/ryran/a7crypt/) (screenshots there).
 
-Separately from all this, I decided it was time to learn Python and what better way to learn than to have a project... so I decided to try to implement a7crypt with GTK. So here we are. Have lots more to learn, but I'm damn proud of v0.0.1. While it doesn't have some of the features of a7crypt (sticking to GPG/GPG2 only; no OpenSSL), it's much better in most ways. I used to love programming in BASH, but that was before learning Python ... oh the code is so lovely.
+Separately from all this, I decided it was time to learn Python and what better way to learn than to have a project... so first I implemented a3crypt in Python (i.e., a non-gui terminal app) as [a4crypt](/ryran/a8crypt/blob/master/a4crypt.py). Much cooler than a3crypt. I was in love with Python.
+
+Next I decided to try to implement it with GTK. So here we are. Have lots more to learn, but I'm damn proud of v0.0.1 of a8crypt. While it doesn't have some of the features of a7crypt (sticking to GPG/GPG2 only; no OpenSSL), it's much better in most ways. I used to love programming in BASH, but that was before learning Python ... oh the code is so lovely.
 
 Feel free to hit me/the tracker up if you have any questions or suggestions!
 
