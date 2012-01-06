@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.0.2 last mod 2012/01/06
+# a8crypt v0.0.3 last mod 2012/01/06
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -449,7 +449,9 @@ class GpgInterface():
     
     Security: The launch_gpg() method takes a passphrase as an argument, but it
     never stores it on disk (not even in a tempfile); the passphrase is passed to
-    gpg via an os file descriptor.
+    gpg via an os file descriptor. Also, AES256 is used by default as the
+    symmetric cipher algorithm for encryption (in contrast to GPG/GPG2's standard
+    behavior of using CAST5).
     
     To make this as portable as possible, here is a list of StdLib mods/methods
     used and how they're expected to be named:
@@ -484,7 +486,7 @@ class GpgInterface():
     
     
     def launch_gpg(self, mode, passphrase, in_filename=None, out_filename=None,
-            binarymode=False):
+            binarymode=False, cipheralgo='aes256'):
         """Start our GPG/GPG2 subprocess & save or return its output.
         
         Aside from its arguments of a passphrase & a mode of 'en' for encrypt or
@@ -494,10 +496,13 @@ class GpgInterface():
         normal non-list data) and the output is return-ed. Any stderr generated
         calling GPG is printed to stderr & stored in class attr fileobj 'stderr'.
         
-        Of lesser importance is an optional boolean argument of binarymode. This
-        defaults to False, which configures gpg to produce ASCII-armored output.
-        Note: this setting is only checked when operating in direct mode, i.e.,
-        when gpg is saving output directly to files.
+        Of lesser importance are the last two optional arguments.
+        First, the  boolean argument of binarymode: defaults to False, which
+        configures gpg to produce ASCII-armored output. A setting of True is only
+        honored when operating in direct file-reading/-writing mode, i.e., when
+        gpg is saving output directly to files.
+        Second, the str argument cipheralgo: defaults to aes256, but other good
+        choices would be cast5 (gpg's default), twofish, or camellia256.
         """
         
         # Sanity checking of arguments and input
@@ -534,14 +539,15 @@ class GpgInterface():
         if mode in 'en':
             
             # General encryption command, including ASCII-armor option
-            cmd = '{gpg} --batch --no-tty --yes -c --force-mdc --passphrase-fd {fd} -a'\
-                  .format(gpg=self.gpg, fd=fd_in)
+            cmd = '{gpg} --batch --no-tty --yes --symmetric --force-mdc '\
+                  '--cipher-algo {algo} --passphrase-fd {fd} -a'\
+                  .format(gpg=self.gpg, algo=cipheralgo, fd=fd_in)
             
             # If given a filename & binary mode requested, don't set ASCII-armored output
-            if binarymode:
-                cmd = '{gpg} --batch --no-tty --yes -c --force-mdc --passphrase-fd {fd} '\
-                      '-o {fout} {fin}'\
-                      .format(gpg=self.gpg, fd=fd_in, fout=out_filename, fin=in_filename)
+            if in_filename and binarymode:
+                cmd = '{gpg} --batch --no-tty --yes --symmetric --force-mdc '\
+                      '--cipher-algo {algo} --passphrase-fd {fd} -o {fout} {fin}'\
+                      .format(gpg=self.gpg, algo=cipheralgo, fd=fd_in, fout=out_filename, fin=in_filename)
             
             # If given a filename but not in binary mode, simply add filenames to our cmd
             elif in_filename:
@@ -953,7 +959,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name("a8crypt")
-        about_dialog.set_version("0.0.2")
+        about_dialog.set_version("0.0.3")
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website("http://github.com/ryran/a8crypt")
         about_dialog.set_comments("Symmetric encryption via GPG/GPG2")
