@@ -24,7 +24,7 @@ from pango import FontDescription
 from sys import stderr
 from os import access, R_OK, pipe, write, close
 from shlex import split
-from subprocess import check_output, check_call, Popen, PIPE
+from subprocess import check_output, Popen, PIPE
 from tempfile import TemporaryFile
 
 
@@ -457,7 +457,7 @@ class GpgInterface():
         from sys import stderr
         from os import pipe, write, close
         from shlex import split
-        from subprocess import check_call, Popen, PIPE
+        from subprocess import check_output, Popen, PIPE
     
     This class is modular enough that you can copy & paste it verbatim into your
     own script and the only thing you need to change/define is the one call to
