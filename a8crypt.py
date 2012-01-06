@@ -99,7 +99,6 @@ class XmlForGtkBuilder:
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">a8crypt</property>
     <property name="window_position">center</property>
-    <property name="default_width">540</property>
     <property name="default_height">340</property>
     <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
     <child>
@@ -160,7 +159,7 @@ class XmlForGtkBuilder:
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Save the current contents of the text buffer to a file</property>
+                        <property name="tooltip_text" translatable="yes">Save contents of window to a text file</property>
                         <property name="use_underline">True</property>
                         <property name="image">image3</property>
                         <property name="use_stock">False</property>
@@ -170,13 +169,13 @@ class XmlForGtkBuilder:
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menu_open">
-                        <property name="label" translatable="yes">_Open large file</property>
+                        <property name="label" translatable="yes">_Open file</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Choose a filename to pass directly to GPG
-This WILL NOT load the chosen file into the text buffer</property>
+                        <property name="tooltip_text" translatable="yes">Choose a filename to pass directly to gpg
+File WILL NOT be loaded into the text buffer</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
                         <property name="use_stock">False</property>
@@ -408,10 +407,13 @@ This WILL NOT load the chosen file into the text buffer</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Symmetric encryption/decryption passphrase</property>
+                <property name="tooltip_text" translatable="yes">Passphrase for symmetric encryption/decryption
+Max length limited only by available memory</property>
                 <property name="visibility">False</property>
                 <property name="invisible_char">●</property>
+                <property name="width_chars">8</property>
                 <property name="truncate_multiline">True</property>
+                <property name="shadow_type">etched-in</property>
                 <property name="primary_icon_activatable">False</property>
                 <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
@@ -441,8 +443,8 @@ This WILL NOT load the chosen file into the text buffer</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Cipher algorithm for encryption
-Ignored when decrypting, as GPG autodetects input</property>
+                <property name="tooltip_text" translatable="yes">Symmetric cipher algorithm for encryption
+Ignored when decrypting, as gpg auto-detects encrypted data cipher</property>
                 <property name="model">liststore1</property>
                 <property name="active">0</property>
                 <child>
@@ -772,7 +774,7 @@ class AEightCrypt:
                     "Your last file en/decryption operation succeeded. Selecting "
                     "'{0}crypt' at this point would only save a copy of the message "
                     "you see in the main window. Either load a new file from the "
-                    "'Open large file' menu, or type/paste a new message"
+                    "'Open file' menu, or type/paste a new message"
                     .format(choice.title()))
             return False
         return True
@@ -791,11 +793,11 @@ class AEightCrypt:
     def on_gtk_decrypt_activate(self, menuitem, data=None): self.crypt('de')
     
     
-    # 'Open large file' menu item
+    # 'Open file' menu item
     def on_gtk_open_activate(self, menuitem, data=None):    self.open_file()
     
     
-    # 'Save txt buffer' menu item
+    # 'Save text buffer' menu item
     def on_gtk_save_activate(self, menuitem, data=None):
         if self.sanitycheck_textviewbuff('save'):
             filename = self.chooser_grab_filename('save')
@@ -903,10 +905,6 @@ class AEightCrypt:
         the ever opening the files [in Python].
         """
         
-        # Loading message to statusbar
-        self.statusbar.push(self.status, "Choose a file for {0} to load directly"
-                            .format(self.GPG))
-
         while True:
             # Prompt for a file to open
             infile = self.chooser_grab_filename('open')
@@ -919,10 +917,10 @@ class AEightCrypt:
             # Prompt for name to save output to
             outfile = self.chooser_grab_filename('save', infile)
             if not outfile: return  # Return if user hit Cancel
+            # TODO: Get Gtk.FileChooser's confirm-overwrite signal to handle this:
             if infile != outfile: break  # We're done if we got 2 different files
             show_errmsg("Simultaneously reading from & writing to a file is a "
                         "baaad idea. Choose a different output filename.")
-            # TODO: Get Gtk.FileChooser's confirm-overwrite signal to handle this
         
         # Ready message to status; disable text view & replace it with a message
         self.statusbar.push(self.status, "Ready to direct-load file: {0}".format(infile))
@@ -980,6 +978,7 @@ class AEightCrypt:
                                      self.out_filename, binarymode, cipher):
                 
                 # Clear last two statusbar messages to get back to default
+                # 'crypting input' and 'Ready to direct-load file'
                 self.statusbar.pop(self.status) ; self.statusbar.pop(self.status)
                 
                 # Replace textview buffer with success message
@@ -997,9 +996,9 @@ class AEightCrypt:
                 self.in_filename = None
                 self.out_filename = None
             
-            # If launch_gpg() returns False, remove last status and print error
+            # If launch_gpg() returns False ...
             else:
-                self.statusbar.pop(self.status)
+                self.statusbar.pop(self.status)  # Remove 'crypting input' status
                 show_errmsg("Problem {1}crypting {2!r}\nTry again with another "
                             "passphrase or press Clear.\n\n{0}"
                             .format(self.gpgif.stderr.read(), mode, self.in_filename))
