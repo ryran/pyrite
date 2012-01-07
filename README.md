@@ -10,7 +10,7 @@ See a few more screenshots at: http://b19.org/linux/a8crypt
 
 DEPENDENCIES
 ------------
-designed for linux; need GTK2, Python, & gpg or gpg2
+designed for linux; need GTK2, Python2, & gpg or gpg2
 
 
 INSTALLATION
