@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # a8crypt v0.0.4 last mod 2012/01/06
@@ -902,7 +902,7 @@ class AEightCrypt:
         This method prompts for a filename to open (for gpg input) and then an output
         filename (to save gpg output to) and sets up everything to make it possible
         for crypt() to pass the file NAMES directly to the gpg subprocess, without
-        the ever opening the files [in Python].
+        ever opening the files [in Python].
         """
         
         while True:
