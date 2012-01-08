@@ -4,7 +4,7 @@ a8crypt - GTK/Python frontend for GPG/GPG2 symmetric encryption
 SCREENSHOTS
 -----------
 ![](http://b19.org/linux/a8crypt/encrypted_output.png)
-![](http://b19.org/linux/a8crypt/encrypt_file.png)
+![](http://b19.org/linux/a8crypt/ready_loadfile.png)
 
 See a few more screenshots at: http://b19.org/linux/a8crypt
 
