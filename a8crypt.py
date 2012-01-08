@@ -855,25 +855,14 @@ class AEightCrypt:
         
         filename = None
         
-        if mode in 'open':
-            chooser = gtk.FileChooserDialog(
-                'Open File...', self.window, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        elif mode in 'save':
-            chooser = gtk.FileChooserDialog(
-                'Save File...', self.window, gtk.FILE_CHOOSER_ACTION_SAVE,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-        
-        # TODO: Figure out how to replace above if statements with below
-        """
-        choosercmd = ('"{0} File...", self.window, gtk.FILE_CHOOSER_ACTION_{1}, '
-                      '(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, '
-                      'gtk.RESPONSE_OK)'.format(mode.title(), mode.upper()))
-        chooser = gtk.FileChooserDialog(choosercmd)
-        """
-        
+        cmd = ("gtk.FileChooserDialog('{0} File...', self.window, "
+               "gtk.FILE_CHOOSER_ACTION_{1}, (gtk.STOCK_CANCEL, "
+               "gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))"
+               .format(mode.title(), mode.upper()))
+        chooser = eval(cmd)
         chooser.set_do_overwrite_confirmation(True)
         if save_suggestion: chooser.set_current_name(save_suggestion)
+        
         response = chooser.run()
         if response == gtk.RESPONSE_OK: filename = chooser.get_filename()
         chooser.destroy()
