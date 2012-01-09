@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.1 last mod 2012/01/09
+# a8crypt v0.9.2 last mod 2012/01/09
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -83,8 +83,8 @@ class GpgInterface():
         self.gpgupper = self.gpg[:4].upper().strip()
     
     
-    def launch_gpg(self, mode, passphrase, in_file=None, out_file=None,
-                   binarymode=False, cipher='aes256'):
+    def launch_gpg(self, mode, passphrase, infile=None, outfile=None,
+                   base64=True, cipher='aes256'):
         """Start our GPG/GPG2 subprocess & save or return its output.
         
         Aside from its arguments of a passphrase & a mode of 'en' for encrypt or
@@ -101,13 +101,13 @@ class GpgInterface():
         
         Of lesser importance are the last two optional arguments.
         
-        First, the  boolean argument of binarymode: defaults to False, which
-        configures gpg to produce ASCII-armored output. A setting of True is only
-        honored when operating in direct mode, i.e., when gpg is reading input
-        from and saving output directly to files.
+        First, the  boolean argument of base64: defaults to True, which
+        configures gpg to produce base64-encoded (ASCII-armored) output. A
+        setting of True is only recommended when operating in direct mode, i.e.,
+        when infile & outfile are also provided.
         
         Second, the str argument cipher: defaults to aes256, but other good
-        choices would be cast5, twofish, camellia256. This arg corresponds to
+        choices would be cast5, camellia256, twofish. This arg corresponds to
         gpg's --cipher-algo, which defaults to cast5 & is case-insensitive.
         """
         
@@ -116,77 +116,68 @@ class GpgInterface():
             stderr.write("Improper mode specified! Must be one of 'en' or 'de'.\n")
             raise Exception("Bad mode chosen")
         
-        if in_file and not out_file:
+        if infile and not outfile:
             stderr.write("You specified {0!r} as an input file but you didn't "
-                         "specify an output file.\n".format(in_file))
-            raise Exception("Missing out_file")
+                         "specify an output file.\n".format(infile))
+            raise Exception("Missing outfile")
         
-        if in_file and in_file == out_file:
+        if infile and infile == outfile:
             stderr.write("Same file for both input and output, eh? Is it going "
                          "to work? NOPE. Chuck Testa.\n")
-            raise Exception("in_file, out_file must be different")
+            raise Exception("infile, outfile must be different")
         
-        if not in_file and not self.inputdata:
-            stderr.write("You need to save input to class attr 'inputdata' first. "
-                         "Or specify an input file.\n")
+        if not infile and not self.inputdata:
+            stderr.write("You need to save input to GpgInterface.inputdata, or "
+                         "you can specify an input & output file.\n")
             raise Exception("Missing input")
         
-        if binarymode not in {True, False}:
-            stderr.write("Improper binarymode value specified! Must be either "
-                         "True or False (default: False).\n")
-            raise Exception("Bad binarymode chosen")
+        if base64 not in {True, False}:
+            stderr.write("Improper base64 setting specified! Must be either "
+                         "True or False (default: True).\n")
+            raise Exception("Bad base64 setting chosen")
         
         # Write our passphrase to an os file descriptor
         fd_in, fd_out = pipe()
         write(fd_out, passphrase) ; close(fd_out)
         
-        # Set our encryption command
+        # Encryption mode
         if mode in 'en':
             
-            # General encryption command, including ASCII-armor option
-            cmd = ("{gpg} --batch --no-tty --yes --symmetric --force-mdc "
-                   "--cipher-algo {algo} --passphrase-fd {fd} -a"
-                   .format(gpg=self.gpg, algo=cipher, fd=fd_in))
+            # Set ASCII-armored output option
+            if base64:  a = '-a'
+            else:       a = ''
             
-            # If given filenames, add them to our cmd
-            if in_file:
-                
-                # If binary mode requested, unset ASCII-armored output first
-                if binarymode:
-                    cmd = cmd[:-2]  # Removes the last two chars of cmd ('-a')
-                cmd = ("{cmd} -o {fout} {fin}"
-                       .format(cmd=cmd, fout=out_file, fin=in_file))
+            # General encryption command -- reads stdin, writes stdout
+            cmd = ("{gpg} --batch --no-tty --yes --passphrase-fd {fd} "
+                   "--cipher-algo {cipher} --symmetric --force-mdc {a}"
+                   .format(gpg=self.gpg, fd=fd_in, cipher=cipher, a=a))
         
-        # Set our decryption command
+        # Decryption mode
         elif mode in 'de':
             
-            # General decryption command
-            cmd = ("{gpg} --batch --no-tty --yes -d --passphrase-fd {fd}"
+            # General decryption command -- reads stdin, writes stdout
+            cmd = ("{gpg} --batch --no-tty --yes --passphrase-fd {fd} -d"
                    .format(gpg=self.gpg, fd=fd_in))
-            
-            # If given filenames, add them to our cmd
-            if in_file:
-                cmd = ("{cmd} -o {fout} {fin}"
-                       .format(cmd=cmd, fout=out_file, fin=in_file))
         
-        # If working with files directly ...
-        if in_file:
+        # If given filenames, add them to our cmd & setup our Popen instance
+        if infile:
+            cmd = "{cmd} -o {fout} {fin}".format(cmd=cmd, fout=outfile, fin=infile)
             P = Popen(split(cmd), stdout=PIPE, stderr=PIPE)
         
-        # Otherwise, need to pass 'inputdata' to stdin over PIPE
+        # Otherwise, only difference for Popen is we need the stdin pipe
         else:
             P = Popen(split(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
-        # Kick it off and save output for later
+        # Time to communicate! Save output for later
         self.stdout, self.stderr = P.communicate(input=self.inputdata)
         
-        # How did it go?
+        # Save retval (based on gpg exit code) for later
         if P.returncode == 0:
             retval = True
         else:
             retval = False
         
-        # Close fd, print stderr, return process output
+        # Close fd, print gpg stderr, return success boolean
         close(fd_in)
         stderr.write(self.stderr)
         return retval
@@ -977,12 +968,12 @@ class AEightCrypt:
             
             # Encryption only: if input file is binary, don't ASCII-armor output
             if self.file_isbinary(self.in_filename):
-                binarymode = True
-            else: binarymode = False
+                base64 = False
+            else: base64 = True
             
             # Attempt en-/de-cryption; if succeeds, cleanup & print success
             if self.gpgif.launch_gpg(mode, passphrase, self.in_filename,
-                                     self.out_filename, binarymode, cipher):
+                                     self.out_filename, base64, cipher):
                 
                 # Clear last two statusbar messages to get back to default
                 # 'crypting input' and 'Ready to encrypt or decrypt file'
@@ -1037,7 +1028,7 @@ class AEightCrypt:
                 buff.set_text(self.gpgif.stdout)
             
             # Otherwise, show error, incl gpg stderr
-            # (this could only happen in decrypt mode)
+            # (this could only happen in decrypt mode [as long as cipher choice is valid])
             else:
                 show_errmsg("Error in decryption process.\n\n{0}"
                             .format(self.gpgif.stderr))
