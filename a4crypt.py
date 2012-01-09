@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# a4crypt v0.9.0 last mod 2012/01/08
+# a4crypt v0.9.1 last mod 2012/01/09
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2011, 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -57,13 +57,11 @@ class GpgInterface():
         """Confirm we can run gpg or gpg2."""
         
         try:
-            P = Popen(['gpg', '--version'], stdout=PIPE)
-            gpgvers = P.communicate()[0]
+            vgpg = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
             self.gpg = 'gpg --no-use-agent'
         except:
             try:
-                P = Popen(['gpg2', '--version'], stdout=PIPE)
-                gpgvers = P.communicate()[0]
+                vgpg = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
                 self.gpg = 'gpg2'
             except:
                 stderr.write("This program requires either gpg or gpg2, neither "
@@ -72,7 +70,7 @@ class GpgInterface():
         
         # To show or not to show (gpg --version output)
         if show_version:
-            stderr.write("{0}\n".format(gpgvers))
+            stderr.write("{0}\n".format(vgpg))
         
         # Class attributes
         self.inputdata = None   # Stores input text for launch_gpg()
