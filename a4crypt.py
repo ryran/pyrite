@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# a4crypt v0.9.2 last mod 2012/01/09
+# a4crypt v0.9.3 last mod 2012/01/10
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2011, 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -27,23 +27,44 @@ from getpass import getpass
 
 
 class GpgInterface():
-    """GPG/GPG2 interface for simple symmetric encryption/decryption.
+    """GPG/GPG2 interface for encryption/decryption.
     
     First thing: use subprocess module to call a gpg or gpg2 process, ensuring
     that one of them is available on the system; if not, of course we have to
     quit (raise exception). Either way, that's all for __init__.
     
-    After that, it's up to you to call GpgInterface.launch_gpg(), giving it
-    a passphrase, telling it whether you want encryption or decryption, and
-    optionally passing it input and output filenames. See launch_gpg.__doc__ for
-    details, but if you don't give filenames to launch_gpg(), you must first
-    save your input to GpgInterface.inputdata; output goes to GpgInterface.stdout.
+    To perform asymmetric (key-based) encryption or decryption, call
+    GpgInterface.acrypt(). If encrypting, you must specify at least one recipient
+    with recipients=''. Separate multiple recipients with spaces.
     
-    Security: The launch_gpg() method takes a passphrase as an argument, but it
-    never stores it on disk (not even in a tempfile); the passphrase is passed to
-    gpg via an os file descriptor. Also, AES256 is used by default as the
-    symmetric cipher algorithm for encryption (in contrast to GPG/GPG2's standard
-    behavior of using CAST5), but this can be changed.
+    For symmetric (passphrase-based) crypting, use GpgInterface.scrypt(). This
+    requires specifying a passphrase to encrypt or decrypt.    
+    
+    Aside from the above, there are no differences between the two methods.
+    
+    Both require specifying a mode ('en' for encrypt; 'de' for decrypt) and can
+    optionally take arguments of filenames to pass directly to gpg (for input &
+    output). If these optional arguments are not used, input is read from
+    GpgInterface.stdin (which must contain normal non-list data).
+    
+    Whether reading from GpgInterface.stdin or using filenames, both crypt
+    methods save gpg's stdout & stderr streams to GpgInterface.stdout &
+    GpgInterface.stderr and return a success status boolean (set by the exit
+    code of gpg). Additionally, gpg stderr is written to sys.stderr regardless
+    of how gpg exits.
+        
+    Both acrypt() and scrypt() have two more optional arguments:
+
+    base64 (bool) -- Defaults to True, configuring gpg to produce base64-encoded
+    (ASCII-armored) output.
+        
+    cipher -- Defaults to AES256, but other good/common choices are CAST5,
+    Camellia256, Twofish, Blowfish. This argument corresponds to the gpg
+    --cipher-algo option, which defaults to CAST5 and is case-insensitive.
+    
+    Security: GpgInterface.scrypt() takes a passphrase as an argument, but it
+    never stores that passphrase on disk; the passphrase is passed to gpg via an
+    os file descriptor.
     
     List of StdLib modules/methods used and how they're expected to be named:
         from sys import stderr
@@ -73,44 +94,21 @@ class GpgInterface():
             stderr.write("{0}\n".format(vgpg))
         
         # Class attributes
-        self.inputdata = None   # Stores input text for launch_gpg()
+        self.stdin = None       # Stores input text for acrypt() or scrypt()
         self.stdout = None      # Stores stdout stream from gpg subprocess
         self.stderr = None      # Stores stderr stream from gpg subprocess
         # Convert 'gpg --opts' or 'gpg2 --opts' to simply 'GPG' or 'GPG2'
         self.gpgupper = self.gpg[:4].upper().strip()
     
     
-    def launch_gpg(self, mode, passphrase, infile=None, outfile=None,
-                   base64=True, cipher='aes256'):
-        """Start our GPG/GPG2 subprocess & save or return its output.
+    def __sanitycheck_crypt_args(self, caller, mode, infile=None, outfile=None, base64=True, recipients=None):
+        """Sanity check arguments of GpgInterface's acrypt & scrypt methods.
         
-        Aside from its arguments of a passphrase & a mode of 'en' for encrypt or
-        'de' for decrypt, this method can optionally take an argument of two os
-        filenames (for input and output). If these optional arguments are not
-        used, input is read from GpgInterface.inputdata (which can contain normal
-        non-list data).
-        
-        Whether reading from GpgInterface.inputdata or using filenames, this
-        method saves the stdout and stderr streams from the gpg subpocess to
-        GpgInterface.stdout & GpgInterface.stderr and returns retval, a boolean
-        set by gpg's exit code. Additionally, gpg stderr is written to sys.stderr
-        regardless of gpg exit code.
-        
-        Of lesser importance are the last two optional arguments.
-        
-        First, the  boolean argument of base64: defaults to True, which
-        configures gpg to produce base64-encoded (ASCII-armored) output. A
-        setting of True is only recommended when operating in direct mode, i.e.,
-        when infile & outfile are also provided.
-        
-        Second, the str argument cipher: defaults to aes256, but other good
-        choices would be cast5, camellia256, twofish. This arg corresponds to
-        gpg's --cipher-algo, which defaults to cast5 & is case-insensitive.
+        Intended to be called from the beginning of scrypt() and acrypt().
         """
         
-        # Sanity checking of arguments and input
         if mode not in {'en', 'de'}:
-            stderr.write("Improper mode specified! Must be one of 'en' or 'de'.\n")
+            stderr.write("Improper mode specified. Must be one of 'en' or 'de'.\n")
             raise Exception("Bad mode chosen")
         
         if infile and not outfile:
@@ -120,18 +118,73 @@ class GpgInterface():
         
         if infile and infile == outfile:
             stderr.write("Same file for both input and output, eh? Is it going "
-                         "to work? NOPE. Chuck Testa.\n")
+                         "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
         
-        if not infile and not self.inputdata:
-            stderr.write("You need to save input to GpgInterface.inputdata, or "
-                         "you can specify an input & output file.\n")
+        if not infile and not self.stdin:
+            stderr.write("You must either save input to GpgInterface.stdin, or "
+                         "specify input & output files.\n")
             raise Exception("Missing input")
         
         if base64 not in {True, False}:
-            stderr.write("Improper base64 setting specified! Must be either "
+            stderr.write("Improper base64 setting specified. Must be either "
                          "True or False (default: True).\n")
             raise Exception("Bad base64 setting chosen")
+        
+        if caller in 'acrypt' and mode in 'en' and not recipients:
+            stderr.write("You must specify at least one recipient with "
+                         "recipients='XXX' (use spaces to separate).\n")
+            raise Exception("Missing recipient")
+    
+    
+    # ASYMMETRIC
+    def acrypt(self, mode, infile=None, outfile=None, recipients=None, base64=True, cipher='aes256'):
+        """Launch gpg in ASYMMETRIC mode (public/private keypairs).
+        
+        If encrypting, at least one recipient must be specified with
+        recipients=''. Separate multiple recipients with spaces.
+        """
+        
+        # Sanity checking of arguments and input
+        self.__sanitycheck_crypt_args('acrypt', mode, infile, outfile, base64, recipients)
+        
+        # Encryption mode
+        if mode in 'en':
+            
+            # Set ASCII-armored output option
+            if base64:  a = '--armor'
+            else:       a = ''
+            
+            # Prepare recipients by prepending each with -r
+            recipients = recipients.replace(' ', ' -r ')
+            
+            # General encryption command -- reads stdin, writes stdout
+            cmd = ("{gpg} {a} --cipher-algo {cipher} --encrypt -r {recip}"
+                   .format(gpg=self.gpg[:4], a=a, cipher=cipher, recip=recipients))
+        
+        # Decryption mode
+        elif mode in 'de':
+            
+            # General decryption command -- reads stdin, writes stdout
+            cmd = "{gpg} -d".format(gpg=self.gpg)
+        
+        # If given filenames, add them to our cmd before finishing up
+        if infile:
+            cmd = "{cmd} -o {fout} {fin}".format(cmd=cmd, fout=outfile, fin=infile)
+            return self.__crypt_launch(cmd, filemode=True)
+        else:
+            return self.__crypt_launch(cmd, filemode=False)
+    
+    
+    # SYMMETRIC
+    def scrypt(self, mode, passphrase, infile=None, outfile=None, base64=True, cipher='aes256'):
+        """Launch gpg in SYMMETRIC mode (passphrase used for shared key).
+        
+        The same passphrase is required for both encryption and decryption.
+        """
+        
+        # Sanity checking of arguments and input
+        self.__sanitycheck_crypt_args('scrypt', mode, infile, outfile, base64)
         
         # Write our passphrase to an os file descriptor
         fd_in, fd_out = pipe()
@@ -156,9 +209,19 @@ class GpgInterface():
             cmd = ("{gpg} --batch --no-tty --yes --passphrase-fd {fd} -d"
                    .format(gpg=self.gpg, fd=fd_in))
         
-        # If given filenames, add them to our cmd & setup our Popen instance
+        # If given filenames, add them to our cmd before finishing up
         if infile:
             cmd = "{cmd} -o {fout} {fin}".format(cmd=cmd, fout=outfile, fin=infile)
+            return self.__crypt_launch(cmd, filemode=True, fd=fd_in)
+        else:
+            return self.__crypt_launch(cmd, filemode=False, fd=fd_in)
+    
+    
+    def __crypt_launch(self, cmd, filemode, fd=None):
+        """Helper function to close the deal at the end of ?crypt()."""
+        
+        # If working direct with files, setup our Popen instance with no stdin
+        if filemode:
             P = Popen(split(cmd), stdout=PIPE, stderr=PIPE)
         
         # Otherwise, only difference for Popen is we need the stdin pipe
@@ -166,18 +229,19 @@ class GpgInterface():
             P = Popen(split(cmd), stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
         # Time to communicate! Save output for later
-        self.stdout, self.stderr = P.communicate(input=self.inputdata)
+        self.stdout, self.stderr = P.communicate(input=self.stdin)
         
-        # Save retval (based on gpg exit code) for later
+        # Print gpg stderr
+        stderr.write(self.stderr)        
+        
+        # Close os file descriptor if necessary
+        if fd: close(fd)
+        
+        # Return based on gpg exit code
         if P.returncode == 0:
-            retval = True
+            return True
         else:
-            retval = False
-        
-        # Close fd, print gpg stderr, return success boolean
-        close(fd_in)
-        stderr.write(self.stderr)
-        return retval
+            return False
 
 
 
@@ -193,8 +257,7 @@ class AFourCrypt:
     The actual encryption and decryption is handled by the GpgInterface class.
     So all this really does is setup some pretty colors for terminal output,
     prompt for user input & passphrases, pass it all over to
-    GpgInterface.launch_gpg(), and display the output. So see the docstring
-    for that if you want more info about how the real work is done.
+    GpgInterface.scrypt(), and display the output.
     """
     
     
@@ -202,7 +265,7 @@ class AFourCrypt:
         """Decide GPG or GPG2 and define class attrs."""
         
         # Instantiate GpgInterface, which will check for gpg/gpg2
-        self.gpgif = GpgInterface(show_version=False)
+        self.g = GpgInterface(show_version=False)
         
         # Set default symmetric encryption cipher algo
         self.cipher = 'AES256'
@@ -264,7 +327,7 @@ class AFourCrypt:
     def load_main(self):
         """Load initial prompt and kick off all the other functions."""
         
-        GPG = self.gpgif.gpgupper
+        GPG = self.g.gpgupper
         # Banner/question
         print("{0.p}<{gpg}>".format(self.c, gpg=GPG)),
         print("{B}Choose: [{r}e{B}]ncrypt, [{r}d{B}]ecrypt, [{r}c{B}]ipher, "
@@ -283,9 +346,9 @@ class AFourCrypt:
         # CIPHER-SETTING MODE
         elif mode in 'c':
             
-            print("{0.p}Set symmetric encryption cipher algorithm{0.Z}\n"
-                  "Good choices: AES256, CAST5, CAMELLIA256, TWOFISH\n"
-                  "Current setting: {0.r}{1}{0.Z} (gpg default: {0.r}CAST5{0.Z})\n"
+            print("{0.p}Set cipher algorithm for encryption{0.Z}\n"
+                  "Good choices: AES256, Camellia256, Twofish, CAST5\n"
+                  "Current setting: {0.r}{1}{0.Z} (gpg default: CAST5)\n"
                   "{0.p}Input new choice (case-insensitive) or Enter to cancel{0.B}"
                   .format(self.c, self.cipher))
             
@@ -302,19 +365,19 @@ class AFourCrypt:
             print("{b}Type or paste message to be encrypted.\nEnd with line "
                   "containing only a triple-semicolon, i.e. {B};;;\n:{Z}"
                   .format(**self.c._asdict())),
-            self.gpgif.inputdata = self.get_multiline_input(';;;')
+            self.g.stdin = self.get_multiline_input(';;;')
             print
             
             # Get passphrase from the user
             passphrase = self.get_passphrase(confirm=True)
             
             # Launch our subprocess and print the output
-            retval = self.gpgif.launch_gpg('en', passphrase, cipher=self.cipher)
+            retval = self.g.scrypt('en', passphrase, cipher=self.cipher)
             
             # If gpg succeeded, print output
             if retval:
                 print("{0.g}\nEncrypted message follows:\n\n{0.c}{output}{0.Z}"
-                      .format(self.c, output=self.gpgif.stdout))
+                      .format(self.c, output=self.g.stdout))
             
             # Otherwise, user must have picked a bad cipher-algo
             else:
@@ -328,22 +391,22 @@ class AFourCrypt:
             # Get our encrypted message from the user; save to variable
             print("{b}Paste gpg-encrypted message to be decrypted.\n{B}:{Z}"
                   .format(**self.c._asdict())),
-            self.gpgif.inputdata = self.get_multiline_input(
-                '-----END PGP MESSAGE-----', keeplastline=True)
+            self.g.stdin = self.get_multiline_input('-----END PGP MESSAGE-----',
+                                                    keeplastline=True)
             print
             
             # Get passphrase from the user
             passphrase = self.get_passphrase(confirm=False)
             
             # Launch our subprocess
-            retval = self.gpgif.launch_gpg('de', passphrase)
+            retval = self.g.scrypt('de', passphrase)
             
             while True:
                 
                 # If gpg succeeded, print output
                 if retval:
                     print("{0.g}\nDecrypted message follows:\n\n{0.c}{output}"
-                          "{0.Z}\n".format(self.c, output=self.gpgif.stdout))
+                          "{0.Z}\n".format(self.c, output=self.g.stdout))
                     break
                 
                 # Otherwise, print error and give option to try again
@@ -353,7 +416,7 @@ class AFourCrypt:
                     tryagain = self.test_rawinput("[y/n]: ", 'y', 'n')
                     if tryagain in 'n': break
                     passphrase = self.get_passphrase(confirm=False)
-                    retval = self.gpgif.launch_gpg('de', passphrase)
+                    retval = self.g.scrypt('de', passphrase)
 
 
 
