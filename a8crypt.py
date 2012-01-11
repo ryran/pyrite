@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.3 last mod 2012/01/10
+# a8crypt v0.9.5 last mod 2012/01/11
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -16,17 +16,16 @@
 #    General Public License <gnu.org/licenses/gpl.html> for more details.
 #------------------------------------------------------------------------------
 #
-# TODO: What to say here? It's all said in the comments and docstrings. ...
-# TODO: Implement handling of asymmetric encryption/decryption in GpgInterface
-#       and AEightCrypt
+# TODO: Learn enough about GTK to replace Glade xml with GTK calls
 
-from sys import stderr
-from os import access, R_OK, pipe, write, close
-from shlex import split
-from subprocess import check_output, Popen, PIPE
+# Modules from the Standard Library
 import gtk
 from pango import FontDescription
-
+from sys import stderr
+from os import access, R_OK
+from os import pipe, write, close
+from shlex import split
+from subprocess import Popen, PIPE, check_output
 
 
 class GpgInterface():
@@ -36,12 +35,12 @@ class GpgInterface():
     that one of them is available on the system; if not, of course we have to
     quit (raise exception). Either way, that's all for __init__.
     
+    For symmetric (passphrase-based) encryption & decryption, use
+    GpgInterface.scrypt(). This requires specifying a passphrase.
+    
     To perform asymmetric (key-based) encryption or decryption, call
     GpgInterface.acrypt(). If encrypting, you must specify at least one recipient
-    with recipients=''. Separate multiple recipients with spaces.
-    
-    For symmetric (passphrase-based) crypting, use GpgInterface.scrypt(). This
-    requires specifying a passphrase to encrypt or decrypt.    
+    with recipients=''. Separate multiple recipients with semicolons.
     
     Aside from the above, there are no differences between the two methods.
     
@@ -56,14 +55,19 @@ class GpgInterface():
     code of gpg). Additionally, gpg stderr is written to sys.stderr regardless
     of how gpg exits.
         
-    Both acrypt() and scrypt() have two more optional arguments:
+    Both acrypt() and scrypt() have three more optional arguments:
 
     base64 (bool) -- Defaults to True, configuring gpg to produce base64-encoded
     (ASCII-armored) output.
         
-    cipher -- Defaults to AES256, but other good/common choices are CAST5,
-    Camellia256, Twofish, Blowfish. This argument corresponds to the gpg
-    --cipher-algo option, which defaults to CAST5 and is case-insensitive.
+    cipher -- If not specified, gpg decides which cipher to use (which will
+    depend on your gpg settings and the preferences of the pubkeys you're using
+    for encryption). Good or common choices: AES256, Twofish, Camellia256,
+    AES192, Camellia192, CAST5, Blowfish. This argument corresponds to the gpg
+    --cipher-algo option, which is case-insensitive, by the way.
+    
+    sign (bool) -- Defaults to False; setting to True will tell gpg to sign the
+    encrypted output using your secret key.
     
     Security: GpgInterface.scrypt() takes a passphrase as an argument, but it
     never stores that passphrase on disk; the passphrase is passed to gpg via an
@@ -73,7 +77,7 @@ class GpgInterface():
         from sys import stderr
         from os import pipe, write, close
         from shlex import split
-        from subprocess import Popen, PIPE
+        from subprocess import Popen, PIPE, check_output
     """
     
     
@@ -81,12 +85,12 @@ class GpgInterface():
         """Confirm we can run gpg or gpg2."""
         
         try:
-            vgpg = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
-            self.gpg = 'gpg --no-use-agent'
+            vgpg = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
+            self.GPG = 'gpg2'
         except:
             try:
-                vgpg = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
-                self.gpg = 'gpg2'
+                vgpg = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
+                self.GPG = 'gpg'
             except:
                 stderr.write("This program requires either gpg or gpg2, neither "
                              "of which were found on your system.\n\n")
@@ -94,28 +98,33 @@ class GpgInterface():
         
         # To show or not to show (gpg --version output)
         if show_version:
-            stderr.write("{0}\n".format(vgpg))
+            stderr.write("{}\n".format(vgpg))
         
         # Class attributes
         self.stdin = None       # Stores input text for acrypt() or scrypt()
         self.stdout = None      # Stores stdout stream from gpg subprocess
         self.stderr = None      # Stores stderr stream from gpg subprocess
-        # Convert 'gpg --opts' or 'gpg2 --opts' to simply 'GPG' or 'GPG2'
-        self.gpgupper = self.gpg[:4].upper().strip()
     
     
-    def __sanitycheck_crypt_args(self, caller, mode, infile=None, outfile=None, base64=True, recipients=None):
-        """Sanity check arguments of GpgInterface's acrypt & scrypt methods.
-        
-        Intended to be called from the beginning of scrypt() and acrypt().
-        """
+    # Generic filetype test to see if a file contains binary data or simply text
+    def test_file_isbinary(self, filename):
+        """Utilize nix file cmd to determine if filename is binary or text."""
+        output = check_output(split("file -b -e soft {}".format(filename)))
+        if output[:4] in {'ASCI', 'UTF-'}:
+            return False
+        return True
+    
+    
+    # Sanity check arguments of scrypt or acrypt
+    def __sanitycheck_crypt_args(self, caller, mode, infile=None, outfile=None,
+                                 base64=True, sign=False, recipients=None):
         
         if mode not in {'en', 'de'}:
             stderr.write("Improper mode specified. Must be one of 'en' or 'de'.\n")
             raise Exception("Bad mode chosen")
         
         if infile and not outfile:
-            stderr.write("You specified {0!r} as an input file but you didn't "
+            stderr.write("You specified {!r} as an input file but you didn't "
                          "specify an output file.\n".format(infile))
             raise Exception("Missing outfile")
         
@@ -134,60 +143,46 @@ class GpgInterface():
                          "True or False (default: True).\n")
             raise Exception("Bad base64 setting chosen")
         
+        if sign not in {True, False}:
+            stderr.write("Improper sign setting specified. Must be either "
+                         "True or False (default: False).\n")
+            raise Exception("Bad sign setting chosen")
+        
         if caller in 'acrypt' and mode in 'en' and not recipients:
             stderr.write("You must specify at least one recipient with "
-                         "recipients='XXX' (use spaces to separate).\n")
+                         "recipients='XXX' (use semicolons to separate).\n")
             raise Exception("Missing recipient")
     
     
-    # ASYMMETRIC
-    def acrypt(self, mode, infile=None, outfile=None, recipients=None, base64=True, cipher='aes256'):
-        """Launch gpg in ASYMMETRIC mode (public/private keypairs).
-        
-        If encrypting, at least one recipient must be specified with
-        recipients=''. Separate multiple recipients with spaces.
-        """
-        
-        # Sanity checking of arguments and input
-        self.__sanitycheck_crypt_args('acrypt', mode, infile, outfile, base64, recipients)
-        
-        # Encryption mode
-        if mode in 'en':
-            
-            # Set ASCII-armored output option
-            if base64:  a = '--armor'
-            else:       a = ''
-            
-            # Prepare recipients by prepending each with -r
-            recipients = recipients.replace(' ', ' -r ')
-            
-            # General encryption command -- reads stdin, writes stdout
-            cmd = ("{gpg} {a} --cipher-algo {cipher} --encrypt -r {recip}"
-                   .format(gpg=self.gpg[:4], a=a, cipher=cipher, recip=recipients))
-        
-        # Decryption mode
-        elif mode in 'de':
-            
-            # General decryption command -- reads stdin, writes stdout
-            cmd = "{gpg} -d".format(gpg=self.gpg)
-        
-        # If given filenames, add them to our cmd before finishing up
-        if infile:
-            cmd = "{cmd} -o {fout} {fin}".format(cmd=cmd, fout=outfile, fin=infile)
-            return self.__crypt_launch(cmd, filemode=True)
-        else:
-            return self.__crypt_launch(cmd, filemode=False)
+    # Convert scrypt or acrypt encryption-mode arguments into gpg options
+    def __prep_encrypt_opts(self, base64, cipher, sign):
+        # ASCII-armor
+        if base64:  a = '--armor'
+        else:       a = ''
+        # cipher-algo
+        if cipher:  cipher = "--cipher-algo {}".format(cipher)
+        else:       cipher = ''
+        # encrypt+sign
+        if sign:    sign = '--sign'
+        else:       sign = ''
+        return a, cipher, sign
     
     
     # SYMMETRIC
-    def scrypt(self, mode, passphrase, infile=None, outfile=None, base64=True, cipher='aes256'):
+    def scrypt(self, mode, passphrase, infile=None, outfile=None, base64=True,
+               cipher=None, sign=False):
         """Launch gpg in SYMMETRIC mode (passphrase used for shared key).
         
         The same passphrase is required for both encryption and decryption.
         """
         
         # Sanity checking of arguments and input
-        self.__sanitycheck_crypt_args('scrypt', mode, infile, outfile, base64)
+        self.__sanitycheck_crypt_args('scrypt', mode, infile, outfile, base64,
+                                      sign)
+        
+        # Set gpg1-specific options for symmetric
+        GPG = self.GPG
+        if GPG in 'gpg':    GPG = 'gpg --no-use-agent'
         
         # Write our passphrase to an os file descriptor
         fd_in, fd_out = pipe()
@@ -196,21 +191,20 @@ class GpgInterface():
         # Encryption mode
         if mode in 'en':
             
-            # Set ASCII-armored output option
-            if base64:  a = '-a'
-            else:       a = ''
+            # Convert args to gpg options
+            a, cipher, sign = self.__prep_encrypt_opts(base64, cipher, sign)
             
             # General encryption command -- reads stdin, writes stdout
-            cmd = ("{gpg} --batch --no-tty --yes --passphrase-fd {fd} "
-                   "--cipher-algo {cipher} --symmetric --force-mdc {a}"
-                   .format(gpg=self.gpg, fd=fd_in, cipher=cipher, a=a))
+            cmd = ("{gpg} -v --symmetric {a} --force-mdc {cipher} {sign} "
+                   "--passphrase-fd {fd} --batch --no-tty --yes"
+                   .format(gpg=GPG, a=a, cipher=cipher, sign=sign, fd=fd_in))
         
         # Decryption mode
         elif mode in 'de':
             
             # General decryption command -- reads stdin, writes stdout
-            cmd = ("{gpg} --batch --no-tty --yes --passphrase-fd {fd} -d"
-                   .format(gpg=self.gpg, fd=fd_in))
+            cmd = ("{gpg} -v --decrypt --passphrase-fd {fd} --batch --no-tty --yes"
+                   .format(gpg=GPG, fd=fd_in))
         
         # If given filenames, add them to our cmd before finishing up
         if infile:
@@ -218,6 +212,55 @@ class GpgInterface():
             return self.__crypt_launch(cmd, filemode=True, fd=fd_in)
         else:
             return self.__crypt_launch(cmd, filemode=False, fd=fd_in)
+    
+    
+    # ASYMMETRIC
+    def acrypt(self, mode, recipients=None, infile=None, outfile=None,
+               base64=True, cipher=None, sign=False):
+        """Launch gpg in ASYMMETRIC mode (public/private keypairs).
+        
+        If encrypting, at least one recipient must be specified with
+        recipients=''. Use a semicolon to separate multiple recipients.
+        """
+        
+        # Sanity checking of arguments and input
+        self.__sanitycheck_crypt_args('acrypt', mode, infile, outfile, base64,
+                                      sign, recipients)
+        
+        # Set gpg1-specific options for asymmetric
+        GPG = self.GPG
+        if GPG in 'gpg':    GPG = 'gpg --use-agent'
+        
+        # Encryption mode
+        if mode in 'en':
+            
+            # Convert args to gpg options
+            a, cipher, sign = self.__prep_encrypt_opts(base64, cipher, sign)
+            
+            # Prepare recipients by stripping extraneous semicolons and then
+            #   replacing each remaining semicolon with '-r'
+            while recipients[-1] == ' ' or recipients[-1] == ';':
+                recipients = recipients.strip()
+                recipients = recipients.strip(';')
+            recipients = recipients.replace(';', ' -r ')
+        
+            # General encryption command -- reads stdin, writes stdout
+            cmd = ("{gpg} -v --encrypt {a} {cipher} {sign} -r {recip} "
+                   "--batch --no-tty --yes"
+                   .format(gpg=GPG, a=a, cipher=cipher, sign=sign, recip=recipients))
+        
+        # Decryption mode
+        elif mode in 'de':
+            
+            # General decryption command -- reads stdin, writes stdout
+            cmd = "{gpg} -v --decrypt --batch --no-tty --yes".format(gpg=GPG)
+        
+        # If given filenames, add them to our cmd before finishing up
+        if infile:
+            cmd = "{cmd} -o {fout} {fin}".format(cmd=cmd, fout=outfile, fin=infile)
+            return self.__crypt_launch(cmd, filemode=True)
+        else:
+            return self.__crypt_launch(cmd, filemode=False)
     
     
     def __crypt_launch(self, cmd, filemode, fd=None):
@@ -235,7 +278,8 @@ class GpgInterface():
         self.stdout, self.stderr = P.communicate(input=self.stdin)
         
         # Print gpg stderr
-        stderr.write(self.stderr)        
+        stderr.write(self.stderr)
+        stderr.write("-----------\n")
         
         # Close os file descriptor if necessary
         if fd: close(fd)
@@ -245,7 +289,6 @@ class GpgInterface():
             return True
         else:
             return False
-
 
 
 
@@ -277,6 +320,21 @@ class XmlForGtkBuilder:
     <property name="can_focus">False</property>
     <property name="stock">gtk-open</property>
   </object>
+  <object class="GtkImage" id="image5">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-clear</property>
+  </object>
+  <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save</property>
+  </object>
+  <object class="GtkImage" id="image7">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-clear</property>
+  </object>
   <object class="GtkListStore" id="liststore1">
     <columns>
       <!-- column-name Text -->
@@ -284,19 +342,34 @@ class XmlForGtkBuilder:
     </columns>
     <data>
       <row>
+        <col id="0" translatable="yes">Default</col>
+      </row>
+      <row>
         <col id="0" translatable="yes">AES256</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Twofish</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Camellia256</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">AES192</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Camellia192</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">AES</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Camellia128</col>
       </row>
       <row>
         <col id="0" translatable="yes">CAST5</col>
       </row>
       <row>
-        <col id="0" translatable="yes">CAMELLIA256</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">TWOFISH</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">BLOWFISH</col>
+        <col id="0" translatable="yes">Blowfish</col>
       </row>
       <row>
         <col id="0" translatable="yes">3DES</col>
@@ -325,12 +398,12 @@ class XmlForGtkBuilder:
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
+                  <object class="GtkMenu" id="filemenu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menu_encrypt">
-                        <property name="label" translatable="yes">E_ncrypt</property>
+                        <property name="label" translatable="yes">_Encrypt</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -382,7 +455,8 @@ class XmlForGtkBuilder:
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Choose a filename to pass directly to gpg
+                        <property name="tooltip_text" translatable="yes">Choose a filename to pass directly to gpg as input
+
 File WILL NOT be loaded into the text buffer</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
@@ -419,10 +493,10 @@ File WILL NOT be loaded into the text buffer</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Edit</property>
+                <property name="label" translatable="yes">Edi_t</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
+                  <object class="GtkMenu" id="editmenu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -463,14 +537,41 @@ File WILL NOT be loaded into the text buffer</property>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menu_clear">
-                        <property name="label">gtk-clear</property>
+                        <property name="label">Cle_ar</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Resets all buffers</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image7</property>
+                        <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_gtk_clear_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="sep1">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menu_savecipherpref">
+                        <property name="label" translatable="yes">_Make cipher selection default</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Attempts to modify the a8crypt script to permanently change the default cipher setting
+
+This will fail if a8crypt is not writable</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image6</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="on_gtk_savecipherpref_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -485,7 +586,7 @@ File WILL NOT be loaded into the text buffer</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu3">
+                  <object class="GtkMenu" id="helpmenu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -516,13 +617,61 @@ File WILL NOT be loaded into the text buffer</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
+              <object class="GtkCheckButton" id="checkbutton_binary">
+                <property name="label" translatable="yes">_Binary</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Configures gpg output mode for encryption
+
+When checked, gpg produces traditional binary output; otherwise, gpg produces ASCII-armored (text) output
+
+On opening a file, this is set based on whether the file is detected as binary data or text, but it can be overridden
+
+Setting not used when decrypting</property>
+                <property name="use_underline">True</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">2</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="checkbutton_sign">
+                <property name="label" translatable="yes">Si_gn</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">In asymmetric encryption mode, this tells gpg to use your secret key to sign output
+
+Setting not used when decrypting</property>
+                <property name="use_underline">True</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">2</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkHButtonBox" id="hbuttonbox1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="layout_style">edge</property>
                 <child>
                   <object class="GtkButton" id="button_encrypt">
-                    <property name="label" translatable="yes">E_ncrypt</property>
+                    <property name="label" translatable="yes">_Encrypt</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -558,30 +707,11 @@ File WILL NOT be loaded into the text buffer</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkButton" id="button_clear">
-                    <property name="label">gtk-clear</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Reset everything [except cipher setting]</property>
-                    <property name="use_stock">True</property>
-                    <property name="focus_on_click">False</property>
-                    <signal name="clicked" handler="on_gtk_clear_activate" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -592,30 +722,67 @@ File WILL NOT be loaded into the text buffer</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">4</property>
-                <property name="position">1</property>
+                <property name="padding">6</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label_passphrase">
+              <object class="GtkCheckButton" id="checkbutton_symmetric">
+                <property name="label" translatable="yes">_Symmetric</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Toggle between symmetric and asymmetric encryption / decryption modes
+
+Symmetric requires specifying a passphrase as a shared key (for both encryption &amp; decryption)
+
+Asymmetric requires specifying recipients whose public keys will be used for encryption; or for decryption, it requires access to your gpg secret key</property>
+                <property name="use_underline">True</property>
+                <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="on_gtk_symmetric_toggle_activate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVSeparator" id="vseparator2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Passphrase: </property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">entry_passphrase</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="padding">6</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="entry_passphrase">
+              <object class="GtkLabel" id="label_entry_passrecip">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Passphrase: </property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">entry_passrecip</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_passrecip">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Symmetric encryption/decryption key
+
 Max length limited only by available memory</property>
                 <property name="visibility">False</property>
                 <property name="invisible_char">●</property>
@@ -630,31 +797,37 @@ Max length limited only by available memory</property>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="position">7</property>
               </packing>
             </child>
             <child>
-              <object class="GtkVSeparator" id="vseparator2">
+              <object class="GtkVSeparator" id="vseparator3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">4</property>
-                <property name="position">4</property>
+                <property name="padding">6</property>
+                <property name="position">8</property>
               </packing>
             </child>
             <child>
-              <object class="GtkComboBox" id="combobox1">
+              <object class="GtkComboBox" id="combobox_cipher">
                 <property name="width_request">96</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Symmetric encryption cipher algorithm
-Ignored when decrypting, as gpg auto-detects encrypted data cipher</property>
+                <property name="tooltip_text" translatable="yes">Configures symmetric encryption cipher algorithm
+
+In asymmetric mode, the chosen cipher is used in concert with recipients' pubkeys for encryption
+
+With 'Default', gpg decides the cipher based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)
+
+Setting not used when decrypting</property>
                 <property name="model">liststore1</property>
-                <property name="active">0</property>
+                <property name="active">5</property>
+                <accelerator key="c" signal="popup" modifiers="GDK_MOD1_MASK"/>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
                   <attributes>
@@ -665,7 +838,7 @@ Ignored when decrypting, as gpg auto-detects encrypted data cipher</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">6</property>
+                <property name="position">9</property>
               </packing>
             </child>
           </object>
@@ -683,7 +856,7 @@ Ignored when decrypting, as gpg auto-detects encrypted data cipher</property>
             <property name="vscrollbar_policy">automatic</property>
             <property name="shadow_type">etched-in</property>
             <child>
-              <object class="GtkTextView" id="textview1">
+              <object class="GtkTextView" id="textview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_focus">True</property>
@@ -701,7 +874,7 @@ Ignored when decrypting, as gpg auto-detects encrypted data cipher</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkStatusbar" id="statusbar_vgpg">
+              <object class="GtkStatusbar" id="statusbar_gpgvers">
                 <property name="width_request">60</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -751,7 +924,7 @@ def show_errmsg(message):
 
 
 class AEightCrypt:
-    """Display GTK window to interact with GPG via GpgInterface object.
+    """Display GTK window to interact with gpg via GpgInterface object.
     
     Look at GpgInterface.__doc__ for all the juicy non-gui details.
     """
@@ -769,6 +942,8 @@ class AEightCrypt:
             raise
         
         # Other class attributes
+        self.lastrecip = ''     # Saves/restores recipients when switching modes
+        self.lastpass = ''      # Saves/restores passphrase when switching modes
         self.in_filename = None
         self.out_filename = None
         self.about_dialog = None
@@ -784,17 +959,25 @@ class AEightCrypt:
                 show_errmsg("Missing a8crypt.glade XML file! Cannot continue.")
                 raise
         
-        # Set secondary statusbar to gpg binary name (GPG or GPG2)
-        gpgvstatusbar = builder.get_object('statusbar_vgpg') 
-        gstatus = gpgvstatusbar.get_context_id('ver')
-        gpgvstatusbar.push(gstatus, "[{0}]".format(self.g.gpgupper))
+        # Set small Statusbar to gpg binary name (GPG or GPG2)
+        gstatusbar = builder.get_object('statusbar_gpgvers') 
+        cid = gstatusbar.get_context_id('ver')
+        gstatusbar.push(cid, "[{}]".format(self.g.GPG.upper()))
         
         # Get widgets which will be referenced in callbacks
         self.window = builder.get_object('window1')
-        self.passentry = builder.get_object('entry_passphrase')
-        self.textview = builder.get_object('textview1')
-        self.combobox = builder.get_object('combobox1')
+        self.binary_toggle = builder.get_object('checkbutton_binary')
+        self.symmetric_toggle = builder.get_object('checkbutton_symmetric')
+        self.sign_toggle = builder.get_object('checkbutton_sign')
+        self.entrylabel = builder.get_object('label_entry_passrecip')
+        self.entry = builder.get_object('entry_passrecip')
+        self.textview = builder.get_object('textview')
+        self.combobox = builder.get_object('combobox_cipher')
         self.statusbar = builder.get_object('statusbar')
+        
+        # Override a8crypt's default cipher by setting ComboBox active item index
+        # 'Default'=0, AES256=1, Twofish=2, Camellia256=3, etc
+        self.combobox.set_active(1)
         
         # Connect signals
         builder.connect_signals(self)
@@ -805,28 +988,19 @@ class AEightCrypt:
         # Set app icon to something halfway-decent
         gtk.window_set_default_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
         
-        # Initialize statusbar
+        # Initialize main Statusbar
         self.status = self.statusbar.get_context_id('main')
         self.statusbar.push(self.status, "Enter message to encrypt/decrypt")
-    
-    
-    # Generic filetype test to see if a file contains binary data or simply text
-    def file_isbinary(self, filename):
-        """Utilize file command to determine if filename's type is binary or text."""
-        output = check_output(split("file -b -e soft {0}".format(filename)))
-        if output[:4] in {'ASCI', 'UTF-'}:
-            return False
-        return True
     
     
     # This is called when user tries to save or en/decrypt
     def sanitycheck_textviewbuff(self, choice):
         buff = self.textview.get_buffer()
-        # Fail if textview is empty 
+        # Fail if TextBuffer is empty 
         if buff.get_char_count() < 1:
             show_errmsg("You haven't even entered any text yet.")
             return False
-        # Fail if textview contains a message from direct-file-mode
+        # Fail if TextBuffer contains a message from direct-file-mode
         if not buff.get_modified():
             if choice in 'save':
                 show_errmsg("Saving the buffer at this point would only save "
@@ -834,7 +1008,7 @@ class AEightCrypt:
             else:
                 show_errmsg(
                     "Your last file en/decryption operation succeeded. Selecting "
-                    "'{0}crypt' at this point would only save a copy of the message "
+                    "'{}crypt' at this point would only save a copy of the message "
                     "you see in the main window. Either load a new file from the "
                     "'Open file' menu, or type/paste a new message"
                     .format(choice.title()))
@@ -886,18 +1060,67 @@ class AEightCrypt:
     
     # 'Clear' button & menu item 
     def on_gtk_clear_activate(self, menuitem, data=None):
-        """Reset statusbar, textview, passphrase, gpg inputdata & filename."""
+        """Reset Statusbar, TextBuffer, Entry, gpg input & filename."""
         self.statusbar.pop(self.status)
         self.statusbar.push(self.status, "Enter message to encrypt/decrypt")
         buff = self.textview.get_buffer()
         buff.set_text('')
         buff.set_modified(False)
-        self.passentry.set_text('')
         self.textview.set_sensitive(True)
         self.textview.set_cursor_visible(True)
+        self.entry.set_text('')
+        self.binary_toggle.set_sensitive(False)
+        self.binary_toggle.set_active(False)
         self.in_filename = None
         self.out_filename = None
         self.g.stdin = None
+        self.lastrecip = ''
+        self.lastpass = ''
+    
+    
+    # 'Make cipher selection default' menu item
+    def on_gtk_savecipherpref_activate(self, menuitem, data=None):
+        """Get current cipher setting from ComboBox & save it as default in argv[0]."""
+        from sys import argv
+        cbindex = self.combobox.get_active()
+        cmd = split('sed -i "s/^        self.combobox.set_active(.)/        '
+                    'self.combobox.set_active({})/" {}'.format(cbindex, argv[0]))
+        try:
+            check_output(cmd)
+        except:
+            show_errmsg("Saving cipher setting failed. Try again while running {} "
+                        "as root.".format(argv[0]))
+    
+    
+    # 'Symmetric' checkbox toggle
+    def on_gtk_symmetric_toggle_activate(self, widget, data=None):
+        """Switch between symmetric & asymmetric mode, modifying necessary widgets."""
+        
+        # SWITCH TO SYMMETRIC
+        if self.symmetric_toggle.get_active():
+            
+            self.entrylabel.set_label("_Passphrase: ")
+            self.lastrecip = self.entry.get_text()
+            self.entry.set_text(self.lastpass)
+            self.entry.set_visibility(False)
+            self.entry.set_tooltip_text(
+                "Symmetric encryption/decryption key\n\n"
+                "Max length limited only by available memory")
+            self.sign_toggle.set_sensitive(False)
+            self.sign_toggle.set_active(False)
+        
+        # SWITCH TO ASYMMETRIC
+        else:  
+            
+            self.entrylabel.set_label("_Recipients: ")
+            self.lastpass = self.entry.get_text()
+            self.entry.set_text(self.lastrecip)
+            self.entry.set_visibility(True)
+            self.entry.set_tooltip_text(
+                "Keys to use for asymmetric encryption\n\n"
+                "Use a semicolon to separate recipients\n\n"
+                "Tip: add yourself if you want to be able to read the encrypted message")
+            self.sign_toggle.set_sensitive(True)
     
     
     # Generic file chooser for opening or saving
@@ -925,7 +1148,7 @@ class AEightCrypt:
         """Write TextView buffer to filename."""
         
         # Add message to status bar
-        self.statusbar.push(self.status, "Saving {0}".format(filename))
+        self.statusbar.push(self.status, "Saving {}".format(filename))
         
         while gtk.events_pending(): gtk.main_iteration()
         
@@ -938,7 +1161,7 @@ class AEightCrypt:
             fout = open(filename, 'w')
         except:
             # Error opening file, show message to user
-            show_errmsg("Could not save file: {0}".format(filename))
+            show_errmsg("Could not save file: {}".format(filename))
         else:
             # Write text from buffer to file
             fout.write(buffertext)
@@ -978,15 +1201,20 @@ class AEightCrypt:
             show_errmsg("Simultaneously reading from & writing to a file is a "
                         "baaad idea. Choose a different output filename.")
         
+        # Set binary CheckButton toggle
+        self.binary_toggle.set_sensitive(True)
+        if self.g.test_file_isbinary(infile):
+            self.binary_toggle.set_active(True)
+        
         # Ready message to status; disable text view & replace it with a message
         self.statusbar.push(self.status,
-                            "Ready to encrypt or decrypt file: {0}".format(infile))
+                            "Ready to encrypt or decrypt file: {}".format(infile))
         self.textview.set_cursor_visible(False)
         self.textview.set_sensitive(False)
         buff = self.textview.get_buffer()
         buff.set_text("Choose 'Encrypt' or 'Decrypt' to have {0} load file"
                       "\n   {1!r}\nas input, saving output to file\n   {2!r}"
-                      .format(self.g.gpgupper, infile, outfile))
+                      .format(self.g.GPG.upper(), infile, outfile))
         buff.set_modified(False)
         
         # Promote our filenames
@@ -1001,68 +1229,48 @@ class AEightCrypt:
         or decryption when the user selects one of the Encrypt or Decrypt Gtk
         menu items or toolbar buttons.
         
-        It reads the passphrase from our GtkTextEntry box, ensuring it's not
-        null; then it reads in the buffer from TextView, if needed (this isn't
-        necessary if the user already chose a file for direct-loading by gpg);
-        then it passes everything over to GpgInterface.scrypt() and manages
-        the task of getting any output back to the user.
+        It reads the passphrase from our GtkEntry box, ensuring it's not
+        null; then it reads in the buffer from the TextBuffer of our TextView,
+        if needed (this isn't necessary if the user already chose a file for
+        direct-loading by gpg); then it passes everything over to GpgInterface
+        and manages the task of getting any output back to the user.
         """
         
-        # Get passphrase from TextEntry
-        passphrase = self.passentry.get_text()
-        if not passphrase:
-            show_errmsg("You must enter a passphrase.")
-            return
+        if self.symmetric_toggle.get_active():
+            # Get passphrase from Entry box in symmetric mode
+            passrecip = self.entry.get_text()
+            if not passrecip:
+                show_errmsg("You must enter a passphrase.")
+                return
+        else:
+            # Get recipients from Entry box in asymmetric mode
+            passrecip = self.entry.get_text()
+            if not passrecip and mode in 'en':
+                show_errmsg("You must enter at least one recipient.")
+                return
         
-        # Get chosen cipher algo from combo box (gpg only uses for encryption)
+        # Get cipher algo from ComboBox for encryption
         cbmodel = self.combobox.get_model()
         cbindex = self.combobox.get_active()
-        cipher = cbmodel[cbindex][0]
-        if mode in 'en':
-            stderr.write("\nSymmetric encryption cipher-algo: {0}\n".format(cipher))
+        if cbindex == 0:    cipher = None
+        else:               cipher = cbmodel[cbindex][0]
         
-        # If running in direct-file-load mode, pass filenames to GpgInterface()
+        # Use status of binary CheckButton to decide about ASCII-armoring output
+        if self.binary_toggle.get_active():     base64 = False
+        else:                                   base64 = True
+        
+        # Use status of sign CheckButton for message-signing
+        if self.sign_toggle.get_active():   sign = True
+        else:                               sign = False
+        
+        # FILE INPUT PREP
         if self.in_filename:
             
             # Set statusbar
             self.statusbar.push(self.status,
-                                "{0}crypting input ...".format(mode.title()))
-            
-            # Encryption only: if input file is binary, don't ASCII-armor output
-            if self.file_isbinary(self.in_filename):
-                base64 = False
-            else: base64 = True
-            
-            # Attempt en-/de-cryption; if succeeds, cleanup & print success
-            if self.g.scrypt(mode, passphrase, self.in_filename,
-                             self.out_filename, base64, cipher):
-                
-                # Clear last two statusbar messages to get back to default
-                # 'crypting input' and 'Ready to encrypt or decrypt file'
-                self.statusbar.pop(self.status) ; self.statusbar.pop(self.status)
-                
-                # Replace textview buffer with success message
-                buff = self.textview.get_buffer()
-                buff.set_text("SUCCESS!\n\n{0} saved new {1}crypted file to:\n{2}"
-                              .format(self.g.gpgupper, mode, self.out_filename))
-                buff.set_modified(False)
-                
-                # Unlock TextView
-                self.textview.set_sensitive(True)
-                self.textview.set_cursor_visible(True)
-                
-                # Reset filenames
-                self.in_filename = None
-                self.out_filename = None
-            
-            # If GpgInterface.scrypt() returns False ...
-            else:
-                self.statusbar.pop(self.status)  # Remove 'crypting input' status
-                show_errmsg("Problem {1}crypting {2!r}\nTry again with another "
-                            "passphrase or press Clear.\n\n{0}"
-                            .format(self.g.stderr, mode, self.in_filename))
+                                "{}crypting input ...".format(mode.title()))
         
-        # If not running in file-mode ...
+        # TEXT INPUT PREP
         else:
             
             # Make sure textview has a proper message in it
@@ -1072,27 +1280,60 @@ class AEightCrypt:
             self.textview.set_cursor_visible(False)
             self.textview.set_sensitive(False)
             self.statusbar.push(self.status,
-                                "{0}crypting input ...".format(mode.title()))
+                                "{}crypting input ...".format(mode.title()))
             
             # Save textview buffer to GpgInterface.stdin
             buff = self.textview.get_buffer()
             self.g.stdin = buff.get_text(buff.get_start_iter(),
                                          buff.get_end_iter())
+        
+        # ATTEMPT EN-/DECRYPTION
+        if self.symmetric_toggle.get_active():  cryptmethod = self.g.scrypt
+        else:                                   cryptmethod = self.g.acrypt
+        
+        retval = cryptmethod(mode, passrecip, self.in_filename,
+                             self.out_filename, base64, cipher, sign)
+        
+        # FILE INPUT MODE CLEANUP
+        if self.in_filename:
             
-            # GpgInterface reads input stdin if no filenames given
-            retval = self.g.scrypt(mode, passphrase, cipher=cipher)
+            # Success!
+            if retval:
+                
+                # Clear last two statusbar messages to get back to default
+                # 'crypting input' and 'Ready to encrypt or decrypt file'
+                self.statusbar.pop(self.status) ; self.statusbar.pop(self.status)
+                
+                # Replace textview buffer with success message
+                buff = self.textview.get_buffer()
+                buff.set_text("SUCCESS!\n\n{} saved new {}crypted file to:\n{}"
+                              .format(self.g.GPG.upper(), mode, self.out_filename))
+                buff.set_modified(False)
+                
+                # Unlock TextView
+                self.textview.set_sensitive(True)
+                self.textview.set_cursor_visible(True)
+                
+                # Reset filenames
+                self.in_filename = None ; self.out_filename = None
+                
+                # Disable binary CheckButton
+                self.binary_toggle.set_sensitive(False)
+                self.binary_toggle.set_active(False)
+            
+            # Fail!
+            else:
+                
+                self.statusbar.pop(self.status)  # Remove 'crypting input' status
+                show_errmsg("{}Problem {}crypting {!r}\nTry again with another "
+                            "passphrase or select Clear from the Edit menu."
+                            .format(self.g.stderr, mode, self.in_filename))
+        
+        # TEXT INPUT MODE CLEANUP
+        else:
             
             # Remove '...crypting input...' status
             self.statusbar.pop(self.status)
-            
-            # If gpg succeeded, set the buffer to its stdout
-            if retval:
-                buff.set_text(self.g.stdout)
-            
-            # Otherwise, show errors (this could only happen in decrypt mode)
-            else:
-                show_errmsg("Error in decryption process.\n\n{0}"
-                            .format(self.g.stderr))
             
             # Unlock TextView
             self.textview.set_sensitive(True)
@@ -1100,6 +1341,14 @@ class AEightCrypt:
             
             # Reset inputdata
             self.g.stdin = None
+            
+            # Success!
+            if retval:
+                buff.set_text(self.g.stdout)  # Set TextBuffer to gpg stdout
+            
+            # Fail!
+            else:
+                show_errmsg(self.g.stderr)
     
     
     # About dialog
@@ -1112,7 +1361,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.3')
+        about_dialog.set_version('0.9.5')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption & decryption via GPG/GPG2")
