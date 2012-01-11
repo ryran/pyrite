@@ -1,12 +1,15 @@
-a8crypt - GTK/Python frontend for GPG/GPG2 symmetric encryption
+a8crypt - GTK/Python frontend for GPG/GPG2 symmetric + asymmetric encryption/decryption
 ===============================================================
 
 SCREENSHOTS
 -----------
-![](http://b19.org/linux/a8crypt/encrypted_output.png)
-![](http://b19.org/linux/a8crypt/ready_loadfile.png)
+![](http://b19.org/linux/a8crypt/s_textinput_passtip.png)
+![](http://b19.org/linux/a8crypt/a_txtoutput_reciptip.png)
+![](http://b19.org/linux/a8crypt/a_txtout_symmtip.png)
+![](http://b19.org/linux/a8crypt/s_fileinput_ciphertip.png)
+![](http://b19.org/linux/a8crypt/s_fileopenmenu.png)
 
-See a few more screenshots at: http://b19.org/linux/a8crypt
+Possibly more more screenshots at: http://b19.org/linux/a8crypt
 
 DEPENDENCIES
 ------------
@@ -29,7 +32,9 @@ First I developed a super-simple wrapper for the commandline. (To see an evoluti
 
 Separately from all this, I decided it was time to learn Python and what better way to learn than to have a project... so first I implemented a3crypt in Python (i.e., a non-gui terminal app) as [a4crypt](/ryran/a8crypt/blob/master/a4crypt.py). Much cooler than a3crypt. I was in love with Python.
 
-Next I decided to try to implement it with GTK. So here we are. Have lots more to learn, but I'm damn proud of v0.0.1 of a8crypt. While it doesn't have some of the features of a7crypt (sticking to GPG/GPG2 only; no OpenSSL), it's much better in most ways. I used to love programming in BASH, but that was before learning Python ... oh the code is so lovely.
+Next I decided to try to implement it with GTK. So here we are. Have lots more to learn, but I'm damn proud of v0.0.1 of a8crypt. While it doesn't have some of the features of a7crypt (sticking to GPG/GPG2 only; no OpenSSL), it's much much better in every other way. I used to love programming in BASH, but that was before learning Python ... oh the code is so lovely.
+
+A week after releasing v0.0.1, I've implemented things that I thought would take me forever to figure out -- a8crypt now does asymmetric encryption!
 
 Feel free to hit me/the tracker up if you have any questions or suggestions!
 
