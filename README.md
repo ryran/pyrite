@@ -1,8 +1,6 @@
 a8crypt - GTK/Python frontend for gpg/gpg2 symmetric + asymmetric encryption/decryption + signing/verifying
 ===============================================================
 
-SCREENSHOTS
------------
 ![](http://b19.org/linux/a8crypt/symm.png)
 ![](http://b19.org/linux/a8crypt/asymm.png)
 ![](http://b19.org/linux/a8crypt/symm_and_sign.png)
