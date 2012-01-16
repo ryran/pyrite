@@ -1,19 +1,22 @@
-a8crypt - GTK/Python frontend for GPG/GPG2 symmetric + asymmetric encryption/decryption
+a8crypt - GTK/Python frontend for gpg/gpg2 symmetric + asymmetric encryption/decryption + signing/verifying
 ===============================================================
 
 SCREENSHOTS
 -----------
-![](http://b19.org/linux/a8crypt/s_textinput_passtip.png)
-![](http://b19.org/linux/a8crypt/a_txtoutput_reciptip.png)
-![](http://b19.org/linux/a8crypt/a_txtout_symmtip.png)
-![](http://b19.org/linux/a8crypt/s_fileinput_ciphertip.png)
-![](http://b19.org/linux/a8crypt/s_fileopenmenu.png)
+![](http://b19.org/linux/a8crypt/symm.png)
+![](http://b19.org/linux/a8crypt/asymm.png)
+![](http://b19.org/linux/a8crypt/symm_and_sign.png)
+![](http://b19.org/linux/a8crypt/asymm_and_symm_and_sign.png)
+![](http://b19.org/linux/a8crypt/encfile.png)
+![](http://b19.org/linux/a8crypt/clearsign.png)
+![](http://b19.org/linux/a8crypt/detachsign1.png)
+![](http://b19.org/linux/a8crypt/detachsign2.png)
 
 Possibly more more screenshots at: http://b19.org/linux/a8crypt
 
 DEPENDENCIES
 ------------
-designed for linux; need GTK2, Python2, & gpg or gpg2
+designed for linux; need GTK2, Python2.7, & gpg or gpg2
 
 
 INSTALLATION
