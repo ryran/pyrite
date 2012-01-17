@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.1 last mod 2012/01/16
+# a8crypt v0.9.9.2 last mod 2012/01/18
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -17,6 +17,11 @@
 #------------------------------------------------------------------------------
 #
 # TODO: Once gui is more finalized, replace Glade xml with real pygtk funness
+# TODO: Get application icon & icons for encrypt, decrypt, sign, verify buttons
+# TODO: Preferences dialog that can save settings to a config file?
+# TODO: Opening files just feels clunky. It's not the priority of this app, but
+#       still, I'd like to figure out a better way.
+
 
 # Modules from the Standard Library
 import gtk
@@ -70,7 +75,7 @@ class GpgInterface():
             stderr.write("{}\n".format(vgpg))
         
         # Class attributes
-        self.stdin = None       # Stores input text for gpg()
+        self.stdin  = None       # Stores input text for gpg()
         self.stdout = None      # Stores stdout stream from gpg subprocess
         self.stderr = None      # Stores stderr stream from gpg subprocess
     
@@ -123,8 +128,8 @@ class GpgInterface():
         cipher=     None,   # One of: aes256, 3des, etc; None == use gpg defaults
         infile=     None,   # Input file
         outfile=    None,   # Output file
-        alwaystrust=False,  # Add '--trust-model always'?
         verbose=    False,  # Add '--verbose'?
+        alwaystrust=False,  # Add '--trust-model always'?
         yes=        True    # Add '--yes'? (will overwrite files)
         
         Things important enough to highlight:
@@ -164,6 +169,7 @@ class GpgInterface():
                 fd_in, fd_out = pipe() ; write(fd_out, passwd) ; close(fd_out)
                 cmd.append('--passphrase-fd')
                 cmd.append(str(fd_in))
+        
         # Encrypt opts
         if action in 'enc':
             if encsign:
@@ -189,8 +195,10 @@ class GpgInterface():
                 for r in recip.split(';'):
                     cmd.append('--recipient')
                     cmd.append(r)
+        
         # Decrypt opts
         elif action in 'dec':   cmd.append('--decrypt')
+        
         # Sign opts
         elif action in {'sign', 'signclear', 'signdetach'}:
             if action in 'sign':            cmd.append('--sign')
@@ -199,6 +207,7 @@ class GpgInterface():
             if digest:
                 cmd.append('--digest-algo')
                 cmd.append(digest)
+        
         # Verify opts
         elif action in 'verify':        cmd.append('--verify')
         
@@ -1312,7 +1321,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
 
 
 def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
-    """Display message in GtkMessageDialog."""
+    """Display message with GtkMessageDialog."""
     dialog = gtk.MessageDialog(
         None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
         dialogtype, gtk.BUTTONS_OK, message)
@@ -1323,7 +1332,7 @@ def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
 class AEightCrypt:
     """Display GTK window to interact with gpg via GpgInterface object.
     
-    For now, we build the gui from a Glade-generating gtk builder xml file.
+    For now, we build the gui from a Glade-generated gtk builder xml file.
     Once things are more finalized, we'll add the pygtk calls in here.
     """
     
@@ -1339,7 +1348,7 @@ class AEightCrypt:
             raise
         
         # Other class attributes
-        self.in_filename = None
+        self.in_filename  = None
         self.out_filename = None
         self.about_dialog = None
         
@@ -1354,17 +1363,13 @@ class AEightCrypt:
                 show_errmsg("Missing a8crypt.glade XML file! Cannot continue.")
                 raise
         
-        ### Get widgets!
+        #--------------------------------------------------------- GET WIDGETS!
+        
         # Main window
         self.g_window = builder.get_object('window1')
-        title = self.g_window.get_title()
-        self.g_window.set_title("{current} [{GPG}]"
-                                .format(current=title, GPG=self.g.GPG.upper()))
-        
         # Menu items
         self.g_taskstatus = builder.get_object('toggle_taskstatus')
         self.g_gpgverbose = builder.get_object('toggle_gpgverbose')
-        
         # Top toolbar
         self.g_encrypt = builder.get_object('button_encrypt')
         self.g_decrypt = builder.get_object('button_decrypt')
@@ -1372,7 +1377,6 @@ class AEightCrypt:
         self.g_asymmetric = builder.get_object('toggle_mode_asymmetric')
         self.g_advanced = builder.get_object('toggle_advanced')
         self.g_signverify = builder.get_object('toggle_mode_signverify')
-        
         # Second top toolbar
         self.g_enctoolbar = builder.get_object('hbox2')
         self.g_passlabel = builder.get_object('label_entry_pass')
@@ -1382,21 +1386,26 @@ class AEightCrypt:
         self.g_enctoself = builder.get_object('toggle_enctoself')
         self.g_cipherlabel = builder.get_object('label_combobox_cipher')
         self.g_cipher = builder.get_object('combobox_cipher')
-        
         # Middle input
         self.g_msgtextview = builder.get_object('textview1')
         self.g_frame2 = builder.get_object('frame2')
         self.g_stderrtextview = builder.get_object('textview2')
-        
         # Bottom toolbar
         self.g_plaintext = builder.get_object('toggle_plaintext')
         self.g_signature = builder.get_object('toggle_signature')
         self.g_sigmode = builder.get_object('combobox_sigmode')
         self.g_hashlabel = builder.get_object('label_combobox_hash')
         self.g_hash = builder.get_object('combobox_hash')
-        
         # Statusbar
         self.g_statusbar = builder.get_object('statusbar')
+        
+        # Set window title dynamically
+        self.g_window.set_title(
+            "{current} [{GPG}]"
+            .format(current=self.g_window.get_title(), GPG=self.g.GPG.upper()))
+        
+        # Set app icon to something halfway-decent
+        gtk.window_set_default_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
         
         # Override a8crypt's default cipher by setting ComboBox active item index
         # 'Default'=0, AES256=1, Twofish=2, Camellia256=3, etc
@@ -1409,38 +1418,12 @@ class AEightCrypt:
         self.g_msgtextview.modify_font(FontDescription('monospace 10'))
         self.g_stderrtextview.modify_font(FontDescription('monospace 8'))
         
-        # Set app icon to something halfway-decent
-        gtk.window_set_default_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
-        
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
         self.g_statusbar.push(self.status, "Enter message to encrypt/decrypt")
     
     
-    # This is called when user tries to save or en/decrypt or sign/verify
-    def sanitycheck_textviewbuff(self, choice):
-        buff = self.g_msgtextview.get_buffer()
-        # Fail if TextBuffer is empty 
-        if buff.get_char_count() < 1:
-            show_errmsg("You haven't even entered any text yet.")
-            return False
-        # Fail if TextBuffer contains a message from direct-file-mode
-        if not buff.get_modified():
-            if choice in 'save':
-                show_errmsg("Saving the buffer at this point would only save "
-                            "a copy of the message you see in the main window.")
-            else:
-                if choice in {'enc','dec'}:     choice = "{}rypt".format(choice)
-                elif not choice in 'verify':    choice = "Sign"
-                show_errmsg(
-                    "Your last file en/decryption operation succeeded. Selecting "
-                    "{!r} at this point would only attempt to {} the message you "
-                    "see in the main window. Either load a new file from the "
-                    "'Open file' menu, or type/paste a new message"
-                    .format(choice.title(), choice))
-            return False
-        return True
-    
+    #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS    
     
     # Death!
     def on_window1_destroy(self, widget, data=None):    gtk.main_quit()
@@ -1448,7 +1431,7 @@ class AEightCrypt:
     
     
     # 'Open file' menu item
-    def on_open_activate(self, menuitem, data=None):            self.open_file()
+    def on_open_activate(self, menuitem, data=None):    self.open_file()
     
     
     # 'Save text buffer' menu item
@@ -1664,6 +1647,33 @@ class AEightCrypt:
             self.g_frame2.set_visible       (False)
     
     
+    #--------------------------------------------------------- HELPER FUNCTIONS
+    
+    # This is called when user tries to save or en/decrypt or sign/verify
+    def sanitycheck_textviewbuff(self, choice):
+        buff = self.g_msgtextview.get_buffer()
+        # Fail if TextBuffer is empty 
+        if buff.get_char_count() < 1:
+            show_errmsg("You haven't even entered any text yet.")
+            return False
+        # Fail if TextBuffer contains a message from direct-file-mode
+        if not buff.get_modified():
+            if choice in 'save':
+                show_errmsg("Saving the buffer at this point would only save "
+                            "a copy of the message you see in the main window.")
+            else:
+                if choice in {'enc','dec'}:     choice = "{}rypt".format(choice)
+                elif not choice in 'verify':    choice = "Sign"
+                show_errmsg(
+                    "Your last file en/decryption operation succeeded. Selecting "
+                    "{!r} at this point would only attempt to {} the message you "
+                    "see in the main window. Either load a new file from the "
+                    "'Open file' menu, or type/paste a new message"
+                    .format(choice.title(), choice))
+            return False
+        return True
+
+
     # Generic file chooser for opening or saving
     def chooser_grab_filename(self, mode, save_suggestion=None):
         """Present file chooser dialog and return filename or None."""
@@ -1785,6 +1795,7 @@ class AEightCrypt:
             return cbmodel[cbindex][0]
     
     
+    #-------------------------------------------------------- MAIN GPG FUNCTION
     def launchgpg(self, action):
         """Manage I/O between Gtk objects and our GpgInterface object."""
 
@@ -1963,7 +1974,7 @@ class AEightCrypt:
                 show_errmsg(self.g.stderr)
     
     
-    # About dialog
+    #------------------------------------------------------------- ABOUT DIALOG
     def on_gtk_about_activate(self, menuitem, data=None):
         if self.about_dialog: 
             self.about_dialog.present()
