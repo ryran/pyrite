@@ -1308,7 +1308,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
             <child>
               <object class="GtkSpinner" id="spinner1">
                 <property name="width_request">16</property>
-                <property name="visible">True</property>
+                <property name="visible">False</property>
                 <property name="can_focus">False</property>
               </object>
               <packing>
@@ -1860,38 +1860,32 @@ class AEightCrypt:
         # alwaystrust
         alwaystrust = False
         
-        # Function for set statusbar
-        def set_workingstatus(action):
-            if action in {'sign', 'signclear', 'signdetach'}:
-                status = "Signing input ..."
-            elif action in 'verify':
-                status = "Verifying input ..."
-            else:
-                status = "{}rypting input ...".format(action.title())
-            self.g_statusbar.push(self.status, status)
-            #self.g_activityspinner.set_visible(True)
-            self.g_activityspinner.start()
-        
         buff = self.g_msgtextview.get_buffer()
         
-        # FILE INPUT PREP
-        if self.in_filename:
-        
-            set_workingstatus(action)
-        
         # TEXT INPUT PREP
-        else:
+        if not self.in_filename:
             
             # Make sure textview has a proper message in it
             if not self.sanitycheck_textviewbuff(action):
                 return False
             
-            # Make TextView immutable to changes & set statusbar
+            # Make TextView immutable to changes
             self.g_msgtextview.set_sensitive(False)
-            set_workingstatus(action)
             
             # Save textview buffer to GpgInterface.stdin
             self.g.stdin = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
+        
+        # Set working status + spinner
+        if action in {'sign', 'signclear', 'signdetach'}:
+            status = "Signing input ..."
+        elif action in 'verify':
+            status = "Verifying input ..."
+        else:
+            status = "{}rypting input ...".format(action.title())
+        self.g_statusbar.push(self.status, status)
+        self.g_activityspinner.set_visible(True)
+        self.g_activityspinner.start()
+        while gtk.events_pending(): gtk.main_iteration()
         
         # ATTEMPT EN-/DECRYPTION
         retval = self.g.gpg(action, encsign, digest, base64,
@@ -1900,7 +1894,7 @@ class AEightCrypt:
                             verbose, alwaystrust)
         
         self.g_activityspinner.stop()
-        #self.g_activityspinner.set_visible(False)
+        self.g_activityspinner.set_visible(False)
         buff2 = self.g_stderrtextview.get_buffer()
         buff2.set_text(self.g.stderr)
         
