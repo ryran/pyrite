@@ -1344,21 +1344,22 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
 
 
 
+def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
+    """Display message with GtkMessageDialog."""
+    dialog = gtk.MessageDialog(
+        None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        dialogtype, gtk.BUTTONS_OK, message)
+    dialog.run()
+    dialog.destroy()
+
+
+
 class AEightCrypt:
     """Display GTK window to interact with gpg via GpgInterface object.
     
     For now, we build the gui from a Glade-generated gtk builder xml file.
     Once things are more finalized, we'll add the pygtk calls in here.
     """
-    
-    def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
-        """Display message with GtkMessageDialog."""
-        dialog = gtk.MessageDialog(
-            None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            dialogtype, gtk.BUTTONS_OK, message)
-        dialog.run()
-        dialog.destroy()
-
     
     def __init__(self):
         """Build GUI interface from XML, etc."""
