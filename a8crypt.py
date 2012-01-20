@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.2 last mod 2012/01/18
+# a8crypt v0.9.9.3 last mod 2012/01/20
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -16,12 +16,12 @@
 #    General Public License <gnu.org/licenses/gpl.html> for more details.
 #------------------------------------------------------------------------------
 #
-# TODO: Once gui is more finalized, replace Glade xml with real pygtk funness
+# TODO: Dialog with progress bar & cancel button when working
+# TODO: Replace Glade xml with real pygtk funness once gui is more finalized
 # TODO: Get application icon & icons for encrypt, decrypt, sign, verify buttons
 # TODO: Preferences dialog that can save settings to a config file?
 # TODO: Opening files just feels clunky. It's not the priority of this app, but
 #       still, I'd like to figure out a better way.
-
 
 # Modules from the Standard Library
 import gtk
@@ -82,7 +82,7 @@ class GpgInterface():
     
     def test_file_isbinary(self, filename):
         """Utilize nix file cmd to determine if filename is binary or text."""
-        output = check_output(split("file -b -e soft {}".format(filename)))
+        output = check_output(split("file -b -e soft '{}'".format(filename)))
         if output[:4] in {'ASCI', 'UTF-'}:
             return False
         return True
@@ -1076,7 +1076,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Input/Output _Message</property>
+                    <property name="label" translatable="yes">_Message Input/Output</property>
                     <property name="use_underline">True</property>
                     <property name="mnemonic_widget">textview1</property>
                   </object>
@@ -1302,9 +1302,33 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar">
+          <object class="GtkHBox" id="hbox4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <child>
+              <object class="GtkSpinner" id="spinner1">
+                <property name="width_request">16</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkStatusbar" id="statusbar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -1320,21 +1344,21 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
 
 
 
-def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
-    """Display message with GtkMessageDialog."""
-    dialog = gtk.MessageDialog(
-        None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        dialogtype, gtk.BUTTONS_OK, message)
-    dialog.run() ; dialog.destroy()
-
-
-
 class AEightCrypt:
     """Display GTK window to interact with gpg via GpgInterface object.
     
     For now, we build the gui from a Glade-generated gtk builder xml file.
     Once things are more finalized, we'll add the pygtk calls in here.
     """
+    
+    def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
+        """Display message with GtkMessageDialog."""
+        dialog = gtk.MessageDialog(
+            None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            dialogtype, gtk.BUTTONS_OK, message)
+        dialog.run()
+        dialog.destroy()
+
     
     def __init__(self):
         """Build GUI interface from XML, etc."""
@@ -1356,12 +1380,12 @@ class AEightCrypt:
         builder = gtk.Builder()
         try: builder.add_from_file('a8crypt.glade') 
         except:
-            try:
-                gbuild = XmlForGtkBuilder()
-                builder.add_from_string(gbuild.inline_gladexmlfile)
-            except:
-                show_errmsg("Missing a8crypt.glade XML file! Cannot continue.")
-                raise
+            gbuild = XmlForGtkBuilder()
+            ret = builder.add_from_string(gbuild.inline_gladexmlfile)
+            if ret == 0:
+                show_errmsg("Problem loading GtkBuilder UI definition! "
+                    "Cannot continue.")
+                exit()
         
         #--------------------------------------------------------- GET WIDGETS!
         
@@ -1398,6 +1422,7 @@ class AEightCrypt:
         self.g_hash = builder.get_object('combobox_hash')
         # Statusbar
         self.g_statusbar = builder.get_object('statusbar')
+        self.g_activityspinner = builder.get_object('spinner1')
         
         # Set window title dynamically
         self.g_window.set_title(
@@ -1843,6 +1868,8 @@ class AEightCrypt:
             else:
                 status = "{}rypting input ...".format(action.title())
             self.g_statusbar.push(self.status, status)
+            #self.g_activityspinner.set_visible(True)
+            self.g_activityspinner.start()
         
         buff = self.g_msgtextview.get_buffer()
         
@@ -1864,13 +1891,15 @@ class AEightCrypt:
             
             # Save textview buffer to GpgInterface.stdin
             self.g.stdin = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-
+        
         # ATTEMPT EN-/DECRYPTION
         retval = self.g.gpg(action, encsign, digest, base64,
                             symmetric, passwd, recip, enctoself, cipher,
                             self.in_filename, self.out_filename,
                             verbose, alwaystrust)
         
+        self.g_activityspinner.stop()
+        #self.g_activityspinner.set_visible(False)
         buff2 = self.g_stderrtextview.get_buffer()
         buff2.set_text(self.g.stderr)
         
@@ -1964,7 +1993,7 @@ class AEightCrypt:
             # Success!
             if retval:
                 if action in 'verify':
-                    show_errmsg(self.g.stderr, gtk.MESSAGE_INFO)
+                    show_errmsg(self.g.stderr, dialogtype=gtk.MESSAGE_INFO)
                 else:
                     # Set TextBuffer to gpg stdout
                     buff.set_text(self.g.stdout)
