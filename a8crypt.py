@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.3 last mod 2012/01/20
+# a8crypt v0.9.9.4 last mod 2012/01/22
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -82,17 +82,17 @@ class GpgInterface():
     
     def test_file_isbinary(self, filename):
         """Utilize nix file cmd to determine if filename is binary or text."""
-        output = check_output(split("file -b -e soft '{}'".format(filename)))
-        if output[:4] in {'ASCI', 'UTF-'}:
+        cmd = split("file -b -e soft '{}'".format(filename))
+        if check_output(cmd)[:4] in {'ASCI', 'UTF-'}:
             return False
         return True
     
     
     def get_gpgdefaultkey(self):
         """Return key id of first secret key in gpg keyring.""" 
-        cmd = ("{} --list-secret-keys --with-colons --fast-list-mode"
-               "| head -n1 | cut -d: -f5".format(self.GPG))
-        return check_output(cmd, shell=True).strip('\n')
+        return check_output(split(
+            "{} --list-secret-keys --with-colons --fast-list-mode"
+            .format(self.GPG))).split(':', 5)[4]
     
     
     # Main gpg interface method
@@ -600,6 +600,7 @@ This will fail if a8crypt is not writable</property>
                         <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel or error messages)</property>
                         <property name="label" translatable="yes">_Verbose gpg output</property>
                         <property name="use_underline">True</property>
+                        <property name="active">True</property>
                       </object>
                     </child>
                   </object>
@@ -1444,6 +1445,10 @@ class AEightCrypt:
         self.g_msgtextview.modify_font(FontDescription('monospace 10'))
         self.g_stderrtextview.modify_font(FontDescription('monospace 8'))
         
+        buff2 = self.g_stderrtextview.get_buffer()
+        buff2.set_text("Output from each call to gpg will be displayed here. "
+                       "Check out the View menu for some choices.")
+        
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
         self.g_statusbar.push(self.status, "Enter message to encrypt/decrypt")
@@ -1489,7 +1494,11 @@ class AEightCrypt:
     def on_clear_activate(self, menuitem, data=None):
         """Reset Statusbar, TextBuffer, Entry, gpg input & filename."""
         self.g_statusbar.pop(self.status)
-        self.g_statusbar.push(self.status, "Enter message to encrypt/decrypt")
+        if self.g_signverify.get_active():
+            status = "Enter message to sign/verify"
+        else:
+            status = "Enter message to encrypt/decrypt"
+        self.g_statusbar.push(self.status, status)
         buff = self.g_msgtextview.get_buffer()
         buff.set_text('')
         buff.set_modified(False)
@@ -1499,7 +1508,7 @@ class AEightCrypt:
         self.g_pass.set_text('')
         self.g_recip.set_text('')
         self.g_plaintext.set_sensitive(False)
-        self.g_plaintext.set_active(False)
+        self.g_plaintext.set_active(True)
         self.in_filename = None
         self.out_filename = None
         self.g.stdin = None
@@ -2008,7 +2017,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.1')
+        about_dialog.set_version('0.9.9.4')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via GPG/GPG2")
