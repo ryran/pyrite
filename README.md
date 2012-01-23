@@ -2,6 +2,7 @@ a8crypt - symmetric + asymmetric encryption/decryption, PGP signing/verifying [G
 ===============================================================
 
 v0.9.9.5:
+
 ![](http://b19.org/linux/a8crypt/txt_s.png)
 ![](http://b19.org/linux/a8crypt/txt_s_a_sign.png)
 ![](http://b19.org/linux/a8crypt/txt_clearsign.png)
