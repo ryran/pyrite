@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.5 last mod 2012/01/23
+# a8crypt v0.9.9.6 last mod 2012/01/23
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -429,6 +429,7 @@ class XmlForGtkBuilder:
                         <property name="image">img_open</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
+                        <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="action_open" swapped="no"/>
                       </object>
                     </child>
@@ -443,6 +444,7 @@ class XmlForGtkBuilder:
                         <property name="image">img_saveas</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
+                        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="action_save" swapped="no"/>
                       </object>
                     </child>
@@ -597,7 +599,7 @@ This will fail if a8crypt is not writable</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">View</property>
+                <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="viewmenu">
@@ -937,11 +939,26 @@ This will fail if a8crypt is not writable</property>
               </packing>
             </child>
             <child>
-              <object class="GtkFileChooserButton" id="filechooserbutton">
+              <object class="GtkLabel" id="label_btn_filechooser">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Choose a file to pass directly to gpg as input
+                <property name="label" translatable="yes">E_xternal Input File:</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">btn_filechooser</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">11</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFileChooserButton" id="btn_filechooser">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Optionally, choose a file to pass directly to gpg as input instead of inputting text into the Message area
 
 File WILL NOT be loaded into the text buffer, so this is the way to go if dealing with very large or binary files</property>
                 <property name="focus_on_click">False</property>
@@ -952,7 +969,7 @@ File WILL NOT be loaded into the text buffer, so this is the way to go if dealin
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="padding">2</property>
-                <property name="position">11</property>
+                <property name="position">12</property>
               </packing>
             </child>
           </object>
@@ -981,7 +998,7 @@ File WILL NOT be loaded into the text buffer, so this is the way to go if dealin
             </child>
             <child>
               <object class="GtkRadioButton" id="toggle_mode_signverify">
-                <property name="label" translatable="yes">Si_gn/Verify Mode</property>
+                <property name="label" translatable="yes">Sign/Verif_y Mode</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1017,7 +1034,7 @@ For adding a signature to a message without encrypting it or for verifying a sig
             </child>
             <child>
               <object class="GtkRadioButton" id="toggle_mode_encdec">
-                <property name="label" translatable="yes">Enc/Dec Mode</property>
+                <property name="label" translatable="yes">Enc/Dec _Mode</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1084,7 +1101,7 @@ Requires specifying recipients whose public keys will be used for encryption; or
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_advanced">
-                <property name="label" translatable="yes">Ad_v.</property>
+                <property name="label" translatable="yes">Adva_nced</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1228,7 +1245,7 @@ Use a semicolon to separate recipients</property>
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_enctoself">
-                <property name="label" translatable="yes">Enc to se_lf</property>
+                <property name="label" translatable="yes">Enc To Se_lf</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
@@ -1415,7 +1432,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_plaintext">
-                <property name="label" translatable="yes">Plain_text output</property>
+                <property name="label" translatable="yes">Plain_text Output</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
@@ -1454,7 +1471,7 @@ On opening a file, this is set based on whether the file is detected as binary d
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_signature">
-                <property name="label" translatable="yes">Add sig_nature:</property>
+                <property name="label" translatable="yes">Add Si_gnature:</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
@@ -1669,7 +1686,7 @@ class AEightCrypt:
         self.g_decrypt = builder.get_object('button_decrypt')
         self.g_bopen = builder.get_object('btn_open')
         self.g_bsave = builder.get_object('btn_save')
-        self.g_filechooserbtn = builder.get_object('filechooserbutton')
+        self.g_filechooserbtn = builder.get_object('btn_filechooser')
         self.g_bcopyall = builder.get_object('btn_copyall')
         # Second top toolbar
         self.g_symmetric = builder.get_object('toggle_mode_symmetric')
@@ -1762,6 +1779,7 @@ class AEightCrypt:
                 show_errmsg("Saving the buffer at this point would only save "
                             "a copy of the message you see in the main window.")
             else:
+                if choice in 'copyall':         return True
                 if choice in {'enc','dec'}:     choice = "{}rypt".format(choice)
                 elif not choice in 'verify':    choice = "sign"
                 show_errmsg(
@@ -1870,13 +1888,13 @@ class AEightCrypt:
             self.g_plaintext.set_active(True)
         self.g_statusbar.pop(self.status)
         self.g_statusbar.push(self.status, "Choose an action to perform on {!r}".format(infile))
-        self.buff.set_text("\nClick the Clear button if you decide not to operate on file")
+        self.buff.set_text(
+            "Ready to pass chosen filename directly to gpg.\n\nNext, choose an "
+            "action (i.e., Encrypt, Decrypt, Sign, Verify). You will be prompted "
+            "for an output filename if necessary.\n\nClick the Clear button if "
+            "you decide not to operate on file".format(infile))
         self.buff.set_modified(False)
         self.filemode_enablewidgets(False)
-        show_errmsg("Ready to pass chosen filename directly to gpg.\n\n"
-                    "Next, choose an action (i.e., Encrypt, Decrypt, Sign, Verify)."
-                    " You will be prompted for an output filename if necessary."
-                    .format(infile), dialogtype=gtk.MESSAGE_INFO)
         self.in_filename = infile
     
     
@@ -2282,7 +2300,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.5')
+        about_dialog.set_version('0.9.9.6')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via GPG/GPG2")
