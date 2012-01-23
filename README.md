@@ -1,18 +1,13 @@
 a8crypt - symmetric + asymmetric encryption/decryption, PGP signing/verifying [GTK/Python frontend for gpg or gpg2]
 ===============================================================
 
-PREVIEW OF NEXT VERSION:
-![](http://b19.org/linux/a8crypt/preview1.png)
-
-CURRENT VERSION:
-![](http://b19.org/linux/a8crypt/symm.png)
-![](http://b19.org/linux/a8crypt/asymm.png)
-![](http://b19.org/linux/a8crypt/symm_and_sign.png)
-![](http://b19.org/linux/a8crypt/asymm_and_symm_and_sign.png)
-![](http://b19.org/linux/a8crypt/encfile.png)
-![](http://b19.org/linux/a8crypt/clearsign.png)
-![](http://b19.org/linux/a8crypt/detachsign1.png)
-![](http://b19.org/linux/a8crypt/detachsign2.png)
+v0.9.9.5:
+![](http://b19.org/linux/a8crypt/txt_s.png)
+![](http://b19.org/linux/a8crypt/txt_s_a_sign.png)
+![](http://b19.org/linux/a8crypt/txt_clearsign.png)
+![](http://b19.org/linux/a8crypt/file_encrypt.png)
+![](http://b19.org/linux/a8crypt/file_sign1.png)
+![](http://b19.org/linux/a8crypt/file_sign2.png)
 
 Possibly more more screenshots at: http://b19.org/linux/a8crypt
 
