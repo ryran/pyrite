@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.4 last mod 2012/01/22
+# a8crypt v0.9.9.5 last mod 2012/01/23
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -17,11 +17,10 @@
 #------------------------------------------------------------------------------
 #
 # TODO: Dialog with progress bar & cancel button when working
-# TODO: Replace Glade xml with real pygtk funness once gui is more finalized
 # TODO: Get application icon & icons for encrypt, decrypt, sign, verify buttons
 # TODO: Preferences dialog that can save settings to a config file?
-# TODO: Opening files just feels clunky. It's not the priority of this app, but
-#       still, I'd like to figure out a better way.
+# TODO: Implement undo stack. Blech. Kill me.
+# TODO: Replace Glade xml with real pygtk funness once gui is more finalized
 
 # Modules from the Standard Library
 import gtk
@@ -267,45 +266,25 @@ class XmlForGtkBuilder:
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkImage" id="image1">
+  <object class="GtkImage" id="img_clear">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-media-forward</property>
+    <property name="stock">gtk-clear</property>
   </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-rewind</property>
-  </object>
-  <object class="GtkImage" id="image3">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-save-as</property>
-  </object>
-  <object class="GtkImage" id="image4">
+  <object class="GtkImage" id="img_open">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-open</property>
   </object>
-  <object class="GtkImage" id="image5">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-clear</property>
-  </object>
-  <object class="GtkImage" id="image6">
+  <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-save</property>
   </object>
-  <object class="GtkImage" id="image7">
+  <object class="GtkImage" id="img_saveas">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-clear</property>
-  </object>
-  <object class="GtkImage" id="image8">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-forward</property>
+    <property name="stock">gtk-save-as</property>
   </object>
   <object class="GtkListStore" id="liststore_ciphers">
     <columns>
@@ -400,8 +379,8 @@ class XmlForGtkBuilder:
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">a8crypt</property>
-    <property name="window_position">center</property>
-    <property name="default_width">680</property>
+    <property name="window_position">mouse</property>
+    <property name="default_width">700</property>
     <property name="default_height">480</property>
     <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
     <child>
@@ -424,34 +403,47 @@ class XmlForGtkBuilder:
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_save">
-                        <property name="label" translatable="yes">_Save text buffer</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Save contents of window to a text file</property>
-                        <property name="use_underline">True</property>
-                        <property name="image">image3</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_save_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="menu_open">
-                        <property name="label" translatable="yes">_Open file</property>
+                      <object class="GtkImageMenuItem" id="mnu_clear">
+                        <property name="label">_Clear</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Choose a filename to pass directly to gpg as input
-
-File WILL NOT be loaded into the text buffer</property>
+                        <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image4</property>
+                        <property name="image">img_clear</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_open_activate" swapped="no"/>
+                        <signal name="activate" handler="action_clear" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_open">
+                        <property name="label" translatable="yes">_Open Text File as Message</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">img_open</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_open" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_save">
+                        <property name="label" translatable="yes">_Save Copy of Message</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Save contents of Message Input/Output area to a text file</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">img_saveas</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_save" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -462,7 +454,7 @@ File WILL NOT be loaded into the text buffer</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_quit">
+                      <object class="GtkImageMenuItem" id="mnu_quit">
                         <property name="label">gtk-quit</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
@@ -470,7 +462,7 @@ File WILL NOT be loaded into the text buffer</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_quit_activate" swapped="no"/>
+                        <signal name="activate" handler="action_quit" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -489,54 +481,29 @@ File WILL NOT be loaded into the text buffer</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_clear">
-                        <property name="label">Cle_ar</property>
+                      <object class="GtkImageMenuItem" id="mnu_undo">
+                        <property name="label">gtk-undo</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Resets all buffers</property>
-                        <property name="use_underline">True</property>
-                        <property name="image">image7</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_clear_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="menu_cut">
-                        <property name="label">gtk-cut</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_cut_activate" swapped="no"/>
+                        <signal name="activate" handler="action_undo" swapped="no"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_copy">
-                        <property name="label">gtk-copy</property>
+                      <object class="GtkImageMenuItem" id="mnu_redo">
+                        <property name="label">gtk-redo</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_copy_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="menu_paste">
-                        <property name="label">gtk-paste</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_paste_activate" swapped="no"/>
+                        <signal name="activate" handler="action_redo" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -547,8 +514,66 @@ File WILL NOT be loaded into the text buffer</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_savecipherpref">
-                        <property name="label" translatable="yes">_Make cipher selection default</property>
+                      <object class="GtkImageMenuItem" id="mnu_cut">
+                        <property name="label">gtk-cut</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_cut" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_copy">
+                        <property name="label">gtk-copy</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_copy" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_paste">
+                        <property name="label">gtk-paste</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_paste" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="sep2">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_preferences">
+                        <property name="label">gtk-preferences</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">NOT IMPLEMENTED YET
+WHOOPS</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_savecipherpref">
+                        <property name="label" translatable="yes">_Make Cipher Selection Default</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -557,10 +582,10 @@ File WILL NOT be loaded into the text buffer</property>
 
 This will fail if a8crypt is not writable</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image6</property>
+                        <property name="image">img_save</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_savecipherpref_activate" swapped="no"/>
+                        <signal name="activate" handler="action_savecipherpref" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -579,6 +604,19 @@ This will fail if a8crypt is not writable</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
+                      <object class="GtkCheckMenuItem" id="toggle_wordwrap">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Toggles wrapping of lines the Message area. This will not actually add newline characters.</property>
+                        <property name="label" translatable="yes">Text _Wrapping</property>
+                        <property name="use_underline">True</property>
+                        <property name="active">True</property>
+                        <signal name="toggled" handler="action_toggle_wordwrap" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkCheckMenuItem" id="toggle_taskstatus">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
@@ -588,7 +626,7 @@ This will fail if a8crypt is not writable</property>
                         <property name="label" translatable="yes">_Task Status side panel</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
-                        <signal name="toggled" handler="on_toggle_taskstatus_toggled" swapped="no"/>
+                        <signal name="toggled" handler="action_toggle_taskstatus" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -619,7 +657,7 @@ This will fail if a8crypt is not writable</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_about">
+                      <object class="GtkImageMenuItem" id="mnu_about">
                         <property name="label">gtk-about</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
@@ -627,7 +665,7 @@ This will fail if a8crypt is not writable</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_gtk_about_activate" swapped="no"/>
+                        <signal name="activate" handler="action_about" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -639,6 +677,289 @@ This will fail if a8crypt is not writable</property>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="hbox5">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="spacing">3</property>
+            <child>
+              <object class="GtkLabel" id="space1a1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">1</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHButtonBox" id="hbuttonbox1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="layout_style">edge</property>
+                <child>
+                  <object class="GtkButton" id="button_encrypt">
+                    <property name="label" translatable="yes">_Encrypt</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_underline">True</property>
+                    <property name="focus_on_click">False</property>
+                    <signal name="clicked" handler="action_encrypt" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_decrypt">
+                    <property name="label" translatable="yes">_Decrypt</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_underline">True</property>
+                    <property name="focus_on_click">False</property>
+                    <signal name="clicked" handler="action_decrypt" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVSeparator" id="vseparator5">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_clear">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_clear" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_clear2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-clear</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_open">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_open" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_open2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-open</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_save">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Save copy of Message area contents to a text file</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_save" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_saveas2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-save-as</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_copyall">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Copy contents of Message area to the clipboard</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_copyall" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_selectall">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-select-all</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVSeparator" id="vseparator1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
+                <property name="position">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_undo">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Undo the last action</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_undo" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_undo">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-undo</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">8</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_redo">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Redo the last undone action</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="action_redo" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="img_redo">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-redo</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">9</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVSeparator" id="vseparator4">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
+                <property name="position">10</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFileChooserButton" id="filechooserbutton">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Choose a file to pass directly to gpg as input
+
+File WILL NOT be loaded into the text buffer, so this is the way to go if dealing with very large or binary files</property>
+                <property name="focus_on_click">False</property>
+                <property name="title" translatable="yes">Choose a File</property>
+                <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="padding">2</property>
+                <property name="position">11</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -659,53 +980,30 @@ This will fail if a8crypt is not writable</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHButtonBox" id="hbuttonbox1">
+              <object class="GtkRadioButton" id="toggle_mode_signverify">
+                <property name="label" translatable="yes">Si_gn/Verify Mode</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="layout_style">edge</property>
-                <child>
-                  <object class="GtkButton" id="button_encrypt">
-                    <property name="label" translatable="yes">_Encrypt</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <property name="focus_on_click">False</property>
-                    <signal name="clicked" handler="on_button_encrypt_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="button_decrypt">
-                    <property name="label" translatable="yes">_Decrypt</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_underline">True</property>
-                    <property name="focus_on_click">False</property>
-                    <signal name="clicked" handler="on_button_decrypt_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">Sign-only/verify-only mode
+
+For adding a signature to a message without encrypting it or for verifying a signed message that isn't encrypted</property>
+                <property name="use_underline">True</property>
+                <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+                <property name="group">toggle_mode_encdec</property>
+                <signal name="toggled" handler="action_toggle_mode_signverify" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space1b">
+              <object class="GtkLabel" id="space1c">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes"> </property>
@@ -752,7 +1050,7 @@ Requires specifying a passphrase which is used as a shared key (for both encrypt
                 <property name="focus_on_click">False</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="on_toggle_mode_symmetric_toggled" swapped="no"/>
+                <signal name="toggled" handler="action_toggle_symmetric" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -775,7 +1073,7 @@ Requires specifying recipients whose public keys will be used for encryption; or
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="on_toggle_mode_asymmetric_toggled" swapped="no"/>
+                <signal name="toggled" handler="action_toggle_asymmetric" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -798,7 +1096,7 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="on_toggle_advanced_toggled" swapped="no"/>
+                <signal name="toggled" handler="action_toggle_advanced" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -807,47 +1105,11 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
                 <property name="position">6</property>
               </packing>
             </child>
-            <child>
-              <object class="GtkLabel" id="space1c">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes"> </property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">4</property>
-                <property name="position">7</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkRadioButton" id="toggle_mode_signverify">
-                <property name="label" translatable="yes">Si_gn/Verify Mode</property>
-                <property name="use_action_appearance">False</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">Sign-only/verify-only mode
-
-For adding a signature to a message without encrypting it or for verifying a signed message that isn't encrypted</property>
-                <property name="use_underline">True</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
-                <property name="group">toggle_mode_encdec</property>
-                <signal name="toggled" handler="on_toggle_mode_signverify_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">4</property>
-                <property name="position">8</property>
-              </packing>
-            </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -892,7 +1154,7 @@ For adding a signature to a message without encrypting it or for verifying a sig
 Max length limited only by available memory</property>
                 <property name="visibility">False</property>
                 <property name="invisible_char">●</property>
-                <property name="width_chars">8</property>
+                <property name="width_chars">10</property>
                 <property name="truncate_multiline">True</property>
                 <property name="shadow_type">etched-in</property>
                 <property name="invisible_char_set">True</property>
@@ -1043,14 +1305,14 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
           <object class="GtkHPaned" id="hpaned1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="position">540</property>
+            <property name="position">552</property>
             <property name="position_set">True</property>
             <child>
               <object class="GtkFrame" id="frame1">
@@ -1069,6 +1331,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_focus">True</property>
+                        <property name="wrap_mode">word</property>
                       </object>
                     </child>
                   </object>
@@ -1130,7 +1393,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -1206,7 +1469,7 @@ This will likely require you to interact with gpg-agent -- gpg needs your secret
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="on_toggle_signature_toggled" swapped="no"/>
+                <signal name="toggled" handler="action_toggle_signature" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1299,7 +1562,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
         <child>
@@ -1309,7 +1572,6 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
             <child>
               <object class="GtkSpinner" id="spinner1">
                 <property name="width_request">16</property>
-                <property name="visible">False</property>
                 <property name="can_focus">False</property>
               </object>
               <packing>
@@ -1334,7 +1596,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">5</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </object>
@@ -1394,16 +1656,27 @@ class AEightCrypt:
         # Main window
         self.g_window = builder.get_object('window1')
         # Menu items
+        self.g_mopen = builder.get_object('mnu_open')
+        self.g_msave = builder.get_object('mnu_save')
+        self.g_mcut = builder.get_object('mnu_cut')
+        self.g_mcopy = builder.get_object('mnu_copy')
+        self.g_mpaste = builder.get_object('mnu_paste')
+        self.g_wrap = builder.get_object('toggle_wordwrap')
         self.g_taskstatus = builder.get_object('toggle_taskstatus')
         self.g_gpgverbose = builder.get_object('toggle_gpgverbose')
         # Top toolbar
         self.g_encrypt = builder.get_object('button_encrypt')
         self.g_decrypt = builder.get_object('button_decrypt')
+        self.g_bopen = builder.get_object('btn_open')
+        self.g_bsave = builder.get_object('btn_save')
+        self.g_filechooserbtn = builder.get_object('filechooserbutton')
+        self.g_bcopyall = builder.get_object('btn_copyall')
+        # Second top toolbar
         self.g_symmetric = builder.get_object('toggle_mode_symmetric')
         self.g_asymmetric = builder.get_object('toggle_mode_asymmetric')
         self.g_advanced = builder.get_object('toggle_advanced')
         self.g_signverify = builder.get_object('toggle_mode_signverify')
-        # Second top toolbar
+        # Third top toolbar
         self.g_enctoolbar = builder.get_object('hbox2')
         self.g_passlabel = builder.get_object('label_entry_pass')
         self.g_pass = builder.get_object('entry_pass')
@@ -1414,8 +1687,10 @@ class AEightCrypt:
         self.g_cipher = builder.get_object('combobox_cipher')
         # Middle input
         self.g_msgtextview = builder.get_object('textview1')
+        self.buff = self.g_msgtextview.get_buffer()
         self.g_frame2 = builder.get_object('frame2')
         self.g_stderrtextview = builder.get_object('textview2')
+        self.buff2 = self.g_stderrtextview.get_buffer()
         # Bottom toolbar
         self.g_plaintext = builder.get_object('toggle_plaintext')
         self.g_signature = builder.get_object('toggle_signature')
@@ -1445,77 +1720,215 @@ class AEightCrypt:
         self.g_msgtextview.modify_font(FontDescription('monospace 10'))
         self.g_stderrtextview.modify_font(FontDescription('monospace 8'))
         
-        buff2 = self.g_stderrtextview.get_buffer()
-        buff2.set_text("Output from each call to gpg will be displayed here. "
-                       "Check out the View menu for some choices.")
+        self.buff2.set_text("Output from each call to gpg will be displayed here. "
+                            "Check out the View menu for some choices.")
         
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
         self.g_statusbar.push(self.status, "Enter message to encrypt/decrypt")
     
     
-    #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS    
+    #--------------------------------------------------------- HELPER FUNCTIONS
     
-    # Death!
-    def on_window1_destroy(self, widget, data=None):    gtk.main_quit()
-    def on_quit_activate(self, menuitem, data=None):    gtk.main_quit()
-    
-    
-    # 'Open file' menu item
-    def on_open_activate(self, menuitem, data=None):    self.open_file()
-    
-    
-    # 'Save text buffer' menu item
-    def on_save_activate(self, menuitem, data=None):
-        if self.sanitycheck_textviewbuff('save'):
-            filename = self.chooser_grab_filename('save')
-            if filename: self.write_file(filename)
-    
-    
-    # 'Cut' menu item
-    def on_cut_activate(self, menuitem, data=None):
-        buff = self.g_msgtextview.get_buffer()
-        buff.cut_clipboard(gtk.clipboard_get(), True)
-    
-    
-    # 'Copy' menu item
-    def on_copy_activate(self, menuitem, data=None):
-        buff = self.g_msgtextview.get_buffer()
-        buff.copy_clipboard(gtk.clipboard_get())
-    
-    
-    # 'Paste' menu item
-    def on_paste_activate(self, menuitem, data=None):
-        buff = self.g_msgtextview.get_buffer()
-        buff.paste_clipboard(gtk.clipboard_get(), None, True)
-    
-    
-    # 'Clear' menu item 
-    def on_clear_activate(self, menuitem, data=None):
-        """Reset Statusbar, TextBuffer, Entry, gpg input & filename."""
+    def set_stdstatus(self):
+        """Set a standard status message that is mode-depenedent."""
         self.g_statusbar.pop(self.status)
         if self.g_signverify.get_active():
-            status = "Enter message to sign/verify"
+            s = "Enter message to sign/verify"
         else:
-            status = "Enter message to encrypt/decrypt"
-        self.g_statusbar.push(self.status, status)
-        buff = self.g_msgtextview.get_buffer()
-        buff.set_text('')
-        buff.set_modified(False)
-        self.g_msgtextview.set_sensitive(True)
-        buff2 = self.g_stderrtextview.get_buffer()
-        buff2.set_text('')
+            s = "Enter message to encrypt/decrypt"
+        self.g_statusbar.push(self.status, s)
+    
+    
+    # This is called when entering & exiting direct-file mode.
+    def filemode_enablewidgets(self, x=True):
+        """Enable/disable certain widgets due to working in direct-file mode."""
+        widgets = [self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave,
+                   self.g_msave, self.g_mcut, self.g_mcopy, self.g_mpaste,
+                   self.g_msgtextview]
+        for w in widgets:
+            w.set_sensitive(x)
+    
+    
+    # This is called when user tries to save or en/decrypt or sign/verify
+    def sanitycheck_textviewbuff(self, choice):
+        """Return False if msg TextBuffer is empty or doesn't have a good message."""
+        if self.buff.get_char_count() < 1:
+            show_errmsg("You haven't even entered any text yet.")
+            return False
+        # Fail if TextBuffer contains a message from direct-file-mode
+        if not self.buff.get_modified():
+            if choice in 'save':
+                show_errmsg("Saving the buffer at this point would only save "
+                            "a copy of the message you see in the main window.")
+            else:
+                if choice in {'enc','dec'}:     choice = "{}rypt".format(choice)
+                elif not choice in 'verify':    choice = "sign"
+                show_errmsg(
+                    "Your last file operation succeeded. Selecting {!r} at this "
+                    "point would only attempt to {} the message you see in the "
+                    "main window. Either load a new file or type/paste a new "
+                    "message.".format(choice.title(), choice))
+            return False
+        return True
+    
+    
+    # Generic file chooser for opening or saving
+    def chooser_grab_filename(self, mode, save_suggestion=None):
+        """Present file chooser dialog and return filename or None."""
+        filename = None
+        cmd = ("gtk.FileChooserDialog('{0} File...', self.g_window, "
+               "gtk.FILE_CHOOSER_ACTION_{1}, (gtk.STOCK_CANCEL, "
+               "gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))"
+               .format(mode.title(), mode.upper()))
+        chooser = eval(cmd)
+        if save_suggestion:
+            chooser.set_current_name(save_suggestion)
+        chooser.set_do_overwrite_confirmation(True)
+        response = chooser.run()
+        if response == gtk.RESPONSE_OK: filename = chooser.get_filename()
+        chooser.destroy()
+        return filename
+    
+    
+    def grab_activetext_combobox(self, combobox):
+        """Return the text of active combobox selection."""
+        cbmodel = combobox.get_model()
+        cbindex = combobox.get_active()
+        if cbindex == 0:
+            return None  # If first choice is selected, i.e. 'Default'
+        else:
+            return cbmodel[cbindex][0]
+    
+    
+    # This is called by encrypt/decrypt buttons when operating in direct-file mode
+    def filemode_prep_outfile(self, mode):
+        """Use FileChooser to get an output filename for gpg direct enc/dec."""
+        while 1:
+            # Prompt for name to save output to
+            outfile = self.chooser_grab_filename('save', self.in_filename)
+            if not outfile: return  # Return if user hit Cancel
+            # TODO: Get Gtk.FileChooser's confirm-overwrite signal to handle this:
+            if self.in_filename != outfile: break  # We're done if we got 2 different files
+            show_errmsg("Simultaneously reading from & writing to a file is a "
+                        "baaad idea. Choose a different output filename.")
+        self.out_filename = outfile
+        self.launchgpg(mode)
+    
+    
+    #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
+    
+    def on_window1_destroy(self, widget, data=None):    gtk.main_quit()
+    def action_quit(self, menuitem, data=None):         gtk.main_quit()
+    
+    
+    def action_clear(self, widget, data=None):
+        """Reset Statusbar, TextBuffer, Entry, gpg input & filenames."""
+        self.set_stdstatus()        
+        self.filemode_enablewidgets()
+        self.buff.set_text('')
+        self.buff.set_modified(False)
+        self.buff2.set_text('')
         self.g_pass.set_text('')
         self.g_recip.set_text('')
         self.g_plaintext.set_sensitive(False)
         self.g_plaintext.set_active(True)
+        self.g_filechooserbtn.set_filename('(None)')
         self.in_filename = None
         self.out_filename = None
         self.g.stdin = None
+        while gtk.events_pending(): gtk.main_iteration()
     
     
-    # 'Make cipher selection default' menu item
-    def on_savecipherpref_activate(self, menuitem, data=None):
+    def action_open(self, widget, data=None):
+        """Replace contents of msg TextView's TextBuffer with contents of file."""
+        filename = self.chooser_grab_filename('open')
+        if not filename: return
+        try:
+            with open(filename) as f:  self.buff.set_text(f.read())
+            if self.buff.get_char_count() < 1:
+                show_errmsg("It appears the file you chose was not a text file. "
+                            "To operate on binary files, use the chooser widget "
+                            "to the right of the redo button in the top toolbar.")
+        except:
+            show_errmsg("Error opening file {!r} for reading.".format(filename))
+    
+    
+    def action_filemode_chooser_set(self, widget, data=None):
+        """Ensure read access of file set by chooserwidget and notify user of next steps."""
+        infile = self.g_filechooserbtn.get_filename()
+        if not access(infile, R_OK):
+            show_errmsg("Error opening file {!r} for reading. Choose a new file."
+                        .format(infile))
+            return
+        # Set plaintext output checkbox state based on whether file is binary
+        # Also, allow user to change it
+        self.g_plaintext.set_sensitive(True)
+        if self.g.test_file_isbinary(infile):
+            self.g_plaintext.set_active(False)
+        else:
+            self.g_plaintext.set_active(True)
+        self.g_statusbar.pop(self.status)
+        self.g_statusbar.push(self.status, "Choose an action to perform on {!r}".format(infile))
+        self.buff.set_text("\nClick the Clear button if you decide not to operate on file")
+        self.buff.set_modified(False)
+        self.filemode_enablewidgets(False)
+        show_errmsg("Ready to pass chosen filename directly to gpg.\n\n"
+                    "Next, choose an action (i.e., Encrypt, Decrypt, Sign, Verify)."
+                    " You will be prompted for an output filename if necessary."
+                    .format(infile), dialogtype=gtk.MESSAGE_INFO)
+        self.in_filename = infile
+    
+    
+    def action_save(self, widget, data=None):
+        """Save contents of msg TextView's TextBuffer to file."""
+        if not self.sanitycheck_textviewbuff('save'): return
+        filename = self.chooser_grab_filename('save')
+        if not filename: return
+        self.g_statusbar.push(self.status, "Saving {}".format(filename))
+        while gtk.events_pending(): gtk.main_iteration()
+        buffertext = self.buff.get_text(self.buff.get_start_iter(),
+                                        self.buff.get_end_iter())
+        try:
+            with open(filename, 'w') as f:  f.write(buffertext)
+        except:
+            show_errmsg("Error opening file {!r} for writing.".format(filename))
+        self.g_statusbar.pop(self.status)
+    
+    
+    def action_undo(self, widget, data=None):
+        pass
+    
+    
+    def action_redo(self, widget, data=None):
+        pass
+    
+    
+    def action_cut(self, widget, data=None):
+        """Cut msg TextBuffer selection."""
+        self.buff.cut_clipboard(gtk.clipboard_get(), True)
+    
+    
+    def action_copy(self, widget, data=None):
+        """Copy msg TextBuffer selection."""
+        self.buff.copy_clipboard(gtk.clipboard_get())
+    
+    
+    def action_paste(self, widget, data=None):
+        """Paste clipboard into msg TextBuffer at selection."""
+        self.buff.paste_clipboard(gtk.clipboard_get(), None, True)
+    
+    
+    def action_copyall(self, widget, data=None):
+        """Select whole msg TextBuffer contents and copy to clipboard."""
+        if not self.sanitycheck_textviewbuff('copyall'): return
+        self.buff.select_range(self.buff.get_start_iter(),
+                               self.buff.get_end_iter())
+        self.buff.copy_clipboard(gtk.clipboard_get())
+        show_errmsg("Copied Message to clipboard.", dialogtype=gtk.MESSAGE_INFO)
+    
+    
+    def action_savecipherpref(self, menuitem, data=None):
         """Get current cipher setting from ComboBox & save it as default in argv[0]."""
         from sys import argv
         cbindex = self.g_cipher.get_active()
@@ -1528,8 +1941,9 @@ class AEightCrypt:
                         "as root.".format(argv[0]))
     
     
-    # 'Encrypt' button
-    def on_button_encrypt_clicked(self, menuitem, data=None):
+    # 'Encrypt'/'Sign' button
+    def action_encrypt(self, widget, data=None):
+        """Encrypt or sign input."""
         if self.g_signverify.get_active():
             # Sign-only mode!
             if self.g_sigmode.get_active() == 0:
@@ -1541,22 +1955,29 @@ class AEightCrypt:
             self.launchgpg(action)
         else:
             # Normal enc/dec mode
-            self.launchgpg('enc')
+            if self.in_filename and not self.out_filename:
+                self.filemode_prep_outfile('enc')
+            else:
+                self.launchgpg('enc')
     
     
-    # 'Decrypt' button
-    def on_button_decrypt_clicked(self, menuitem, data=None):
+    # 'Decrypt'/'Verify' button
+    def action_decrypt(self, widget, data=None):
+        """Decrypt or verify input."""
         if self.g_signverify.get_active():
             # Verify mode!
             self.launchgpg('verify')
         else:
             # Normal enc/dec mode
-            self.launchgpg('dec')
+            if self.in_filename and not self.out_filename:
+                self.filemode_prep_outfile('dec')
+            else:
+                self.launchgpg('dec')
     
     
-    # 'Symmetric' radio toggle
-    def on_toggle_mode_symmetric_toggled(self, widget, data=None):
-        
+    # 'Symmetric' checkbox toggle
+    def action_toggle_symmetric(self, widget, data=None):
+        """Toggle symmetric encryption (enable/disable certain widgets)."""
         # If entering toggled state, show pass entry, disable Asymm
         if self.g_symmetric.get_active():
             self.g_passlabel.set_sensitive      (True)
@@ -1564,7 +1985,6 @@ class AEightCrypt:
             # If not in advanced mode, disable Asymm
             if not self.g_advanced.get_active():
                 self.g_asymmetric.set_active        (False)
-        
         # If leaving toggled state, hide pass entry
         else:
             self.g_passlabel.set_sensitive      (False)
@@ -1574,24 +1994,23 @@ class AEightCrypt:
                 self.g_asymmetric.set_active        (True)
     
     
-    # 'Asymmetric' radio toggle
-    def on_toggle_mode_asymmetric_toggled(self, widget, data=None):
-        
-        # If entering toggled state, show recip entry + addtl checkboxes
+    # 'Asymmetric' checkbox toggle
+    def action_toggle_asymmetric(self, widget, data=None):
+        """Toggle asymmetric encryption (enable/disable certain widgets)."""
+        def setsensitive_asymmwidgets(x=True):
+            self.g_reciplabel.set_sensitive     (x)
+            self.g_recip.set_sensitive          (x)
+            self.g_enctoself.set_sensitive      (x)
+        # If entering toggled state
         if self.g_asymmetric.get_active():
-            self.g_reciplabel.set_sensitive     (True)
-            self.g_recip.set_sensitive          (True)
-            self.g_enctoself.set_sensitive      (True)
+            setsensitive_asymmwidgets           (True)
             self.g_signature.set_sensitive      (True)
             # If not in advanced mode, disable Symm
             if not self.g_advanced.get_active():
                 self.g_symmetric.set_active         (False)
-        
-        # If leaving toggled state, hide recip entry
+        # If leaving toggled state
         else:
-            self.g_reciplabel.set_sensitive     (False)
-            self.g_recip.set_sensitive          (False)
-            self.g_enctoself.set_sensitive      (False)
+            setsensitive_asymmwidgets           (False)
             self.g_enctoself.set_active         (False)
             # If not in advanced mode, unset signature
             if not self.g_advanced.get_active():
@@ -1603,13 +2022,13 @@ class AEightCrypt:
     
     
     # 'Advanced' checkbox toggle
-    def on_toggle_advanced_toggled(self, widget, data=None):
-                
-        if self.g_advanced.get_active():    # If entering the toggled state
-            #if self.g_symmetric.get_active():
+    def action_toggle_advanced(self, widget, data=None):
+        """Enable/disable encryption widgets for advanced mode."""
+        # If entering the toggled state
+        if self.g_advanced.get_active():
             self.g_signature.set_sensitive      (True)
-        
-        else:                               # If Leaving the toggled state
+        # If Leaving the toggled state
+        else:
             if self.g_symmetric.get_active():
                 if self.g_asymmetric.get_active():
                     self.g_asymmetric.set_active        (False)
@@ -1619,14 +2038,14 @@ class AEightCrypt:
     
     
     # 'Sign/Verify' radio toggle
-    def on_toggle_mode_signverify_toggled(self, widget, data=None):
-        
+    def action_toggle_mode_signverify(self, widget, data=None):
+        """Hide/show, change some widgets when switching modes."""
+        self.set_stdstatus()
         def setvisible_encryptionwidgets(x=True):
             self.g_symmetric.set_visible    (x)
             self.g_asymmetric.set_visible   (x)
             self.g_advanced.set_visible     (x)
             self.g_enctoolbar.set_visible   (x)
-        
         # If entering the toggled state ...
         if self.g_signverify.get_active():
             # Modify our button labels
@@ -1636,16 +2055,13 @@ class AEightCrypt:
             setvisible_encryptionwidgets    (False)
             # Save state of AddSignature for switching back to Enc/Dec mode
             self.encdec_sig_state_sensitive = self.g_signature.get_sensitive()
-            self.encdec_sig_state_active = self.g_signature.get_active()
+            self.encdec_sig_state_active    = self.g_signature.get_active()
             # Desensitize AddSignature checkbox and turn it on
             self.g_signature.set_sensitive  (False)
             self.g_signature.set_active     (True)
             # Sensitize sigmode combobox & change active to Clearsign
             self.g_sigmode.set_sensitive    (True)
             self.g_sigmode.set_active       (1)
-            # Status
-            self.g_statusbar.push           (self.status, "Enter message to sign/verify")
-        
         # If leaving the toggled state, we have some things to reverse
         else:
             self.g_encrypt.set_label        ("_Encrypt")
@@ -1655,185 +2071,43 @@ class AEightCrypt:
             self.g_signature.set_active     (self.encdec_sig_state_active)
             self.g_sigmode.set_sensitive    (False)
             self.g_sigmode.set_active       (0)
-            self.g_statusbar.pop            (self.status)
     
     
-    # 'Add signature' toggle    
-    def on_toggle_signature_toggled(self, widget, data=None):
-        
+    # 'Add signature' checkbox toggle
+    def action_toggle_signature(self, widget, data=None):
+        """Hide/show some widgets when toggling adding of a signature to input."""
+        def setvisible_signingwidgets(x=True):
+            self.g_hash.set_visible         (x)
+            self.g_hashlabel.set_visible    (x)
+            self.g_sigmode.set_visible      (x)
         # Entering toggled state
         if self.g_signature.get_active():
-            self.g_hash.set_visible         (True)
-            self.g_hashlabel.set_visible    (True)
-            self.g_sigmode.set_visible      (True)
-        
+            setvisible_signingwidgets(True)
         # Leaving toggled state
         else:
-            self.g_hash.set_visible         (False)
-            self.g_hashlabel.set_visible    (False)
-            self.g_sigmode.set_visible      (False)
+            setvisible_signingwidgets(False)
     
     
-    # 'Task Status' checkbox toggle
-    def on_toggle_taskstatus_toggled(self, menuitem, data=None):
+    def action_toggle_taskstatus(self, menuitem, data=None):
+        """Show/hide side pane containing gpg stderr output."""
         if self.g_taskstatus.get_active():
             self.g_frame2.set_visible       (True)
         else:
             self.g_frame2.set_visible       (False)
     
     
-    #--------------------------------------------------------- HELPER FUNCTIONS
-    
-    # This is called when user tries to save or en/decrypt or sign/verify
-    def sanitycheck_textviewbuff(self, choice):
-        buff = self.g_msgtextview.get_buffer()
-        # Fail if TextBuffer is empty 
-        if buff.get_char_count() < 1:
-            show_errmsg("You haven't even entered any text yet.")
-            return False
-        # Fail if TextBuffer contains a message from direct-file-mode
-        if not buff.get_modified():
-            if choice in 'save':
-                show_errmsg("Saving the buffer at this point would only save "
-                            "a copy of the message you see in the main window.")
-            else:
-                if choice in {'enc','dec'}:     choice = "{}rypt".format(choice)
-                elif not choice in 'verify':    choice = "Sign"
-                show_errmsg(
-                    "Your last file en/decryption operation succeeded. Selecting "
-                    "{!r} at this point would only attempt to {} the message you "
-                    "see in the main window. Either load a new file from the "
-                    "'Open file' menu, or type/paste a new message"
-                    .format(choice.title(), choice))
-            return False
-        return True
-
-
-    # Generic file chooser for opening or saving
-    def chooser_grab_filename(self, mode, save_suggestion=None):
-        """Present file chooser dialog and return filename or None."""
-        
-        filename = None
-        
-        cmd = ("gtk.FileChooserDialog('{0} File...', self.g_window, "
-               "gtk.FILE_CHOOSER_ACTION_{1}, (gtk.STOCK_CANCEL, "
-               "gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))"
-               .format(mode.title(), mode.upper()))
-        chooser = eval(cmd)
-        chooser.set_do_overwrite_confirmation(True)
-        if save_suggestion: chooser.set_current_name(save_suggestion)
-        
-        response = chooser.run()
-        if response == gtk.RESPONSE_OK: filename = chooser.get_filename()
-        chooser.destroy()
-        return filename
-    
-    
-    # Save contents of buffer to file
-    def write_file(self, filename):
-        """Write TextView buffer to filename."""
-        
-        # Add message to status bar
-        self.g_statusbar.push(self.status, "Saving {}".format(filename))
-        
-        while gtk.events_pending(): gtk.main_iteration()
-        
-        # Get contents of buffer
-        buff = self.g_msgtextview.get_buffer()
-        buffertext = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-        
-        try:
-            # Try to open filename for writing
-            fout = open(filename, 'w')
-        except:
-            # Error opening file, show message to user
-            show_errmsg("Could not save file: {}".format(filename))
+    def action_toggle_wordwrap(self, menuitem, data=None):
+        """Toggle word wrapping for main message TextView."""
+        if self.g_wrap.get_active():
+            self.g_msgtextview.set_wrap_mode(gtk.WRAP_WORD)
         else:
-            # Write text from buffer to file
-            fout.write(buffertext)
-            fout.close()
-        
-        # Clear saving status
-        self.g_statusbar.pop(self.status)
-    
-    
-    def open_file(self):
-        """Choose a filename to pass directly to gpg (without loading into textview).
-        
-        For very large files, it would be good to avoid pasting them into the
-        GtkWindow and then having to pass that input (and resulting output) through
-        Popen.communicate() ... right? Not to mention binary files.
-        
-        This method prompts for a filename to open (for gpg input) and then an output
-        filename (to save gpg output to) and sets up everything to make it possible
-        for AEightCrypt.launchgpg() to pass the file NAMES directly to the gpg
-        subprocess, without ever opening the files in Python.
-        """
-        
-        infile = None ; outfile = None
-        
-        while True:
-            # Prompt for a file to open
-            infile = self.chooser_grab_filename('open')
-            if not infile: return  # Cancel opening if user hit Cancel
-            if access(infile, R_OK): break  # We're done if we can read infile
-            show_errmsg("Could not open file {0!r} for reading. Choose a new file."
-                        .format(infile))
-        
-        while True:
-            if self.g_signverify.get_active(): break
-            # Prompt for name to save output to
-            outfile = self.chooser_grab_filename('save', infile)
-            if not outfile: return  # Return if user hit Cancel
-            # TODO: Get Gtk.FileChooser's confirm-overwrite signal to handle this:
-            if infile != outfile: break  # We're done if we got 2 different files
-            show_errmsg("Simultaneously reading from & writing to a file is a "
-                        "baaad idea. Choose a different output filename.")
-        
-        # Set plaintext CheckButton toggle
-        self.g_plaintext.set_sensitive(True)
-        if self.g.test_file_isbinary(infile):
-            self.g_plaintext.set_active(False)
-        
-        # Ready message to status; disable text view & replace it with a message
-        if self.g_signverify.get_active():
-            status = "Ready to sign or verify file: {}".format(infile)
-            msg = ("Choose 'Sign' or 'Verify' to have {0} load file"
-                   "\n   {1!r}\nas input.\n\nIf signing, output file will have the same "
-                   "name with a new\nextension appended -- if using plaintext output, "
-                   "'.asc';\notherwise, either '.sig' for detached signatures, or"
-                   "\n'.gpg' for embedded ones.\n\nIf verifying, no new files are "
-                   "created; gpg just checks that\nthe signature is good."
-                   .format(self.g.GPG.upper(), infile))
-        else:
-            status = "Ready to encrypt or decrypt file: {}".format(infile)
-            msg = ("Choose 'Encrypt' or 'Decrypt' to have {0} load file"
-                   "\n   {1!r}\nas input, saving output to file\n   {2!r}"
-                   .format(self.g.GPG.upper(), infile, outfile))
-        self.g_statusbar.push(self.status, status)
-        self.g_msgtextview.set_sensitive(False)
-        buff = self.g_msgtextview.get_buffer()
-        buff.set_text(msg)
-        buff.set_modified(False)
-        
-        # Promote our filenames
-        self.in_filename = infile
-        self.out_filename = outfile
-    
-    
-    def grab_activetext_combobox(self, combobox):
-        cbmodel = combobox.get_model()
-        cbindex = combobox.get_active()
-        if cbindex == 0:
-            return None  # If first choice is selected, i.e. 'Default'
-        else:
-            return cbmodel[cbindex][0]
+            self.g_msgtextview.set_wrap_mode(gtk.WRAP_NONE)
     
     
     #-------------------------------------------------------- MAIN GPG FUNCTION
     def launchgpg(self, action):
         """Manage I/O between Gtk objects and our GpgInterface object."""
-
+        
         ### PREPARE GpgInterface.gpg() ARGS
         passwd = None ; recip = None
         # enctoself
@@ -1869,8 +2143,6 @@ class AEightCrypt:
         # alwaystrust
         alwaystrust = False
         
-        buff = self.g_msgtextview.get_buffer()
-        
         # TEXT INPUT PREP
         if not self.in_filename:
             
@@ -1882,7 +2154,8 @@ class AEightCrypt:
             self.g_msgtextview.set_sensitive(False)
             
             # Save textview buffer to GpgInterface.stdin
-            self.g.stdin = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
+            self.g.stdin = self.buff.get_text(self.buff.get_start_iter(),
+                                              self.buff.get_end_iter())
         
         # Set working status + spinner
         if action in {'sign', 'signclear', 'signdetach'}:
@@ -1904,47 +2177,44 @@ class AEightCrypt:
         
         self.g_activityspinner.stop()
         self.g_activityspinner.set_visible(False)
-        buff2 = self.g_stderrtextview.get_buffer()
-        buff2.set_text(self.g.stderr)
+        self.g_statusbar.pop(self.status)
+        self.buff2.set_text(self.g.stderr)
         
         # FILE INPUT MODE CLEANUP
         if self.in_filename:
             
-            # Success!
-            if retval:
+            if retval:  # Success!
                 
-                # Clear last two statusbar messages to get back to default
-                # 'crypting input' and 'Ready to encrypt or decrypt file'
-                self.g_statusbar.pop(self.status) ; self.g_statusbar.pop(self.status)
+                self.g_filechooserbtn.set_filename('(None)')
+                self.filemode_enablewidgets()
+                self.set_stdstatus()
+                while gtk.events_pending(): gtk.main_iteration()
                 
                 # Replace textview buffer with success message
                 if action in {'enc', 'dec'}:
-                    msg = ("SUCCESS!\n\n{} saved new {}rypted file to:\n{}"
-                           .format(self.g.GPG.upper(), action, self.out_filename))
+                    msg = ("SUCCESS!\n\n{} saved new {}rypted copy of {!r} to:\n{!r}"
+                           .format(self.g.GPG.upper(), action, self.in_filename, self.out_filename))
                 
                 elif action in {'sign', 'signclear'}:
-                    if base64 or action in signclear:
+                    if base64 or action in 'signclear':
                         outfile = "{}.asc".format(self.in_filename)
                     else:
                         outfile = "{}.gpg".format(self.in_filename)
-                    msg = ("SUCCESS!\n\n{} saved new signed file to:\n{}"
-                           .format(self.g.GPG.upper(), outfile))
+                    msg = ("SUCCESS!\n\n{} saved new signed copy of {!r} to:\n{!r}"
+                           .format(self.g.GPG.upper(),self.in_filename, outfile))
                 
                 elif action in 'signdetach':
                     if base64:
                         outfile = "{}.asc".format(self.in_filename)
                     else:
                         outfile = "{}.sig".format(self.in_filename)
-                    msg = ("SUCCESS!\n\n{} saved new detached signature to:\n{}"
-                           .format(self.g.GPG.upper(), outfile))
+                    msg = ("SUCCESS!\n\n{} saved new detached signature for {!r} to:\n{!r}"
+                           .format(self.g.GPG.upper(), self.in_filename, outfile))
                 
                 elif action in 'verify':
                     msg = "SUCCESS!\n\n{} verified signature.".format(self.g.GPG.upper())
-                buff.set_text(msg)
-                buff.set_modified(False)
-                
-                # Unlock TextView
-                self.g_msgtextview.set_sensitive(True)
+                self.buff.set_text(msg)
+                self.buff.set_modified(False)
                 
                 # Reset filenames
                 self.in_filename = None ; self.out_filename = None
@@ -1956,42 +2226,37 @@ class AEightCrypt:
             # Fail!
             else:
                 
-                self.g_statusbar.pop(self.status)
                 if action in 'verify':
-                    self.g_statusbar.pop(self.status)
+                    self.g_filechooserbtn.set_filename('(None)')
+                    self.filemode_enablewidgets()
+                    self.set_stdstatus()
                     msg = ("Signature couldn't be verified.\nHave a look at "
                            "'Task Status' output on the right for more info."
                            .format(self.g.GPG.upper()))
-                    buff.set_text(msg)
-                    buff.set_modified(False)
-                    self.g_msgtextview.set_sensitive(True)
+                    self.buff.set_text(msg)
+                    self.buff.set_modified(False)
                     self.in_filename = None
                     self.g_plaintext.set_sensitive(False)
                     self.g_plaintext.set_active(True)
                     return
                 
                 elif action in {'enc', 'dec'}:
-                    err = ("{}Problem {}rypting {!r}\nTry again with another "
-                            "passphrase or select Clear from the Edit menu."
-                            .format(self.g.stderr, action, self.in_filename))
+                    err = ("Problem {}rypting {!r}\nTry again with another "
+                           "passphrase or select Clear to do something else.\n{}"
+                           .format(action, self.in_filename, self.g.stderr))
                 
                 elif action in {'sign', 'signclear', 'signdetach'}:
-                    err = ("{}Problem signing {!r}\nTry again with another "
-                            "passphrase or select Clear from the Edit menu."
-                            .format(self.g.stderr, self.in_filename))
+                    err = ("Problem signing {!r}\nTry again with another "
+                           "passphrase or select Clear to do something else.\n{}"
+                           .format(action, self.in_filename, self.g.stderr))
                 
                 show_errmsg(err)
         
         # TEXT INPUT MODE CLEANUP
         else:
             
-            # Remove '...crypting input...' status
-            self.g_statusbar.pop(self.status)
-            
-            # Unlock TextView
+            self.set_stdstatus()
             self.g_msgtextview.set_sensitive(True)
-            
-            # Reset inputdata
             self.g.stdin = None
             
             # Success!
@@ -2000,7 +2265,7 @@ class AEightCrypt:
                     show_errmsg(self.g.stderr, dialogtype=gtk.MESSAGE_INFO)
                 else:
                     # Set TextBuffer to gpg stdout
-                    buff.set_text(self.g.stdout)
+                    self.buff.set_text(self.g.stdout)
             
             # Fail!
             else:
@@ -2008,7 +2273,7 @@ class AEightCrypt:
     
     
     #------------------------------------------------------------- ABOUT DIALOG
-    def on_gtk_about_activate(self, menuitem, data=None):
+    def action_about(self, menuitem, data=None):
         if self.about_dialog: 
             self.about_dialog.present()
             return
@@ -2017,7 +2282,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.4')
+        about_dialog.set_version('0.9.9.5')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via GPG/GPG2")
