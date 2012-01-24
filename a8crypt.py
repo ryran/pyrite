@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.7 last mod 2012/01/24
+# a8crypt v0.9.9.8 last mod 2012/01/24
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -98,12 +98,13 @@ class GpgInterface():
     # Main gpg interface method
     def gpg(
         self,
-        action=     None,   # One of: enc, dec, sign, signclear, signdetach, verify
+        action=     None,   # One of: enc, dec, sign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
         base64=     True,   # Add '--armor' when encrypting/signing?
         symmetric=  False,  # Add '--symmetric'?
         passwd=     None,   # Passphrase for symmetric
+        asymmetric= False,  # Add '--encrypt'?
         recip=      None,   # Recipients for asymmetric (semicolon-delimited)
         enctoself=  False,  # Add first id from secret keyring as recipient?
         cipher=     None,   # One of: aes256, 3des, etc; None == use gpg defaults
@@ -117,12 +118,13 @@ class GpgInterface():
         
         Arguments with their defaults + explanations, reproduced from the code:
         
-        action=     None,   # One of: enc, dec, sign, signclear, signdetach, verify
+        action=     None,   # One of: enc, dec, sign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
         base64=     True,   # Add '--armor' when encrypting/signing?
         symmetric=  False,  # Add '--symmetric'?
         passwd=     None,   # Passphrase for symmetric
+        asymmetric= False,  # Add '--encrypt'?
         recip=      None,   # Recipients for asymmetric (semicolon-delimited)
         enctoself=  False,  # Add first id from secret keyring as recipient?
         cipher=     None,   # One of: aes256, 3des, etc; None == use gpg defaults
@@ -180,15 +182,15 @@ class GpgInterface():
             if symmetric:
                 cmd.append('--symmetric')
                 cmd.append('--force-mdc')
+            if asymmetric:
+                cmd.append('--encrypt')
             if cipher:
                 cmd.append('--cipher-algo')
                 cmd.append(cipher)
             if enctoself:
-                cmd.append('--encrypt')
                 cmd.append('--recipient')
                 cmd.append(self.get_gpgdefaultkey())
             if recip:
-                if not enctoself:   cmd.append('--encrypt')
                 while recip[-1] == ' ' or recip[-1] == ';':
                     recip = recip.strip()
                     recip = recip.strip(';')
@@ -200,10 +202,10 @@ class GpgInterface():
         elif action in 'dec':   cmd.append('--decrypt')
         
         # Sign opts
-        elif action in {'sign', 'signclear', 'signdetach'}:
-            if action in 'sign':            cmd.append('--sign')
-            elif action in 'signclear':     cmd.append('--clearsign')
-            elif action in 'signdetach':    cmd.append('--detach-sign')
+        elif action in {'embedsign', 'clearsign', 'detachsign'}:
+            if action in 'embedsign':            cmd.append('--sign')
+            elif action in 'clearsign':     cmd.append('--clearsign')
+            elif action in 'detachsign':    cmd.append('--detach-sign')
             if digest:
                 cmd.append('--digest-algo')
                 cmd.append(digest)
@@ -212,7 +214,7 @@ class GpgInterface():
         elif action in 'verify':        cmd.append('--verify')
         
         # Wouldn't hurt to use armor for all, but it only works with these 3
-        if action in {'enc', 'sign', 'signdetach'}:
+        if action in {'enc', 'embedsign', 'detachsign'}:
             if base64:
                 cmd.append('--armor')
         
@@ -294,37 +296,37 @@ class XmlForGtkBuilder:
     </columns>
     <data>
       <row>
-        <col id="0" translatable="yes">Default</col>
+        <col id="0" translatable="no">Default</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES256</col>
+        <col id="0" translatable="no">AES256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Twofish</col>
+        <col id="0" translatable="no">Twofish</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia256</col>
+        <col id="0" translatable="no">Camellia256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES192</col>
+        <col id="0" translatable="no">AES192</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia192</col>
+        <col id="0" translatable="no">Camellia192</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES</col>
+        <col id="0" translatable="no">AES</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia128</col>
+        <col id="0" translatable="no">Camellia128</col>
       </row>
       <row>
-        <col id="0" translatable="yes">CAST5</col>
+        <col id="0" translatable="no">CAST5</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Blowfish</col>
+        <col id="0" translatable="no">Blowfish</col>
       </row>
       <row>
-        <col id="0" translatable="yes">3DES</col>
+        <col id="0" translatable="no">3DES</col>
       </row>
     </data>
   </object>
@@ -335,28 +337,28 @@ class XmlForGtkBuilder:
     </columns>
     <data>
       <row>
-        <col id="0" translatable="yes">Default</col>
+        <col id="0" translatable="no">Default</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA512</col>
+        <col id="0" translatable="no">SHA512</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA384</col>
+        <col id="0" translatable="no">SHA384</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA256</col>
+        <col id="0" translatable="no">SHA256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA224</col>
+        <col id="0" translatable="no">SHA224</col>
       </row>
       <row>
-        <col id="0" translatable="yes">RIPEMD160</col>
+        <col id="0" translatable="no">RIPEMD160</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA1</col>
+        <col id="0" translatable="no">SHA1</col>
       </row>
       <row>
-        <col id="0" translatable="yes">MD5</col>
+        <col id="0" translatable="no">MD5</col>
       </row>
     </data>
   </object>
@@ -415,6 +417,7 @@ class XmlForGtkBuilder:
                         <property name="image">img_clear</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
+                        <accelerator key="l" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="action_clear" swapped="no"/>
                       </object>
                     </child>
@@ -1783,6 +1786,10 @@ class AEightCrypt:
     
     def infobar(self, message, msgtype=gtk.MESSAGE_INFO, timeout=5):
         """Instantiate a new auto-hiding InfoBar with a Label of message."""
+        if msgtype == gtk.MESSAGE_INFO:
+            message = "<span foreground='#008C00'>" + message + "</span>"
+        elif msgtype == gtk.MESSAGE_ERROR:
+            message = "<span foreground='white'>" + message + "</span>"
         if self.g_ibar: self.g_ibar.hide()
         self.g_ibar = gtk.InfoBar()
         self.g_ibar.set_message_type(msgtype)
@@ -1815,7 +1822,7 @@ class AEightCrypt:
     # This is called when user tries to save or en/decrypt or sign/verify
     def test_msgbuff_isempty(self):
         if self.buff.get_char_count() < 1:
-            self.infobar("You haven't entered any text yet!", gtk.MESSAGE_WARNING, 2)
+            self.infobar("<b>You haven't entered any text yet!</b>", gtk.MESSAGE_WARNING, 2)
             return True
     
     def confirm_overwrite_callback(self, chooser):
@@ -1985,7 +1992,7 @@ class AEightCrypt:
         self.buff.select_range(self.buff.get_start_iter(),
                                self.buff.get_end_iter())
         self.buff.copy_clipboard(gtk.clipboard_get())
-        self.infobar("Copied Message to clipboard.")
+        self.infobar("<b>Copied Message to clipboard.</b>", timeout=3)
     
     
     def action_savecipherpref(self, menuitem, data=None):
@@ -2007,11 +2014,11 @@ class AEightCrypt:
         if self.g_signverify.get_active():
             # Sign-only mode!
             if self.g_sigmode.get_active() == 0:
-                action = 'sign'
+                action = 'embedsign'
             elif self.g_sigmode.get_active() == 1:
-                action = 'signclear'
+                action = 'clearsign'
             elif self.g_sigmode.get_active() == 2:
-                action = 'signdetach'
+                action = 'detachsign'
             self.launchgpg(action)
         else:
             # Normal enc/dec mode
@@ -2182,12 +2189,7 @@ class AEightCrypt:
         asymmetric = self.g_asymmetric.get_active()
         if asymmetric:
             recip = self.g_recip.get_text()
-            if not recip:
-                recip = None  # If recip was '' , set to None
-                if not enctoself and action in 'enc':
-                    self.infobar("For asymmetric encryption, you must select "
-                                 "'Enc To self' or enter at least one recipient.", gtk.MESSAGE_WARNING)
-                    return False
+            if not recip:  recip = None  # If recip was '' , set to None
         # cipher, base64
         cipher = self.grab_activetext_combobox(self.g_cipher)
         base64 = self.g_plaintext.get_active()
@@ -2200,7 +2202,8 @@ class AEightCrypt:
         digest = self.grab_activetext_combobox(self.g_hash)
         # verbose
         verbose = self.g_gpgverbose.get_active()
-        # alwaystrust
+        # alwaystrust (setting True would allow encrypting to untrusted keys,
+        #   which is how the nautilus-encrypt tool from seahorse-plugins works)
         alwaystrust = False
         
         # TEXT INPUT PREP
@@ -2217,7 +2220,7 @@ class AEightCrypt:
                                               self.buff.get_end_iter())
         
         # Set working status + spinner
-        if action in {'sign', 'signclear', 'signdetach'}:
+        if action in {'embedsign', 'clearsign', 'detachsign'}:
             status = "Signing input ..."
         elif action in 'verify':
             status = "Verifying input ..."
@@ -2229,8 +2232,8 @@ class AEightCrypt:
         while gtk.events_pending(): gtk.main_iteration()
         
         # ATTEMPT EN-/DECRYPTION
-        retval = self.g.gpg(action, encsign, digest, base64,
-                            symmetric, passwd, recip, enctoself, cipher,
+        retval = self.g.gpg(action, encsign, digest, base64, symmetric, passwd,
+                            asymmetric, recip, enctoself, cipher,
                             self.in_filename, self.out_filename,
                             verbose, alwaystrust)
         
@@ -2251,27 +2254,30 @@ class AEightCrypt:
                 
                 # Replace textview buffer with success message
                 if action in {'enc', 'dec'}:
-                    self.infobar("<b>SUCCESS!</b> Saved new {}rypted copy of input to: {!r}"
+                    self.infobar("<b>Saved {}rypted copy of input to:\n"
+                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
                                  .format(action, self.out_filename))
-        
-                elif action in {'sign', 'signclear'}:
-                    if base64 or action in 'signclear':
+                
+                elif action in {'embedsign', 'clearsign'}:
+                    if base64 or action in 'clearsign':
                         outfile = "{}.asc".format(self.in_filename)
                     else:
                         outfile = "{}.gpg".format(self.in_filename)
-                    self.infobar("<b>SUCCESS!</b> Saved new signed copy of input to: {!r}"
+                    self.infobar("<b>Saved signed copy of input to:\n"
+                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
                                  .format(outfile))
                 
-                elif action in 'signdetach':
+                elif action in 'detachsign':
                     if base64:
                         outfile = "{}.asc".format(self.in_filename)
                     else:
                         outfile = "{}.sig".format(self.in_filename)
-                    self.infobar("<b>SUCCESS!</b> Saved detached signature of input to: {!r}"
+                    self.infobar("<b>Saved detached signature of input to:\n"
+                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
                                  .format(outfile))
                 
                 elif action in 'verify':
-                    self.infobar("<b>SUCCESS!</b> Verified good signature.", timeout=4)
+                    self.infobar("<b>Good signature verified.</b>", timeout=4)
                 self.buff.set_text('')
                 
                 # Reset filenames
@@ -2299,7 +2305,7 @@ class AEightCrypt:
                 elif action in {'enc', 'dec'}:
                     action = action + 'rypt'
                 
-                elif action in {'sign', 'signclear', 'signdetach'}:
+                elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
                 
                 self.infobar("<b>Problem {}ing file.</b> See<i> Task Status </i> for details.\n"
@@ -2316,7 +2322,7 @@ class AEightCrypt:
             # Success!
             if retval:
                 if action in 'verify':
-                    self.infobar("<b>SUCCESS!</b>  Verified good signature.", timeout=4)
+                    self.infobar("<b>Good signature verified.</b>", timeout=4)
                 else:
                     # Set TextBuffer to gpg stdout
                     self.buff.set_text(self.g.stdout)
@@ -2327,9 +2333,18 @@ class AEightCrypt:
                     self.infobar("<b>Signature could not be verified.</b> See<i> "
                                  "Task Status </i> for details.", gtk.MESSAGE_WARNING, 7)
                     return
+                elif action in 'enc' and asymmetric and not recip and not enctoself:
+                    self.infobar("<b>Problem asymmetrically encrypting input.</b> If you don't "
+                                 "want to enter recipients and\nyou don't want to select<i> Enc "
+                                 "To Self</i>, you must add one of the following to your\ngpg.conf "
+                                 "file: <b><span size='smaller' face='monospace'>default-recipient-"
+                                 "self</span></b> or <b><span size='smaller' face='monospace'>"
+                                 "default-recipient <i>name</i></span></b>",
+                                 gtk.MESSAGE_ERROR, 0)
+                    return
                 elif action in {'enc', 'dec'}:
                     action = action + 'rypt'
-                elif action in {'sign', 'signclear', 'signdetach'}:
+                elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
                 self.infobar("<b>Problem {}ing input.</b> See<i> Task Status </i> for details."
                              .format(action), gtk.MESSAGE_ERROR)
@@ -2345,10 +2360,10 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.7')
+        about_dialog.set_version('0.9.9.8')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
-        about_dialog.set_comments("Encryption, decryption, & signing via GPG/GPG2")
+        about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
         about_dialog.set_authors(authors)
         about_dialog.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
         
