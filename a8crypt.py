@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.8 last mod 2012/01/24
+# a8crypt v0.9.9.9 last mod 2012/01/25
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -17,10 +17,11 @@
 #------------------------------------------------------------------------------
 #
 # TODO: Dialog with progress bar & cancel button when working
-# TODO: Get application icon & icons for encrypt, decrypt, sign, verify buttons
+# TODO: Get icons for for encrypt, decrypt, sign, verify buttons, application
 # TODO: Preferences dialog that can save settings to a config file?
 # TODO: Implement undo stack. Blech. Kill me.
-# TODO: Replace Glade xml with real pygtk funness once gui is more finalized
+# TODO: Implement output files for sign-only mode
+
 
 # Modules from the Standard Library
 import gtk
@@ -98,7 +99,7 @@ class GpgInterface():
     # Main gpg interface method
     def gpg(
         self,
-        action=     None,   # One of: enc, dec, sign, clearsign, detachsign, verify
+        action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
         base64=     True,   # Add '--armor' when encrypting/signing?
@@ -118,7 +119,7 @@ class GpgInterface():
         
         Arguments with their defaults + explanations, reproduced from the code:
         
-        action=     None,   # One of: enc, dec, sign, clearsign, detachsign, verify
+        action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
         base64=     True,   # Add '--armor' when encrypting/signing?
@@ -203,7 +204,7 @@ class GpgInterface():
         
         # Sign opts
         elif action in {'embedsign', 'clearsign', 'detachsign'}:
-            if action in 'embedsign':            cmd.append('--sign')
+            if action in 'embedsign':       cmd.append('--sign')
             elif action in 'clearsign':     cmd.append('--clearsign')
             elif action in 'detachsign':    cmd.append('--detach-sign')
             if digest:
@@ -269,10 +270,35 @@ class XmlForGtkBuilder:
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
+  <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-clear</property>
+  </object>
+  <object class="GtkImage" id="image7">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-zoom-in</property>
+  </object>
+  <object class="GtkImage" id="image8">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-zoom-out</property>
+  </object>
   <object class="GtkImage" id="img_clear">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-clear</property>
+  </object>
+  <object class="GtkImage" id="img_decrypt">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-revert-to-saved</property>
+  </object>
+  <object class="GtkImage" id="img_encrypt">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-apply</property>
   </object>
   <object class="GtkImage" id="img_open">
     <property name="visible">True</property>
@@ -296,37 +322,37 @@ class XmlForGtkBuilder:
     </columns>
     <data>
       <row>
-        <col id="0" translatable="no">Default</col>
+        <col id="0" translatable="yes">Default</col>
       </row>
       <row>
-        <col id="0" translatable="no">AES256</col>
+        <col id="0" translatable="yes">AES256</col>
       </row>
       <row>
-        <col id="0" translatable="no">Twofish</col>
+        <col id="0" translatable="yes">Twofish</col>
       </row>
       <row>
-        <col id="0" translatable="no">Camellia256</col>
+        <col id="0" translatable="yes">Camellia256</col>
       </row>
       <row>
-        <col id="0" translatable="no">AES192</col>
+        <col id="0" translatable="yes">AES192</col>
       </row>
       <row>
-        <col id="0" translatable="no">Camellia192</col>
+        <col id="0" translatable="yes">Camellia192</col>
       </row>
       <row>
-        <col id="0" translatable="no">AES</col>
+        <col id="0" translatable="yes">AES</col>
       </row>
       <row>
-        <col id="0" translatable="no">Camellia128</col>
+        <col id="0" translatable="yes">Camellia128</col>
       </row>
       <row>
-        <col id="0" translatable="no">CAST5</col>
+        <col id="0" translatable="yes">CAST5</col>
       </row>
       <row>
-        <col id="0" translatable="no">Blowfish</col>
+        <col id="0" translatable="yes">Blowfish</col>
       </row>
       <row>
-        <col id="0" translatable="no">3DES</col>
+        <col id="0" translatable="yes">3DES</col>
       </row>
     </data>
   </object>
@@ -337,28 +363,28 @@ class XmlForGtkBuilder:
     </columns>
     <data>
       <row>
-        <col id="0" translatable="no">Default</col>
+        <col id="0" translatable="yes">Default</col>
       </row>
       <row>
-        <col id="0" translatable="no">SHA512</col>
+        <col id="0" translatable="yes">SHA512</col>
       </row>
       <row>
-        <col id="0" translatable="no">SHA384</col>
+        <col id="0" translatable="yes">SHA384</col>
       </row>
       <row>
-        <col id="0" translatable="no">SHA256</col>
+        <col id="0" translatable="yes">SHA256</col>
       </row>
       <row>
-        <col id="0" translatable="no">SHA224</col>
+        <col id="0" translatable="yes">SHA224</col>
       </row>
       <row>
-        <col id="0" translatable="no">RIPEMD160</col>
+        <col id="0" translatable="yes">RIPEMD160</col>
       </row>
       <row>
-        <col id="0" translatable="no">SHA1</col>
+        <col id="0" translatable="yes">SHA1</col>
       </row>
       <row>
-        <col id="0" translatable="no">MD5</col>
+        <col id="0" translatable="yes">MD5</col>
       </row>
     </data>
   </object>
@@ -407,14 +433,14 @@ class XmlForGtkBuilder:
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_clear">
-                        <property name="label">_Clear</property>
+                        <property name="label">C_lear</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
                         <property name="use_underline">True</property>
-                        <property name="image">img_clear</property>
+                        <property name="image">image6</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
                         <accelerator key="l" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -453,7 +479,7 @@ class XmlForGtkBuilder:
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                      <object class="GtkSeparatorMenuItem" id="mnu_sep1a">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -468,6 +494,7 @@ class XmlForGtkBuilder:
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
+                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="action_quit" swapped="no"/>
                       </object>
                     </child>
@@ -513,7 +540,7 @@ class XmlForGtkBuilder:
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="sep1">
+                      <object class="GtkSeparatorMenuItem" id="mnu_sep2a">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -556,7 +583,7 @@ class XmlForGtkBuilder:
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="sep2">
+                      <object class="GtkSeparatorMenuItem" id="mnu_sep2b">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -647,6 +674,41 @@ This will fail if a8crypt is not writable</property>
                         <property name="active">True</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="mnu_sep3a">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_zoomin">
+                        <property name="label" translatable="yes">Increase Font Size</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image7</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <accelerator key="plus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="action_zoom" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_zoomout">
+                        <property name="label" translatable="yes">Decrease Font Size</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image8</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <accelerator key="minus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="action_zoom" swapped="no"/>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -695,7 +757,7 @@ This will fail if a8crypt is not writable</property>
                 <property name="can_focus">False</property>
                 <property name="spacing">3</property>
                 <child>
-                  <object class="GtkLabel" id="space1a1">
+                  <object class="GtkLabel" id="space1a">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                   </object>
@@ -718,6 +780,8 @@ This will fail if a8crypt is not writable</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="image">img_encrypt</property>
+                        <property name="relief">none</property>
                         <property name="use_underline">True</property>
                         <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_encrypt" swapped="no"/>
@@ -735,6 +799,8 @@ This will fail if a8crypt is not writable</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="image">img_decrypt</property>
+                        <property name="relief">none</property>
                         <property name="use_underline">True</property>
                         <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_decrypt" swapped="no"/>
@@ -753,36 +819,32 @@ This will fail if a8crypt is not writable</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkVSeparator" id="vseparator5">
+                  <object class="GtkLabel" id="space1b">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="label" translatable="yes"> </property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="padding">4</property>
+                    <property name="padding">2</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
                   <object class="GtkButton" id="btn_clear">
+                    <property name="label" translatable="yes">C_lear</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
+                    <property name="image">img_clear</property>
                     <property name="relief">none</property>
+                    <property name="use_underline">True</property>
                     <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
                     <signal name="clicked" handler="action_clear" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_clear2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-clear</property>
-                      </object>
-                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -791,159 +853,16 @@ This will fail if a8crypt is not writable</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="btn_open">
-                    <property name="use_action_appearance">False</property>
+                  <object class="GtkLabel" id="space1c">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
-                    <property name="relief">none</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
-                    <signal name="clicked" handler="action_open" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_open2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-open</property>
-                      </object>
-                    </child>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes"> </property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">False</property>
+                    <property name="fill">True</property>
+                    <property name="padding">6</property>
                     <property name="position">4</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="btn_save">
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Save copy of Message area contents to a text file</property>
-                    <property name="relief">none</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
-                    <signal name="clicked" handler="action_save" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_saveas2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-save-as</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">5</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="btn_copyall">
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Copy contents of Message area to the clipboard</property>
-                    <property name="relief">none</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
-                    <signal name="clicked" handler="action_copyall" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_selectall">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-select-all</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkVSeparator" id="vseparator1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">4</property>
-                    <property name="position">7</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="btn_undo">
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="sensitive">False</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Undo the last action</property>
-                    <property name="relief">none</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
-                    <signal name="clicked" handler="action_undo" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_undo">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-undo</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">8</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="btn_redo">
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="sensitive">False</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Redo the last undone action</property>
-                    <property name="relief">none</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="image_position">top</property>
-                    <signal name="clicked" handler="action_redo" swapped="no"/>
-                    <child>
-                      <object class="GtkImage" id="img_redo">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-redo</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">9</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkVSeparator" id="vseparator4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">4</property>
-                    <property name="position">10</property>
                   </packing>
                 </child>
                 <child>
@@ -958,7 +877,7 @@ This will fail if a8crypt is not writable</property>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">11</property>
+                    <property name="position">5</property>
                   </packing>
                 </child>
                 <child>
@@ -977,7 +896,7 @@ File WILL NOT be loaded into the text buffer, so this is the way to go if dealin
                     <property name="expand">True</property>
                     <property name="fill">True</property>
                     <property name="padding">2</property>
-                    <property name="position">12</property>
+                    <property name="position">6</property>
                   </packing>
                 </child>
               </object>
@@ -1001,7 +920,7 @@ File WILL NOT be loaded into the text buffer, so this is the way to go if dealin
             <property name="can_focus">False</property>
             <property name="spacing">1</property>
             <child>
-              <object class="GtkLabel" id="space1a">
+              <object class="GtkLabel" id="space2a">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>
@@ -1037,7 +956,7 @@ For adding a signature to a message without encrypting it or for verifying a sig
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space1c">
+              <object class="GtkLabel" id="space2b">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes"> </property>
@@ -1153,7 +1072,7 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
             <property name="can_focus">False</property>
             <property name="spacing">1</property>
             <child>
-              <object class="GtkLabel" id="space2a">
+              <object class="GtkLabel" id="space3a">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>
@@ -1206,7 +1125,7 @@ Max length limited only by available memory</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space2b">
+              <object class="GtkLabel" id="space3b">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes"> </property>
@@ -1283,7 +1202,7 @@ Use a semicolon to separate recipients</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space2c">
+              <object class="GtkLabel" id="space3c">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">  </property>
@@ -1322,6 +1241,7 @@ In asymmetric mode, the chosen cipher is used in concert with recipients' pubkey
 With 'Default', gpg decides the algorithm based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)</property>
                 <property name="model">liststore_ciphers</property>
                 <property name="active">0</property>
+                <property name="focus_on_click">False</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext4"/>
                   <attributes>
@@ -1350,35 +1270,210 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
             <property name="position">552</property>
             <property name="position_set">True</property>
             <child>
-              <object class="GtkFrame" id="frame1">
+              <object class="GtkHBox" id="hbox6">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="border_width">3</property>
-                <property name="label_xalign">0</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow1">
+                  <object class="GtkVBox" id="vbox2">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkTextView" id="textview1">
+                      <object class="GtkLabel" id="space6a">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_open">
+                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="has_focus">True</property>
-                        <property name="wrap_mode">word</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
+                        <property name="relief">none</property>
+                        <property name="focus_on_click">False</property>
+                        <signal name="clicked" handler="action_open" swapped="no"/>
+                        <child>
+                          <object class="GtkImage" id="image1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-open</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_save">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Save contents of Message area to a text file</property>
+                        <property name="relief">none</property>
+                        <property name="focus_on_click">False</property>
+                        <signal name="clicked" handler="action_save" swapped="no"/>
+                        <child>
+                          <object class="GtkImage" id="image2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-save-as</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_copyall">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Copy contents of Message area to the clipboard</property>
+                        <property name="relief">none</property>
+                        <property name="focus_on_click">False</property>
+                        <signal name="clicked" handler="action_copyall" swapped="no"/>
+                        <child>
+                          <object class="GtkImage" id="image3">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-select-all</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkHSeparator" id="hseparator6a">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="padding">8</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_undo">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Undo the last action in Message area</property>
+                        <property name="relief">none</property>
+                        <property name="focus_on_click">False</property>
+                        <property name="image_position">top</property>
+                        <signal name="clicked" handler="action_undo" swapped="no"/>
+                        <child>
+                          <object class="GtkImage" id="image4">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-undo</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">5</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_redo">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Redo the last undone action in Message area</property>
+                        <property name="relief">none</property>
+                        <property name="focus_on_click">False</property>
+                        <property name="image_position">top</property>
+                        <signal name="clicked" handler="action_redo" swapped="no"/>
+                        <child>
+                          <object class="GtkImage" id="image5">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-redo</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">6</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="padding">1</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkFrame" id="frame1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="border_width">3</property>
+                    <property name="label_xalign">0</property>
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolledwindow1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="hscrollbar_policy">automatic</property>
+                        <property name="vscrollbar_policy">automatic</property>
+                        <child>
+                          <object class="GtkTextView" id="textview1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="has_focus">True</property>
+                            <property name="wrap_mode">word</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel" id="label1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">_Message Input/Output</property>
+                        <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">textview1</property>
                       </object>
                     </child>
                   </object>
-                </child>
-                <child type="label">
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">_Message Input/Output</property>
-                    <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">textview1</property>
-                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -1437,7 +1532,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
             <property name="can_focus">False</property>
             <property name="spacing">1</property>
             <child>
-              <object class="GtkLabel" id="space3a">
+              <object class="GtkLabel" id="space4a">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>
@@ -1476,7 +1571,7 @@ On opening a file, this is set based on whether the file is detected as binary d
               </packing>
             </child>
             <child>
-              <object class="GtkVSeparator" id="vseparator3a">
+              <object class="GtkVSeparator" id="vseparator4a">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>
@@ -1528,6 +1623,7 @@ Clearsign: wraps the message with a plaintext signature
 Detached: creates a separate signature that does not contain the message</property>
                 <property name="model">liststore_sigmodes</property>
                 <property name="active">0</property>
+                <property name="focus_on_click">False</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext3"/>
                   <attributes>
@@ -1543,7 +1639,7 @@ Detached: creates a separate signature that does not contain the message</proper
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space3b">
+              <object class="GtkLabel" id="space4b">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes"> </property>
@@ -1579,6 +1675,7 @@ Configures message digest algorithm (used for hashing message, i.e., creating yo
 With 'Default', gpg decides the algorithm based on local system settings, weighing them against the preferences of your secret key</property>
                 <property name="model">liststore_hashes</property>
                 <property name="active">0</property>
+                <property name="focus_on_click">False</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                   <attributes>
@@ -1757,12 +1854,14 @@ class AEightCrypt:
         builder.connect_signals(self)
         
         # Set TextView fonts
-        self.g_msgtextview.modify_font(FontDescription('monospace 10'))
+        self.msgfontsz = 10
+        self.errfontsz = 8
+        self.g_msgtextview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
+        self.g_stderrtextview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
         """Might play with colors at some point...
         self.g_msgtextview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
         self.g_msgtextview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         """
-        self.g_stderrtextview.modify_font(FontDescription('monospace 8'))
         
         self.buff2.set_text("Output from each call to gpg will be displayed here. "
                             "Check out the View menu for some choices.")
@@ -1886,7 +1985,7 @@ class AEightCrypt:
     #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
     
     def on_window1_destroy(self, widget, data=None):    gtk.main_quit()
-    def action_quit(self, menuitem, data=None):         gtk.main_quit()
+    def action_quit(self, widget, data=None):         gtk.main_quit()
     
     
     def action_clear(self, widget, data=None):
@@ -1913,17 +2012,17 @@ class AEightCrypt:
         try:
             with open(filename) as f:  self.buff.set_text(f.read())
             if self.buff.get_char_count() < 1:
-                self.infobar("To operate on binary files, use the External Input File "
-                             "chooser widget", gtk.MESSAGE_WARNING)
+                self.infobar("<b>To operate on binary files, use the External Input File "
+                             "chooser widget.</b>", gtk.MESSAGE_WARNING)
         except:
-            self.infobar("<b>Error opening file {!r} for reading.</b>".format(filename), gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}</span> for reading.</b>".format(filename), gtk.MESSAGE_ERROR)
     
     
     def action_filemode_chooser_set(self, widget, data=None):
         """Ensure read access of file set by chooserwidget and notify user of next steps."""
         infile = self.g_filechooserbtn.get_filename()
         if not access(infile, R_OK):
-            self.infobar("<b>Error opening file {!r} for reading.</b> Choose a new file."
+            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}</span> for reading.</b> Choose a new file."
                         .format(infile), gtk.MESSAGE_ERROR)
             self.g_filechooserbtn.set_filename('(None)')
             while gtk.events_pending(): gtk.main_iteration()
@@ -1957,9 +2056,11 @@ class AEightCrypt:
                                         self.buff.get_end_iter())
         try:
             with open(filename, 'w') as f:  f.write(buffertext)
+            self.infobar("<b>Saved contents of Message area to file:\n<span size='smaller' "
+                         "face='monospace'>{!r}</span></b>".format(filename))
         except:
-            self.infobar("<b>Error opening file {!r} for writing.</b>"
-                         .format(filename), gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}"
+                         "</span> for writing.</b>".format(filename), gtk.MESSAGE_ERROR)
         self.g_statusbar.pop(self.status)
     
     
@@ -1995,7 +2096,7 @@ class AEightCrypt:
         self.infobar("<b>Copied Message to clipboard.</b>", timeout=3)
     
     
-    def action_savecipherpref(self, menuitem, data=None):
+    def action_savecipherpref(self, widget, data=None):
         """Get current cipher setting from ComboBox & save it as default in argv[0]."""
         from sys import argv
         cbindex = self.g_cipher.get_active()
@@ -2006,6 +2107,19 @@ class AEightCrypt:
         except:
             self.infobar("Saving cipher setting failed. Try again while running {} "
                          "as root.".format(argv[0]), gtk.MESSAGE_ERROR, 7)
+    
+    
+    def action_zoom(self, widget, data=None):
+        """Increase/decrease font size of TextViews."""
+        zoom = widget.get_label()[:7]
+        if zoom in 'Increase':
+            self.msgfontsz += 1
+            self.errfontsz += 1
+        elif zoom in 'Decrease':
+            self.msgfontsz -= 1
+            self.errfontsz -= 1
+        self.g_msgtextview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
+        self.g_stderrtextview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
     
     
     # 'Encrypt'/'Sign' button
@@ -2155,7 +2269,7 @@ class AEightCrypt:
             setvisible_signingwidgets(False)
     
     
-    def action_toggle_taskstatus(self, menuitem, data=None):
+    def action_toggle_taskstatus(self, widget, data=None):
         """Show/hide side pane containing gpg stderr output."""
         if self.g_taskstatus.get_active():
             self.g_frame2.set_visible       (True)
@@ -2163,7 +2277,7 @@ class AEightCrypt:
             self.g_frame2.set_visible       (False)
     
     
-    def action_toggle_wordwrap(self, menuitem, data=None):
+    def action_toggle_wordwrap(self, widget, data=None):
         """Toggle word wrapping for main message TextView."""
         if self.g_wrap.get_active():
             self.g_msgtextview.set_wrap_mode(gtk.WRAP_WORD)
@@ -2351,7 +2465,7 @@ class AEightCrypt:
     
     
     #------------------------------------------------------------- ABOUT DIALOG
-    def action_about(self, menuitem, data=None):
+    def action_about(self, widget, data=None):
         if self.about_dialog: 
             self.about_dialog.present()
             return
@@ -2360,7 +2474,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.8')
+        about_dialog.set_version('0.9.9.9')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
@@ -2385,6 +2499,8 @@ class AEightCrypt:
     # Run main application window
     def main(self):
         self.g_window.show()
+        settings = gtk.settings_get_default()
+        settings.props.gtk_button_images = True
         gtk.main()
 
 
