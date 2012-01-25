@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.9 last mod 2012/01/25
+# a8crypt v0.9.9.10 last mod 2012/01/25
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -20,7 +20,6 @@
 # TODO: Get icons for for encrypt, decrypt, sign, verify buttons, application
 # TODO: Preferences dialog that can save settings to a config file?
 # TODO: Implement undo stack. Blech. Kill me.
-# TODO: Implement output files for sign-only mode
 
 
 # Modules from the Standard Library
@@ -102,6 +101,7 @@ class GpgInterface():
         action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
+        localuser=  None,   # Value passed to --local-user to set default key for signing, etc
         base64=     True,   # Add '--armor' when encrypting/signing?
         symmetric=  False,  # Add '--symmetric'?
         passwd=     None,   # Passphrase for symmetric
@@ -122,6 +122,7 @@ class GpgInterface():
         action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
+        localuser=  None,   # Value passed to --local-user to set default key for signing, etc
         base64=     True,   # Add '--armor' when encrypting/signing?
         symmetric=  False,  # Add '--symmetric'?
         passwd=     None,   # Passphrase for symmetric
@@ -138,7 +139,8 @@ class GpgInterface():
         Things important enough to highlight:
         recip: Use a single semicolon to separate recipients. Superfluous leading/
             trailing semicolons or spaces are stripped.
-        enctoself: Self is assumed to be first key returned by gpg --list-secret-keys
+        enctoself: Self is assumed to be first key returned by gpg --list-secret-keys;
+            however, if localuser is provided, that is used as self instead.
         infile/outfile: If using infile, outfile is not necessarily required, but
             unless doing sign-only, it's probably a good idea.
         
@@ -190,7 +192,10 @@ class GpgInterface():
                 cmd.append(cipher)
             if enctoself:
                 cmd.append('--recipient')
-                cmd.append(self.get_gpgdefaultkey())
+                if localuser:
+                    cmd.append(localuser)
+                else:
+                    cmd.append(self.get_gpgdefaultkey())
             if recip:
                 while recip[-1] == ' ' or recip[-1] == ';':
                     recip = recip.strip()
@@ -225,6 +230,9 @@ class GpgInterface():
         else:
             if self.GPG in 'gpg':   cmd.append('--no-use-agent')
             else:                   cmd.append('--batch')
+        if localuser:
+            cmd.append('--local-user')
+            cmd.append(localuser)
         cmd.append('--no-tty')
         if yes:
             cmd.append('--yes')
@@ -408,9 +416,7 @@ class XmlForGtkBuilder:
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">a8crypt</property>
-    <property name="window_position">mouse</property>
-    <property name="default_width">700</property>
-    <property name="default_height">480</property>
+    <property name="window_position">center</property>
     <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -827,7 +833,7 @@ This will fail if a8crypt is not writable</property>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="padding">2</property>
+                    <property name="padding">4</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
@@ -861,7 +867,7 @@ This will fail if a8crypt is not writable</property>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="padding">6</property>
+                    <property name="padding">8</property>
                     <property name="position">4</property>
                   </packing>
                 </child>
@@ -889,7 +895,7 @@ This will fail if a8crypt is not writable</property>
 
 File WILL NOT be loaded into the text buffer, so this is the way to go if dealing with very large or binary files</property>
                     <property name="focus_on_click">False</property>
-                    <property name="title" translatable="yes">Choose a File</property>
+                    <property name="title" translatable="yes">Choose gpg input file...</property>
                     <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
                   </object>
                   <packing>
@@ -951,21 +957,41 @@ For adding a signature to a message without encrypting it or for verifying a sig
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">4</property>
+                <property name="padding">2</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space2b">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes"> </property>
+              <object class="GtkCheckButton" id="toggle_sign_chooseoutput">
+                <property name="label" translatable="yes">Choose Output Filenames</property>
+                <property name="use_action_appearance">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">When signing external files, the output filenames are automatically chosen by gpg -- output is saved to the same directory as the input file and an extension is added based on the options used
+
+Check this if you wish to choose the output filename yourself (e.g., because the input file is in a directory you can't write to)</property>
+                <property name="use_underline">True</property>
+                <property name="focus_on_click">False</property>
+                <property name="draw_indicator">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">4</property>
                 <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVSeparator" id="vseparator2a">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">12</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
@@ -985,8 +1011,8 @@ For adding a signature to a message without encrypting it or for verifying a sig
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">4</property>
-                <property name="position">3</property>
+                <property name="padding">2</property>
+                <property name="position">4</property>
               </packing>
             </child>
             <child>
@@ -1010,7 +1036,7 @@ Requires specifying a passphrase which is used as a shared key (for both encrypt
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">4</property>
-                <property name="position">4</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -1033,7 +1059,7 @@ Requires specifying recipients whose public keys will be used for encryption; or
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">4</property>
-                <property name="position">5</property>
+                <property name="position">6</property>
               </packing>
             </child>
             <child>
@@ -1056,7 +1082,7 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">6</property>
-                <property name="position">6</property>
+                <property name="position">7</property>
               </packing>
             </child>
           </object>
@@ -1112,10 +1138,13 @@ Max length limited only by available memory</property>
                 <property name="truncate_multiline">True</property>
                 <property name="shadow_type">etched-in</property>
                 <property name="invisible_char_set">True</property>
+                <property name="primary_icon_stock">gtk-dialog-authentication</property>
+                <property name="secondary_icon_stock">gtk-close</property>
                 <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">False</property>
+                <property name="secondary_icon_activatable">True</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
+                <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -1156,7 +1185,6 @@ Max length limited only by available memory</property>
             <child>
               <object class="GtkEntry" id="entry_recip">
                 <property name="visible">True</property>
-                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Keys to use for asymmetric encryption
@@ -1168,10 +1196,13 @@ Use a semicolon to separate recipients</property>
                 <property name="shadow_type">etched-in</property>
                 <property name="invisible_char_set">True</property>
                 <property name="caps_lock_warning">False</property>
+                <property name="primary_icon_stock">gtk-orientation-portrait</property>
+                <property name="secondary_icon_stock">gtk-close</property>
                 <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">False</property>
+                <property name="secondary_icon_activatable">True</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
+                <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -1189,7 +1220,11 @@ Use a semicolon to separate recipients</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Tells gpg to encrypt the message to you (i.e., with your public key) in addition to any other recipients (or if in Advanced mode and performing symmetric encryption with a passphrase, then.. in addition to that)</property>
+                <property name="tooltip_text" translatable="yes">Tells gpg to encrypt the message with the public key that corresponds to the first secret key in your keyring
+
+This is done in addition to any other recipients, or if in Advanced mode and performing symmetric encryption with a passphrase, then in addition to that
+
+Note for power users: if 'Change Default Key' in the signature options toolbar is enabled, the contents of its entry box are used as self, instead of the first secret key in your keyring</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
@@ -1229,6 +1264,7 @@ Use a semicolon to separate recipients</property>
             </child>
             <child>
               <object class="GtkComboBox" id="combobox_cipher">
+                <property name="width_request">90</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
@@ -1267,7 +1303,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
           <object class="GtkHPaned" id="hpaned1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="position">552</property>
+            <property name="position">522</property>
             <property name="position_set">True</property>
             <child>
               <object class="GtkHBox" id="hbox6">
@@ -1463,7 +1499,8 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                       <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Message Input/Output</property>
+                        <property name="label" translatable="yes">&lt;i&gt;_Message Input/Output&lt;/i&gt;</property>
+                        <property name="use_markup">True</property>
                         <property name="use_underline">True</property>
                         <property name="mnemonic_widget">textview1</property>
                       </object>
@@ -1508,7 +1545,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Task Status</property>
+                    <property name="label" translatable="yes">&lt;i&gt;Task Status&lt;/i&gt;</property>
                     <property name="use_markup">True</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -1545,7 +1582,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_plaintext">
-                <property name="label" translatable="yes">Plain_text Output</property>
+                <property name="label" translatable="yes">_Text Output</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
@@ -1554,7 +1591,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
 
-Tells gpg to output text instead of binary data when encrypting and signing
+Tells gpg to output plaintext instead of binary data when encrypting and signing
 
 This is kind of output is commonly called 'base64-encoded' or 'ASCII-armored'
 
@@ -1654,7 +1691,7 @@ Detached: creates a separate signature that does not contain the message</proper
             <child>
               <object class="GtkLabel" id="label_combobox_hash">
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Digest _Hash:</property>
+                <property name="label" translatable="yes">D_igest:</property>
                 <property name="use_underline">True</property>
                 <property name="mnemonic_widget">combobox_hash</property>
               </object>
@@ -1666,6 +1703,7 @@ Detached: creates a separate signature that does not contain the message</proper
             </child>
             <child>
               <object class="GtkComboBox" id="combobox_hash">
+                <property name="width_request">86</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
@@ -1688,6 +1726,68 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
                 <property name="fill">True</property>
                 <property name="padding">1</property>
                 <property name="position">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="space4c">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">6</property>
+                <property name="position">8</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="toggle_defaultkey">
+                <property name="label" translatable="yes">Change Default _Key:</property>
+                <property name="use_action_appearance">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Select which secret key gpg will use for signing
+
+Only useful if you have multiple secret keys in your keyring</property>
+                <property name="use_underline">True</property>
+                <property name="focus_on_click">False</property>
+                <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="action_toggle_defaultkey" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">9</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_defaultkey">
+                <property name="can_focus">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Key identifier of the non-default key to use for signing
+
+Input is passed to gpg '--local-user' option</property>
+                <property name="invisible_char">●</property>
+                <property name="width_chars">11</property>
+                <property name="truncate_multiline">True</property>
+                <property name="shadow_type">etched-in</property>
+                <property name="invisible_char_set">True</property>
+                <property name="caps_lock_warning">False</property>
+                <property name="primary_icon_stock">gtk-orientation-portrait</property>
+                <property name="secondary_icon_stock">gtk-close</property>
+                <property name="primary_icon_activatable">False</property>
+                <property name="secondary_icon_activatable">True</property>
+                <property name="primary_icon_sensitive">True</property>
+                <property name="secondary_icon_sensitive">True</property>
+                <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="padding">1</property>
+                <property name="position">10</property>
               </packing>
             </child>
           </object>
@@ -1797,23 +1897,24 @@ class AEightCrypt:
         self.g_wrap = builder.get_object('toggle_wordwrap')
         self.g_taskstatus = builder.get_object('toggle_taskstatus')
         self.g_gpgverbose = builder.get_object('toggle_gpgverbose')
-        # WOOTIEWOO
+        # Infobar funness
         self.g_vb_ibar = builder.get_object('vbox_ibar')
         self.g_maintoolbar = builder.get_object('hbox1')
         self.g_ibar = None
-        # Top toolbar
+        # Top action toolbar
         self.g_encrypt = builder.get_object('button_encrypt')
         self.g_decrypt = builder.get_object('button_decrypt')
         self.g_bopen = builder.get_object('btn_open')
         self.g_bsave = builder.get_object('btn_save')
         self.g_filechooserbtn = builder.get_object('btn_filechooser')
         self.g_bcopyall = builder.get_object('btn_copyall')
-        # Second top toolbar
+        # Mode-setting toolbar
+        self.g_signverify = builder.get_object('toggle_mode_signverify')
+        self.g_chk_outfile = builder.get_object('toggle_sign_chooseoutput')
         self.g_symmetric = builder.get_object('toggle_mode_symmetric')
         self.g_asymmetric = builder.get_object('toggle_mode_asymmetric')
         self.g_advanced = builder.get_object('toggle_advanced')
-        self.g_signverify = builder.get_object('toggle_mode_signverify')
-        # Third top toolbar
+        # Encryption toolbar
         self.g_enctoolbar = builder.get_object('hbox3')
         self.g_passlabel = builder.get_object('label_entry_pass')
         self.g_pass = builder.get_object('entry_pass')
@@ -1822,7 +1923,7 @@ class AEightCrypt:
         self.g_enctoself = builder.get_object('toggle_enctoself')
         self.g_cipherlabel = builder.get_object('label_combobox_cipher')
         self.g_cipher = builder.get_object('combobox_cipher')
-        # Middle input
+        # Middle input area
         self.g_msgtextview = builder.get_object('textview1')
         self.buff = self.g_msgtextview.get_buffer()
         self.g_frame2 = builder.get_object('frame2')
@@ -1834,6 +1935,8 @@ class AEightCrypt:
         self.g_sigmode = builder.get_object('combobox_sigmode')
         self.g_hashlabel = builder.get_object('label_combobox_hash')
         self.g_hash = builder.get_object('combobox_hash')
+        self.g_chk_defkey = builder.get_object('toggle_defaultkey')
+        self.g_defaultkey = builder.get_object('entry_defaultkey')
         # Statusbar
         self.g_statusbar = builder.get_object('statusbar')
         self.g_activityspinner = builder.get_object('spinner1')
@@ -1853,9 +1956,13 @@ class AEightCrypt:
         # Connect signals
         builder.connect_signals(self)
         
+        # sensitivity not defaulted to False because that makes this Entry's icons
+        #   stay insensitive-looking forever
+        self.g_recip.set_sensitive(False)
+        
         # Set TextView fonts
-        self.msgfontsz = 10
-        self.errfontsz = 8
+        self.msgfontsz = 9
+        self.errfontsz = 7
         self.g_msgtextview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
         self.g_stderrtextview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
         """Might play with colors at some point...
@@ -1863,8 +1970,9 @@ class AEightCrypt:
         self.g_msgtextview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         """
         
-        self.buff2.set_text("Output from each call to gpg will be displayed here. "
-                            "Check out the View menu for some choices.")
+        self.buff2.set_text("Output from each call to gpg will be displayed here.\n\n"
+                            "In the View menu you can change gpg's verbosity level, "
+                            "hide this pane, or simply change the font size.")
         
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
@@ -1942,7 +2050,7 @@ class AEightCrypt:
         if mode in 'open':   title = "Choose text file to open as input..."
         elif mode in 'save': title = "Choose output filename..."
         
-        cmd = ("gtk.FileChooserDialog('{0}', self.g_window, gtk.FILE_CHOOSER_ACTION_{1}, "
+        cmd = ("gtk.FileChooserDialog('{0}', None, gtk.FILE_CHOOSER_ACTION_{1}, "
                "(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))"
                .format(title, mode.upper()))
         chooser = eval(cmd)
@@ -1992,17 +2100,24 @@ class AEightCrypt:
         """Reset Statusbar, TextBuffer, Entry, gpg input & filenames."""
         self.set_stdstatus()        
         self.filemode_enablewidgets()
-        self.buff.set_text('')
-        self.buff2.set_text('')
-        self.g_pass.set_text('')
-        self.g_recip.set_text('')
-        self.g_plaintext.set_sensitive(False)
-        self.g_plaintext.set_active(True)
-        self.g_filechooserbtn.set_filename('(None)')
-        self.in_filename = None
-        self.out_filename = None
-        self.g.stdin = None
+        self.buff.set_text                  ('')
+        self.buff2.set_text                 ('')
+        self.g_pass.set_text                ('')
+        self.g_recip.set_text               ('')
+        self.g_plaintext.set_sensitive      (False)
+        self.g_plaintext.set_active         (True)
+        self.g_chk_outfile.set_sensitive    (False)
+        self.g_chk_outfile.set_active       (False)
+        self.g_filechooserbtn.set_filename  ('(None)')
+        self.in_filename =                  None
+        self.out_filename =                 None
+        self.g.stdin =                      None
         while gtk.events_pending(): gtk.main_iteration()
+    
+    
+    def action_clear_entry(self, widget, data=None, whatisthis=None):
+        """Clear Entry widget."""
+        widget.set_text('')
     
     
     def action_open(self, widget, data=None):
@@ -2015,18 +2130,24 @@ class AEightCrypt:
                 self.infobar("<b>To operate on binary files, use the External Input File "
                              "chooser widget.</b>", gtk.MESSAGE_WARNING)
         except:
-            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}</span> for reading.</b>".format(filename), gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}"
+                         "</span> for reading.</b>".format(filename), gtk.MESSAGE_ERROR)
     
     
     def action_filemode_chooser_set(self, widget, data=None):
         """Ensure read access of file set by chooserwidget and notify user of next steps."""
         infile = self.g_filechooserbtn.get_filename()
         if not access(infile, R_OK):
-            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}</span> for reading.</b> Choose a new file."
-                        .format(infile), gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>"
+                         "{!r}</span> for reading.</b> Choose a new file."
+                         .format(infile), gtk.MESSAGE_ERROR)
             self.g_filechooserbtn.set_filename('(None)')
             while gtk.events_pending(): gtk.main_iteration()
             return
+        if self.g_signverify.get_active():
+            self.g_chk_outfile.set_visible(True)
+            # Set sigmode combobox to detached mode, because that seems most likely
+            self.g_sigmode.set_active(2)
         # Set plaintext output checkbox state based on whether file is binary
         # Also, allow user to change it
         self.g_plaintext.set_sensitive(True)
@@ -2038,9 +2159,9 @@ class AEightCrypt:
         self.g_statusbar.push(self.status, "Choose an action to perform on {!r}".format(infile))
         self.buff.set_text(
             "Ready to pass chosen filename directly to gpg.\n\nNext, choose an "
-            "action (i.e., Encrypt, Decrypt, Sign, Verify). You will be prompted "
+            "action (i.e., Encrypt, Decrypt, Sign, Verify).\nYou will be prompted "
             "for an output filename if necessary.\n\nClick the Clear button if "
-            "you decide not to operate on file".format(infile))
+            "you decide not to operate on file.".format(infile))
         self.filemode_enablewidgets(False)
         self.in_filename = infile
     
@@ -2136,10 +2257,7 @@ class AEightCrypt:
             self.launchgpg(action)
         else:
             # Normal enc/dec mode
-            if self.in_filename and not self.out_filename:
-                self.filemode_get_outfile('enc')
-            else:
-                self.launchgpg('enc')
+            self.launchgpg('enc')
     
     
     # 'Decrypt'/'Verify' button
@@ -2150,10 +2268,7 @@ class AEightCrypt:
             self.launchgpg('verify')
         else:
             # Normal enc/dec mode
-            if self.in_filename and not self.out_filename:
-                self.filemode_get_outfile('dec')
-            else:
-                self.launchgpg('dec')
+            self.launchgpg('dec')
     
     
     # 'Symmetric' checkbox toggle
@@ -2242,11 +2357,16 @@ class AEightCrypt:
             self.g_signature.set_active     (True)
             # Sensitize sigmode combobox & change active to Clearsign
             self.g_sigmode.set_sensitive    (True)
-            self.g_sigmode.set_active       (1)
+            if self.in_filename:
+                self.g_sigmode.set_active       (2)
+                self.g_chk_outfile.set_visible  (True)
+            else:
+                self.g_sigmode.set_active       (1)
         # If leaving the toggled state, we have some things to reverse
         else:
             self.g_encrypt.set_label        ("_Encrypt")
             self.g_decrypt.set_label        ("_Decrypt")
+            self.g_chk_outfile.set_visible  (False)
             setvisible_encryptionwidgets    (True)
             self.g_signature.set_sensitive  (self.encdec_sig_state_sensitive)
             self.g_signature.set_active     (self.encdec_sig_state_active)
@@ -2254,19 +2374,28 @@ class AEightCrypt:
             self.g_sigmode.set_active       (0)
     
     
+    def action_toggle_defaultkey(self, widget=None, data=None):
+        """Hide/show Entry widget for setting localuser."""
+        if self.g_chk_defkey.get_active():
+            self.g_defaultkey.set_visible   (True)
+        else:
+            self.g_defaultkey.set_visible   (False)
+    
     # 'Add signature' checkbox toggle
     def action_toggle_signature(self, widget, data=None):
         """Hide/show some widgets when toggling adding of a signature to input."""
         def setvisible_signingwidgets(x=True):
+            self.g_sigmode.set_visible      (x)
             self.g_hash.set_visible         (x)
             self.g_hashlabel.set_visible    (x)
-            self.g_sigmode.set_visible      (x)
+            self.g_chk_defkey.set_visible   (x)
         # Entering toggled state
         if self.g_signature.get_active():
-            setvisible_signingwidgets(True)
+            setvisible_signingwidgets       (True)
         # Leaving toggled state
         else:
-            setvisible_signingwidgets(False)
+            setvisible_signingwidgets       (False)
+            self.g_chk_defkey.set_active    (False)
     
     
     def action_toggle_taskstatus(self, widget, data=None):
@@ -2290,7 +2419,7 @@ class AEightCrypt:
         """Manage I/O between Gtk objects and our GpgInterface object."""
         
         ### PREPARE GpgInterface.gpg() ARGS
-        passwd = None ; recip = None
+        passwd = None ; recip = None ; localuser = None
         # enctoself
         enctoself =  self.g_enctoself.get_active()
         # symmetric & passwd
@@ -2308,7 +2437,7 @@ class AEightCrypt:
         cipher = self.grab_activetext_combobox(self.g_cipher)
         base64 = self.g_plaintext.get_active()
         # encsign
-        if action in 'encrypt':
+        if action in 'enc':
             encsign = self.g_signature.get_active()
         else:
             encsign = False
@@ -2319,9 +2448,36 @@ class AEightCrypt:
         # alwaystrust (setting True would allow encrypting to untrusted keys,
         #   which is how the nautilus-encrypt tool from seahorse-plugins works)
         alwaystrust = False
+        # localuser
+        if self.g_chk_defkey.get_active():
+            localuser = self.g_defaultkey.get_text()
+            if not localuser:  localuser = None
+        
+        # FILE INPUT MODE PREP
+        if self.in_filename and not self.out_filename:
+            
+            if base64 or action in 'clearsign':
+                outfile = self.in_filename + '.asc'
+            elif action in 'detachsign':
+                outfile = self.in_filename + '.sig'
+            else:
+                outfile = self.in_filename + '.gpg'
+            
+            if action in 'dec':
+                outfile = self.in_filename[:-4]
+            
+            if action not in 'verify':
+                if self.g_signverify.get_active() and not self.g_chk_outfile.get_active():
+                    pass
+                else:
+                    outfile = self.chooser_grab_filename('save', outfile)
+                    if outfile:
+                        self.out_filename = outfile
+                    else:
+                        return
         
         # TEXT INPUT PREP
-        if not self.in_filename:
+        else:
             
             # Make sure textview has a proper message in it
             if self.test_msgbuff_isempty():  return False
@@ -2346,7 +2502,8 @@ class AEightCrypt:
         while gtk.events_pending(): gtk.main_iteration()
         
         # ATTEMPT EN-/DECRYPTION
-        retval = self.g.gpg(action, encsign, digest, base64, symmetric, passwd,
+        retval = self.g.gpg(action, encsign, digest, localuser, base64,
+                            symmetric, passwd,
                             asymmetric, recip, enctoself, cipher,
                             self.in_filename, self.out_filename,
                             verbose, alwaystrust)
@@ -2363,6 +2520,11 @@ class AEightCrypt:
                 
                 self.g_filechooserbtn.set_filename('(None)')
                 self.filemode_enablewidgets()
+                self.g_chk_outfile.set_visible(False)
+                if self.g_signverify.get_active():
+                    self.g_sigmode.set_active(1)
+                else:
+                    self.g_sigmode.set_active(0)
                 self.set_stdstatus()
                 while gtk.events_pending(): gtk.main_iteration()
                 
@@ -2373,19 +2535,11 @@ class AEightCrypt:
                                  .format(action, self.out_filename))
                 
                 elif action in {'embedsign', 'clearsign'}:
-                    if base64 or action in 'clearsign':
-                        outfile = "{}.asc".format(self.in_filename)
-                    else:
-                        outfile = "{}.gpg".format(self.in_filename)
                     self.infobar("<b>Saved signed copy of input to:\n"
                                  "<span size='smaller' face='monospace'>{!r}</span></b>"
                                  .format(outfile))
                 
                 elif action in 'detachsign':
-                    if base64:
-                        outfile = "{}.asc".format(self.in_filename)
-                    else:
-                        outfile = "{}.sig".format(self.in_filename)
                     self.infobar("<b>Saved detached signature of input to:\n"
                                  "<span size='smaller' face='monospace'>{!r}</span></b>"
                                  .format(outfile))
@@ -2408,6 +2562,7 @@ class AEightCrypt:
                     self.infobar("<b>Signature could not be verified.</b> See<i> Task "
                                  "Status </i> for details.", gtk.MESSAGE_WARNING)
                     self.g_filechooserbtn.set_filename('(None)')
+                    self.g_chk_outfile.set_visible(False)
                     self.filemode_enablewidgets()
                     self.set_stdstatus()
                     self.buff.set_text('')
@@ -2474,7 +2629,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.9')
+        about_dialog.set_version('0.9.9.10')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
