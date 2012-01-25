@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.10 last mod 2012/01/25
+# a8crypt v0.9.9.11 last mod 2012/01/26
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -24,7 +24,7 @@
 
 # Modules from the Standard Library
 import gtk
-from glib import timeout_add_seconds
+from glib import timeout_add_seconds, source_remove
 from pango import FontDescription
 from sys import stderr
 from os import access, R_OK
@@ -283,6 +283,11 @@ class XmlForGtkBuilder:
     <property name="can_focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
+  <object class="GtkImage" id="img_open">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
+  </object>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -308,11 +313,6 @@ class XmlForGtkBuilder:
     <property name="can_focus">False</property>
     <property name="stock">gtk-apply</property>
   </object>
-  <object class="GtkImage" id="img_open">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-open</property>
-  </object>
   <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -333,34 +333,34 @@ class XmlForGtkBuilder:
         <col id="0" translatable="yes">Default</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES256</col>
+        <col id="0">AES256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Twofish</col>
+        <col id="0">Twofish</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia256</col>
+        <col id="0">Camellia256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES192</col>
+        <col id="0">AES192</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia192</col>
+        <col id="0">Camellia192</col>
       </row>
       <row>
-        <col id="0" translatable="yes">AES</col>
+        <col id="0">AES</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Camellia128</col>
+        <col id="0">Camellia128</col>
       </row>
       <row>
-        <col id="0" translatable="yes">CAST5</col>
+        <col id="0">CAST5</col>
       </row>
       <row>
-        <col id="0" translatable="yes">Blowfish</col>
+        <col id="0">Blowfish</col>
       </row>
       <row>
-        <col id="0" translatable="yes">3DES</col>
+        <col id="0">3DES</col>
       </row>
     </data>
   </object>
@@ -374,25 +374,25 @@ class XmlForGtkBuilder:
         <col id="0" translatable="yes">Default</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA512</col>
+        <col id="0">SHA512</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA384</col>
+        <col id="0">SHA384</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA256</col>
+        <col id="0">SHA256</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA224</col>
+        <col id="0">SHA224</col>
       </row>
       <row>
-        <col id="0" translatable="yes">RIPEMD160</col>
+        <col id="0">RIPEMD160</col>
       </row>
       <row>
-        <col id="0" translatable="yes">SHA1</col>
+        <col id="0">SHA1</col>
       </row>
       <row>
-        <col id="0" translatable="yes">MD5</col>
+        <col id="0">MD5</col>
       </row>
     </data>
   </object>
@@ -754,69 +754,58 @@ This will fail if a8crypt is not writable</property>
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="vbox_ibar">
+          <object class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="spacing">3</property>
             <child>
-              <object class="GtkHBox" id="hbox1">
+              <object class="GtkLabel" id="space1a">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">3</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">1</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHButtonBox" id="hbuttonbox1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="layout_style">edge</property>
                 <child>
-                  <object class="GtkLabel" id="space1a">
+                  <object class="GtkButton" id="button_encrypt">
+                    <property name="label" translatable="yes">_Encrypt</property>
+                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="image">img_encrypt</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <property name="focus_on_click">False</property>
+                    <signal name="clicked" handler="action_encrypt" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">1</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkHButtonBox" id="hbuttonbox1">
+                  <object class="GtkButton" id="button_decrypt">
+                    <property name="label" translatable="yes">_Decrypt</property>
+                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="layout_style">edge</property>
-                    <child>
-                      <object class="GtkButton" id="button_encrypt">
-                        <property name="label" translatable="yes">_Encrypt</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="image">img_encrypt</property>
-                        <property name="relief">none</property>
-                        <property name="use_underline">True</property>
-                        <property name="focus_on_click">False</property>
-                        <signal name="clicked" handler="action_encrypt" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="button_decrypt">
-                        <property name="label" translatable="yes">_Decrypt</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="image">img_decrypt</property>
-                        <property name="relief">none</property>
-                        <property name="use_underline">True</property>
-                        <property name="focus_on_click">False</property>
-                        <signal name="clicked" handler="action_decrypt" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="image">img_decrypt</property>
+                    <property name="relief">none</property>
+                    <property name="use_underline">True</property>
+                    <property name="focus_on_click">False</property>
+                    <signal name="clicked" handler="action_decrypt" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -824,93 +813,92 @@ This will fail if a8crypt is not writable</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkLabel" id="space1b">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes"> </property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">4</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="btn_clear">
-                    <property name="label" translatable="yes">C_lear</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
-                    <property name="image">img_clear</property>
-                    <property name="relief">none</property>
-                    <property name="use_underline">True</property>
-                    <property name="focus_on_click">False</property>
-                    <signal name="clicked" handler="action_clear" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="space1c">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes"> </property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">8</property>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_btn_filechooser">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="label" translatable="yes">E_xternal Input File:</property>
-                    <property name="use_underline">True</property>
-                    <property name="mnemonic_widget">btn_filechooser</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">5</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkFileChooserButton" id="btn_filechooser">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_text" translatable="yes">Optionally, choose a file to pass directly to gpg as input instead of inputting text into the Message area
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="space1b">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">4</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_clear">
+                <property name="label" translatable="yes">C_lear</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
+                <property name="image">img_clear</property>
+                <property name="relief">none</property>
+                <property name="use_underline">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="action_clear" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="space1c">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">8</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_btn_filechooser">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="label" translatable="yes">E_xternal Input File:</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">btn_filechooser</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFileChooserButton" id="btn_filechooser">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Optionally, choose a file to pass directly to gpg as input instead of inputting text into the Message area
 
 File WILL NOT be loaded into the text buffer, so this is the way to go if dealing with very large or binary files</property>
-                    <property name="focus_on_click">False</property>
-                    <property name="title" translatable="yes">Choose gpg input file...</property>
-                    <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="padding">2</property>
-                    <property name="position">6</property>
-                  </packing>
-                </child>
+                <property name="focus_on_click">False</property>
+                <property name="title" translatable="yes">Choose gpg input file...</property>
+                <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="pack_type">end</property>
-                <property name="position">0</property>
+                <property name="padding">2</property>
+                <property name="position">6</property>
               </packing>
             </child>
           </object>
@@ -1139,11 +1127,11 @@ Max length limited only by available memory</property>
                 <property name="shadow_type">etched-in</property>
                 <property name="invisible_char_set">True</property>
                 <property name="primary_icon_stock">gtk-dialog-authentication</property>
-                <property name="secondary_icon_stock">gtk-close</property>
-                <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">True</property>
+                <property name="primary_icon_activatable">True</property>
+                <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
+                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -1197,11 +1185,11 @@ Use a semicolon to separate recipients</property>
                 <property name="invisible_char_set">True</property>
                 <property name="caps_lock_warning">False</property>
                 <property name="primary_icon_stock">gtk-orientation-portrait</property>
-                <property name="secondary_icon_stock">gtk-close</property>
-                <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">True</property>
+                <property name="primary_icon_activatable">True</property>
+                <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
+                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -1480,18 +1468,30 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                     <property name="border_width">3</property>
                     <property name="label_xalign">0</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="scrolledwindow1">
+                      <object class="GtkVBox" id="vbox_ibar">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="hscrollbar_policy">automatic</property>
-                        <property name="vscrollbar_policy">automatic</property>
+                        <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkTextView" id="textview1">
+                          <object class="GtkScrolledWindow" id="scrolledwindow1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="has_focus">True</property>
-                            <property name="wrap_mode">word</property>
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
+                            <child>
+                              <object class="GtkTextView" id="textview1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="has_focus">True</property>
+                                <property name="wrap_mode">word</property>
+                              </object>
+                            </child>
                           </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="pack_type">end</property>
+                            <property name="position">0</property>
+                          </packing>
                         </child>
                       </object>
                     </child>
@@ -1776,11 +1776,11 @@ Input is passed to gpg '--local-user' option</property>
                 <property name="invisible_char_set">True</property>
                 <property name="caps_lock_warning">False</property>
                 <property name="primary_icon_stock">gtk-orientation-portrait</property>
-                <property name="secondary_icon_stock">gtk-close</property>
-                <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">True</property>
+                <property name="primary_icon_activatable">True</property>
+                <property name="secondary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>
+                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -1887,59 +1887,58 @@ class AEightCrypt:
         #--------------------------------------------------------- GET WIDGETS!
         
         # Main window
-        self.g_window = builder.get_object('window1')
+        self.g_window       = builder.get_object('window1')
         # Menu items
-        self.g_mopen = builder.get_object('mnu_open')
-        self.g_msave = builder.get_object('mnu_save')
-        self.g_mcut = builder.get_object('mnu_cut')
-        self.g_mcopy = builder.get_object('mnu_copy')
-        self.g_mpaste = builder.get_object('mnu_paste')
-        self.g_wrap = builder.get_object('toggle_wordwrap')
-        self.g_taskstatus = builder.get_object('toggle_taskstatus')
-        self.g_gpgverbose = builder.get_object('toggle_gpgverbose')
+        self.g_mopen        = builder.get_object('mnu_open')
+        self.g_msave        = builder.get_object('mnu_save')
+        self.g_mcut         = builder.get_object('mnu_cut')
+        self.g_mcopy        = builder.get_object('mnu_copy')
+        self.g_mpaste       = builder.get_object('mnu_paste')
+        self.g_wrap         = builder.get_object('toggle_wordwrap')
+        self.g_taskstatus   = builder.get_object('toggle_taskstatus')
+        self.g_gpgverbose   = builder.get_object('toggle_gpgverbose')
         # Infobar funness
-        self.g_vb_ibar = builder.get_object('vbox_ibar')
-        self.g_maintoolbar = builder.get_object('hbox1')
-        self.g_ibar = None
+        self.g_vb_ibar      = builder.get_object('vbox_ibar')
+        self.g_ibar         = None
         # Top action toolbar
-        self.g_encrypt = builder.get_object('button_encrypt')
-        self.g_decrypt = builder.get_object('button_decrypt')
-        self.g_bopen = builder.get_object('btn_open')
-        self.g_bsave = builder.get_object('btn_save')
-        self.g_filechooserbtn = builder.get_object('btn_filechooser')
-        self.g_bcopyall = builder.get_object('btn_copyall')
+        self.g_encrypt      = builder.get_object('button_encrypt')
+        self.g_decrypt      = builder.get_object('button_decrypt')
+        self.g_bopen        = builder.get_object('btn_open')
+        self.g_bsave        = builder.get_object('btn_save')
+        self.g_chooserbtn   = builder.get_object('btn_filechooser')
+        self.g_bcopyall     = builder.get_object('btn_copyall')
         # Mode-setting toolbar
-        self.g_signverify = builder.get_object('toggle_mode_signverify')
-        self.g_chk_outfile = builder.get_object('toggle_sign_chooseoutput')
-        self.g_symmetric = builder.get_object('toggle_mode_symmetric')
-        self.g_asymmetric = builder.get_object('toggle_mode_asymmetric')
-        self.g_advanced = builder.get_object('toggle_advanced')
+        self.g_signverify   = builder.get_object('toggle_mode_signverify')
+        self.g_chk_outfile  = builder.get_object('toggle_sign_chooseoutput')
+        self.g_symmetric    = builder.get_object('toggle_mode_symmetric')
+        self.g_asymmetric   = builder.get_object('toggle_mode_asymmetric')
+        self.g_advanced     = builder.get_object('toggle_advanced')
         # Encryption toolbar
-        self.g_enctoolbar = builder.get_object('hbox3')
-        self.g_passlabel = builder.get_object('label_entry_pass')
-        self.g_pass = builder.get_object('entry_pass')
-        self.g_reciplabel = builder.get_object('label_entry_recip')
-        self.g_recip = builder.get_object('entry_recip')
-        self.g_enctoself = builder.get_object('toggle_enctoself')
-        self.g_cipherlabel = builder.get_object('label_combobox_cipher')
-        self.g_cipher = builder.get_object('combobox_cipher')
+        self.g_enctoolbar   = builder.get_object('hbox3')
+        self.g_passlabel    = builder.get_object('label_entry_pass')
+        self.g_pass         = builder.get_object('entry_pass')
+        self.g_reciplabel   = builder.get_object('label_entry_recip')
+        self.g_recip        = builder.get_object('entry_recip')
+        self.g_enctoself    = builder.get_object('toggle_enctoself')
+        self.g_cipherlabel  = builder.get_object('label_combobox_cipher')
+        self.g_cipher       = builder.get_object('combobox_cipher')
         # Middle input area
-        self.g_msgtextview = builder.get_object('textview1')
-        self.buff = self.g_msgtextview.get_buffer()
-        self.g_frame2 = builder.get_object('frame2')
-        self.g_stderrtextview = builder.get_object('textview2')
-        self.buff2 = self.g_stderrtextview.get_buffer()
+        self.g_msgtxtview   = builder.get_object('textview1')
+        self.buff           = self.g_msgtxtview.get_buffer()
+        self.g_frame2       = builder.get_object('frame2')
+        self.g_errtxtview   = builder.get_object('textview2')
+        self.buff2          = self.g_errtxtview.get_buffer()
         # Bottom toolbar
-        self.g_plaintext = builder.get_object('toggle_plaintext')
-        self.g_signature = builder.get_object('toggle_signature')
-        self.g_sigmode = builder.get_object('combobox_sigmode')
-        self.g_hashlabel = builder.get_object('label_combobox_hash')
-        self.g_hash = builder.get_object('combobox_hash')
-        self.g_chk_defkey = builder.get_object('toggle_defaultkey')
-        self.g_defaultkey = builder.get_object('entry_defaultkey')
+        self.g_plaintext    = builder.get_object('toggle_plaintext')
+        self.g_signature    = builder.get_object('toggle_signature')
+        self.g_sigmode      = builder.get_object('combobox_sigmode')
+        self.g_hashlabel    = builder.get_object('label_combobox_hash')
+        self.g_hash         = builder.get_object('combobox_hash')
+        self.g_chk_defkey   = builder.get_object('toggle_defaultkey')
+        self.g_defaultkey   = builder.get_object('entry_defaultkey')
         # Statusbar
-        self.g_statusbar = builder.get_object('statusbar')
-        self.g_activityspinner = builder.get_object('spinner1')
+        self.g_statusbar    = builder.get_object('statusbar')
+        self.g_activityspin = builder.get_object('spinner1')
         
         # Set window title dynamically
         self.g_window.set_title(
@@ -1963,11 +1962,11 @@ class AEightCrypt:
         # Set TextView fonts
         self.msgfontsz = 9
         self.errfontsz = 7
-        self.g_msgtextview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
-        self.g_stderrtextview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
+        self.g_msgtxtview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
+        self.g_errtxtview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
         """Might play with colors at some point...
-        self.g_msgtextview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
-        self.g_msgtextview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+        self.g_msgtxtview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
+        self.g_msgtxtview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
         """
         
         self.buff2.set_text("Output from each call to gpg will be displayed here.\n\n"
@@ -1993,27 +1992,30 @@ class AEightCrypt:
     
     def infobar(self, message, msgtype=gtk.MESSAGE_INFO, timeout=5):
         """Instantiate a new auto-hiding InfoBar with a Label of message."""
-        if msgtype == gtk.MESSAGE_INFO:
-            message = "<span foreground='#008C00'>" + message + "</span>"
-        elif msgtype == gtk.MESSAGE_ERROR:
-            message = "<span foreground='white'>" + message + "</span>"
-        if self.g_ibar: self.g_ibar.hide()
-        self.g_ibar = gtk.InfoBar()
-        self.g_ibar.set_message_type(msgtype)
-        self.g_ibar.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
-        self.g_ibar.connect("response", self.close_infobar)
-        self.g_vb_ibar.pack_end(self.g_ibar, False, False)
-        label = gtk.Label() ; label.set_markup(message)
-        content = self.g_ibar.get_content_area()
-        content.add(label)
+        
+        message = "<span foreground='#2E2E2E'>" + message + "</span>"
+        if msgtype == gtk.MESSAGE_INFO:         icon = gtk.STOCK_APPLY
+        elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
+        elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
+        elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
+        
+        ibar                    = gtk.InfoBar()
+        self.g_vb_ibar.pack_end (ibar, False, False)
+        ibar.set_message_type   (msgtype)
+        ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
+        ibar.connect            ("response", lambda *args: ibar.destroy())
+        img                     = gtk.Image()
+        img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        label                   = gtk.Label()
+        label.set_markup        (message)
+        content                 = ibar.get_content_area()
+        content.add             (img)
+        content.add             (label)
+        img.show()
         label.show()
-        self.g_ibar.show()
+        ibar.show()
         if timeout:
-            timeout_add_seconds(timeout, self.close_infobar)
-    
-    def close_infobar(self, *args):
-        self.g_ibar.hide()
-        return False
+            timeout_add_seconds(timeout, ibar.destroy)
     
     
     # This is called when entering & exiting direct-file mode.
@@ -2021,15 +2023,15 @@ class AEightCrypt:
         """Enable/disable certain widgets due to working in direct-file mode."""
         widgets = [self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave,
                    self.g_msave, self.g_mcut, self.g_mcopy, self.g_mpaste,
-                   self.g_msgtextview]
+                   self.g_msgtxtview]
         for w in widgets:
             w.set_sensitive(x)
     
     
-    # This is called when user tries to save or en/decrypt or sign/verify
-    def test_msgbuff_isempty(self):
+    # This is called when user tries to copyall or save or en/decrypt or sign/verify
+    def test_msgbuff_isempty(self, msg):
         if self.buff.get_char_count() < 1:
-            self.infobar("<b>You haven't entered any text yet!</b>", gtk.MESSAGE_WARNING, 2)
+            self.infobar("<b>{}</b>".format(msg), gtk.MESSAGE_WARNING, 2)
             return True
     
     def confirm_overwrite_callback(self, chooser):
@@ -2108,7 +2110,7 @@ class AEightCrypt:
         self.g_plaintext.set_active         (True)
         self.g_chk_outfile.set_sensitive    (False)
         self.g_chk_outfile.set_active       (False)
-        self.g_filechooserbtn.set_filename  ('(None)')
+        self.g_chooserbtn.set_filename      ('(None)')
         self.in_filename =                  None
         self.out_filename =                 None
         self.g.stdin =                      None
@@ -2128,20 +2130,20 @@ class AEightCrypt:
             with open(filename) as f:  self.buff.set_text(f.read())
             if self.buff.get_char_count() < 1:
                 self.infobar("<b>To operate on binary files, use the External Input File "
-                             "chooser widget.</b>", gtk.MESSAGE_WARNING)
+                             "chooser button.</b>", gtk.MESSAGE_WARNING)
         except:
-            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}"
+            self.infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>{}"
                          "</span> for reading.</b>".format(filename), gtk.MESSAGE_ERROR)
     
     
     def action_filemode_chooser_set(self, widget, data=None):
         """Ensure read access of file set by chooserwidget and notify user of next steps."""
-        infile = self.g_filechooserbtn.get_filename()
+        infile = self.g_chooserbtn.get_filename()
         if not access(infile, R_OK):
-            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>"
-                         "{!r}</span> for reading.</b> Choose a new file."
+            self.infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>"
+                         "{}</span> for reading.</b> Choose a new file."
                          .format(infile), gtk.MESSAGE_ERROR)
-            self.g_filechooserbtn.set_filename('(None)')
+            self.g_chooserbtn.set_filename('(None)')
             while gtk.events_pending(): gtk.main_iteration()
             return
         if self.g_signverify.get_active():
@@ -2168,7 +2170,7 @@ class AEightCrypt:
     
     def action_save(self, widget, data=None):
         """Save contents of msg TextView's TextBuffer to file."""
-        if self.test_msgbuff_isempty(): return
+        if self.test_msgbuff_isempty("There's no text to save."): return
         filename = self.chooser_grab_filename('save')
         if not filename: return
         self.g_statusbar.push(self.status, "Saving {}".format(filename))
@@ -2177,10 +2179,10 @@ class AEightCrypt:
                                         self.buff.get_end_iter())
         try:
             with open(filename, 'w') as f:  f.write(buffertext)
-            self.infobar("<b>Saved contents of Message area to file:\n<span size='smaller' "
-                         "face='monospace'>{!r}</span></b>".format(filename))
+            self.infobar("<b>Saved contents of Message area to file <span style='italic' size='smaller' "
+                         "face='monospace'>{}</span></b>".format(filename))
         except:
-            self.infobar("<b>Error opening file <span size='smaller' face='monospace'>{!r}"
+            self.infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>{}"
                          "</span> for writing.</b>".format(filename), gtk.MESSAGE_ERROR)
         self.g_statusbar.pop(self.status)
     
@@ -2210,11 +2212,11 @@ class AEightCrypt:
     
     def action_copyall(self, widget, data=None):
         """Select whole msg TextBuffer contents and copy to clipboard."""
-        if self.test_msgbuff_isempty(): return
+        if self.test_msgbuff_isempty("There's no text to copy."): return
         self.buff.select_range(self.buff.get_start_iter(),
                                self.buff.get_end_iter())
         self.buff.copy_clipboard(gtk.clipboard_get())
-        self.infobar("<b>Copied Message to clipboard.</b>", timeout=3)
+        self.infobar("<b>Copied contents of Message area to clipboard.</b>", timeout=3)
     
     
     def action_savecipherpref(self, widget, data=None):
@@ -2225,9 +2227,13 @@ class AEightCrypt:
                     'self.g_cipher.set_active({})/" {}'.format(cbindex, argv[0]))
         try:
             check_output(cmd)
+            self.infobar("<b>Successfully modified file <span style='italic' size='smaller' face='monospace'>"
+                         "{}</span>, changing default cipher setting.</b>"
+                         .format(argv[0]))
         except:
-            self.infobar("Saving cipher setting failed. Try again while running {} "
-                         "as root.".format(argv[0]), gtk.MESSAGE_ERROR, 7)
+            self.infobar("<b>Saving cipher setting failed.</b> Try again while running "
+                         "<span style='italic' size='smaller' face='monospace'>{}</span> as root."
+                         .format(argv[0]), gtk.MESSAGE_ERROR, 7)
     
     
     def action_zoom(self, widget, data=None):
@@ -2239,8 +2245,8 @@ class AEightCrypt:
         elif zoom in 'Decrease':
             self.msgfontsz -= 1
             self.errfontsz -= 1
-        self.g_msgtextview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
-        self.g_stderrtextview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
+        self.g_msgtxtview.modify_font(FontDescription('monospace {}'.format(self.msgfontsz)))
+        self.g_errtxtview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
     
     
     # 'Encrypt'/'Sign' button
@@ -2409,9 +2415,9 @@ class AEightCrypt:
     def action_toggle_wordwrap(self, widget, data=None):
         """Toggle word wrapping for main message TextView."""
         if self.g_wrap.get_active():
-            self.g_msgtextview.set_wrap_mode(gtk.WRAP_WORD)
+            self.g_msgtxtview.set_wrap_mode(gtk.WRAP_WORD)
         else:
-            self.g_msgtextview.set_wrap_mode(gtk.WRAP_NONE)
+            self.g_msgtxtview.set_wrap_mode(gtk.WRAP_NONE)
     
     
     #-------------------------------------------------------- MAIN GPG FUNCTION
@@ -2480,10 +2486,11 @@ class AEightCrypt:
         else:
             
             # Make sure textview has a proper message in it
-            if self.test_msgbuff_isempty():  return False
+            if self.test_msgbuff_isempty("You haven't entered any input yet."):
+                return False
             
             # Make TextView immutable to changes
-            self.g_msgtextview.set_sensitive(False)
+            self.g_msgtxtview.set_sensitive(False)
             
             # Save textview buffer to GpgInterface.stdin
             self.g.stdin = self.buff.get_text(self.buff.get_start_iter(),
@@ -2497,8 +2504,8 @@ class AEightCrypt:
         else:
             status = "{}rypting input ...".format(action.title())
         self.g_statusbar.push(self.status, status)
-        self.g_activityspinner.set_visible(True)
-        self.g_activityspinner.start()
+        self.g_activityspin.set_visible(True)
+        self.g_activityspin.start()
         while gtk.events_pending(): gtk.main_iteration()
         
         # ATTEMPT EN-/DECRYPTION
@@ -2508,8 +2515,8 @@ class AEightCrypt:
                             self.in_filename, self.out_filename,
                             verbose, alwaystrust)
         
-        self.g_activityspinner.stop()
-        self.g_activityspinner.set_visible(False)
+        self.g_activityspin.stop()
+        self.g_activityspin.set_visible(False)
         self.g_statusbar.pop(self.status)
         self.buff2.set_text(self.g.stderr)
         
@@ -2518,7 +2525,7 @@ class AEightCrypt:
             
             if retval:  # Success!
                 
-                self.g_filechooserbtn.set_filename('(None)')
+                self.g_chooserbtn.set_filename('(None)')
                 self.filemode_enablewidgets()
                 self.g_chk_outfile.set_visible(False)
                 if self.g_signverify.get_active():
@@ -2531,17 +2538,17 @@ class AEightCrypt:
                 # Replace textview buffer with success message
                 if action in {'enc', 'dec'}:
                     self.infobar("<b>Saved {}rypted copy of input to:\n"
-                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
+                                 "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
                                  .format(action, self.out_filename))
                 
                 elif action in {'embedsign', 'clearsign'}:
                     self.infobar("<b>Saved signed copy of input to:\n"
-                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
+                                 "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
                                  .format(outfile))
                 
                 elif action in 'detachsign':
                     self.infobar("<b>Saved detached signature of input to:\n"
-                                 "<span size='smaller' face='monospace'>{!r}</span></b>"
+                                 "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
                                  .format(outfile))
                 
                 elif action in 'verify':
@@ -2560,8 +2567,8 @@ class AEightCrypt:
                 
                 if action in 'verify':
                     self.infobar("<b>Signature could not be verified.</b> See<i> Task "
-                                 "Status </i> for details.", gtk.MESSAGE_WARNING)
-                    self.g_filechooserbtn.set_filename('(None)')
+                                 "Status </i> for details.", gtk.MESSAGE_WARNING, 7)
+                    self.g_chooserbtn.set_filename('(None)')
                     self.g_chk_outfile.set_visible(False)
                     self.filemode_enablewidgets()
                     self.set_stdstatus()
@@ -2585,7 +2592,7 @@ class AEightCrypt:
         else:
             
             self.set_stdstatus()
-            self.g_msgtextview.set_sensitive(True)
+            self.g_msgtxtview.set_sensitive(True)
             self.g.stdin = None
             
             # Success!
@@ -2629,7 +2636,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.10')
+        about_dialog.set_version('0.9.9.11')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
@@ -2664,4 +2671,3 @@ if __name__ == "__main__":
     
     a8 = AEightCrypt()
     a8.main()
-    
