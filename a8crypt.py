@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.12 last mod 2012/01/26
+# a8crypt v0.9.9.13 last mod 2012/01/26
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -281,6 +281,11 @@ class XmlForGtkBuilder:
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
+  <object class="GtkImage" id="img_open">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
+  </object>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -310,11 +315,6 @@ class XmlForGtkBuilder:
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-apply</property>
-  </object>
-  <object class="GtkImage" id="img_open">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-open</property>
   </object>
   <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
@@ -1452,9 +1452,9 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">Choose a file to pass directly to gpg as input instead of loading into the Message area
+                                    <property name="tooltip_text" translatable="yes">Choose an input file to pass directly to gpg instead of loading into the Message area
 
-File WILL NOT be loaded into the text buffer, so this is the way to go when dealing with binary or very large files</property>
+This is the way to go when dealing with binary or very large files</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="title" translatable="yes">Choose gpg input file...</property>
                                     <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
@@ -1494,7 +1494,7 @@ Tells gpg to output plaintext instead of binary data when encrypting and signing
 
 This kind of output is commonly called 'base64-encoded' or 'ASCII-armored'
 
-On opening a file, this is set based on whether the file is detected as binary data or text, but it can be overridden</property>
+This is set when opening a file, based on whether the file is detected as binary data or text, but it can be overridden</property>
                                     <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="active">True</property>
@@ -1915,16 +1915,9 @@ class AEightCrypt:
         self.g_wrap         = builder.get_object('toggle_wordwrap')
         self.g_taskstatus   = builder.get_object('toggle_taskstatus')
         self.g_gpgverbose   = builder.get_object('toggle_gpgverbose')
-        # Infobar funness
-        self.g_vb_ibar      = builder.get_object('vbox_ibar')
-        self.g_ibar         = None
         # Top action toolbar
         self.g_encrypt      = builder.get_object('button_encrypt')
         self.g_decrypt      = builder.get_object('button_decrypt')
-        self.g_bopen        = builder.get_object('btn_open')
-        self.g_bsave        = builder.get_object('btn_save')
-        self.g_chooserbtn   = builder.get_object('btn_filechooser')
-        self.g_bcopyall     = builder.get_object('btn_copyall')
         # Mode-setting toolbar
         self.g_signverify   = builder.get_object('toggle_mode_signverify')
         self.g_chk_outfile  = builder.get_object('toggle_sign_chooseoutput')
@@ -1941,13 +1934,19 @@ class AEightCrypt:
         self.g_cipherlabel  = builder.get_object('label_combobox_cipher')
         self.g_cipher       = builder.get_object('combobox_cipher')
         # Middle input area
+        self.g_bopen        = builder.get_object('btn_open')
+        self.g_bsave        = builder.get_object('btn_save')
+        self.g_bcopyall     = builder.get_object('btn_copyall')
         self.g_msgtxtview   = builder.get_object('textview1')
         self.buff           = self.g_msgtxtview.get_buffer()
+        self.g_vb_ibar      = builder.get_object('vbox_ibar')
+        self.g_ibar         = None
+        self.g_chooserbtn   = builder.get_object('btn_filechooser')
+        self.g_plaintext    = builder.get_object('toggle_plaintext')
         self.g_frame2       = builder.get_object('frame2')
         self.g_errtxtview   = builder.get_object('textview2')
         self.buff2          = self.g_errtxtview.get_buffer()
-        # Bottom toolbar
-        self.g_plaintext    = builder.get_object('toggle_plaintext')
+        # Signing toolbar
         self.g_signature    = builder.get_object('toggle_signature')
         self.g_sigmode      = builder.get_object('combobox_sigmode')
         self.g_hashlabel    = builder.get_object('label_combobox_hash')
@@ -2119,14 +2118,15 @@ class AEightCrypt:
     def action_clear(self, widget, data=None):
         """Reset Statusbar, TextBuffer, Entry, gpg input & filenames."""
         self.set_stdstatus()        
-        self.filemode_enablewidgets()
+        self.filemode_enablewidgets         (True)
         self.buff.set_text                  ('')
         self.buff2.set_text                 ('')
         self.g_pass.set_text                ('')
         self.g_recip.set_text               ('')
+        self.g_defaultkey.set_text          ('')
         self.g_plaintext.set_sensitive      (False)
         self.g_plaintext.set_active         (True)
-        self.g_chk_outfile.set_sensitive    (False)
+        self.g_chk_outfile.set_visible      (False)
         self.g_chk_outfile.set_active       (False)
         self.g_chooserbtn.set_filename      ('(None)')
         self.in_filename =                  None
@@ -2161,7 +2161,7 @@ class AEightCrypt:
             self.infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>"
                          "{}</span> for reading.</b> Choose a new file."
                          .format(infile), gtk.MESSAGE_ERROR)
-            self.g_chooserbtn.set_filename('(None)')
+            #self.g_chooserbtn.set_filename('(None)')
             while gtk.events_pending(): gtk.main_iteration()
             return
         if self.g_signverify.get_active():
@@ -2543,9 +2543,9 @@ class AEightCrypt:
             
             if retval:  # Success!
                 
-                self.g_chooserbtn.set_filename('(None)')
-                self.filemode_enablewidgets()
-                self.g_chk_outfile.set_visible(False)
+                #self.g_chooserbtn.set_filename('(None)')
+                self.filemode_enablewidgets     (True)
+                self.g_chk_outfile.set_visible  (False)
                 if self.g_signverify.get_active():
                     self.g_sigmode.set_active(1)
                 else:
@@ -2589,7 +2589,7 @@ class AEightCrypt:
                     """ Not sure about this, but I'm gonna go with forcing user to press Clear for now
                     self.g_chooserbtn.set_filename('(None)')
                     self.g_chk_outfile.set_visible(False)
-                    self.filemode_enablewidgets()
+                    self.filemode_enablewidgets(True)
                     self.set_stdstatus()
                     self.buff.set_text('')
                     self.in_filename = None
@@ -2656,7 +2656,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.12')
+        about_dialog.set_version('0.9.9.13')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
