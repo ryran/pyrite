@@ -3,14 +3,14 @@ a8crypt - symmetric + asymmetric encryption/decryption, PGP signing/verifying [G
 
 v0.9.9.11:
 
-![](http://b19.org/linux/a8crypt/1 symenc_txt.png)
-![](http://b19.org/linux/a8crypt/2 enc_file1.png)
-![](http://b19.org/linux/a8crypt/3 enc_file2.png)
-![](http://b19.org/linux/a8crypt/4 dec_file1.png)
-![](http://b19.org/linux/a8crypt/5 allenc_text.png)
-![](http://b19.org/linux/a8crypt/6 clearsign_verified.png)
-![](http://b19.org/linux/a8crypt/7 detachsign1.png)
-![](http://b19.org/linux/a8crypt/8 detachsign2.png)
+![](http://b19.org/linux/a8crypt/1%20symenc_txt.png)
+![](http://b19.org/linux/a8crypt/2%20enc_file1.png)
+![](http://b19.org/linux/a8crypt/3%20enc_file2.png)
+![](http://b19.org/linux/a8crypt/4%20dec_file1.png)
+![](http://b19.org/linux/a8crypt/5%20allenc_text.png)
+![](http://b19.org/linux/a8crypt/6%20clearsign_verified.png)
+![](http://b19.org/linux/a8crypt/7%20detachsign1.png)
+![](http://b19.org/linux/a8crypt/8%20detachsign2.png)
 
 Possibly more more screenshots at: http://b19.org/linux/a8crypt
 
