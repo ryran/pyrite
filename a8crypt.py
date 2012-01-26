@@ -2568,6 +2568,7 @@ class AEightCrypt:
                 if action in 'verify':
                     self.infobar("<b>Signature could not be verified.</b> See<i> Task "
                                  "Status </i> for details.", gtk.MESSAGE_WARNING, 7)
+                    """ Not sure about this, but I'm gonna go with forcing user to press Clear for now
                     self.g_chooserbtn.set_filename('(None)')
                     self.g_chk_outfile.set_visible(False)
                     self.filemode_enablewidgets()
@@ -2576,6 +2577,7 @@ class AEightCrypt:
                     self.in_filename = None
                     self.g_plaintext.set_sensitive(False)
                     self.g_plaintext.set_active(True)
+                    """
                     return
                     
                 elif action in {'enc', 'dec'}:
