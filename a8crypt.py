@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
-# a8crypt v0.9.9.11 last mod 2012/01/26
+# a8crypt v0.9.9.12 last mod 2012/01/26
 # Latest version at <http://github.com/ryran/a8crypt>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -20,11 +20,14 @@
 # TODO: Get icons for for encrypt, decrypt, sign, verify buttons, application
 # TODO: Preferences dialog that can save settings to a config file?
 # TODO: Implement undo stack. Blech. Kill me.
+# TODO: Implement update notifications.
+# TODO: CHOOSE A PROPER PROJECT NAME. After that, time to stop packing everything
+#       into one script -- will need to package things up proper-like
 
 
 # Modules from the Standard Library
 import gtk
-from glib import timeout_add_seconds, source_remove
+from glib import timeout_add_seconds
 from pango import FontDescription
 from sys import stderr
 from os import access, R_OK
@@ -283,11 +286,6 @@ class XmlForGtkBuilder:
     <property name="can_focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
-  <object class="GtkImage" id="img_open">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-open</property>
-  </object>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -312,6 +310,11 @@ class XmlForGtkBuilder:
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-apply</property>
+  </object>
+  <object class="GtkImage" id="img_open">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
   </object>
   <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
@@ -867,40 +870,6 @@ This will fail if a8crypt is not writable</property>
                 <property name="position">4</property>
               </packing>
             </child>
-            <child>
-              <object class="GtkLabel" id="label_btn_filechooser">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="label" translatable="yes">E_xternal Input File:</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">btn_filechooser</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">5</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkFileChooserButton" id="btn_filechooser">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Optionally, choose a file to pass directly to gpg as input instead of inputting text into the Message area
-
-File WILL NOT be loaded into the text buffer, so this is the way to go if dealing with very large or binary files</property>
-                <property name="focus_on_click">False</property>
-                <property name="title" translatable="yes">Choose gpg input file...</property>
-                <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="padding">2</property>
-                <property name="position">6</property>
-              </packing>
-            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -932,9 +901,9 @@ File WILL NOT be loaded into the text buffer, so this is the way to go if dealin
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">Sign-only/verify-only mode
+                <property name="tooltip_text" translatable="yes">Sign-only / verify-only mode
 
-For adding a signature to a message without encrypting it or for verifying a signed message that isn't encrypted</property>
+For adding a signature to a message/file without encrypting it or for verifying a signed message/file that isn't encrypted</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="active">True</property>
@@ -990,7 +959,7 @@ Check this if you wish to choose the output filename yourself (e.g., because the
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Encrypt/decrypt/encrypt+sign mode</property>
+                <property name="tooltip_text" translatable="yes">Encrypt / decrypt / encrypt + sign mode</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="active">True</property>
@@ -1060,7 +1029,7 @@ Requires specifying recipients whose public keys will be used for encryption; or
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Allow mixing symmetric encryption with asymmetric and signing
 
-When creating a signed + symmetrically-encrypted message, anything in the passphrase entry box will be ignored -- gpg-agent will need to ask for both the symmetric encryption key (passphrase) and the passphrase to your secret key</property>
+When creating a signed + symmetrically-encrypted message, anything in the passphrase entry box will be ignored -- gpg-agent will need to ask for both the symmetric encryption key (passphrase) and [potentially] the passphrase to your secret key</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
@@ -1201,7 +1170,7 @@ Use a semicolon to separate recipients</property>
             </child>
             <child>
               <object class="GtkCheckButton" id="toggle_enctoself">
-                <property name="label" translatable="yes">Enc To Se_lf</property>
+                <property name="label" translatable="yes">Enc. To Se_lf</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
@@ -1252,11 +1221,10 @@ Note for power users: if 'Change Default Key' in the signature options toolbar i
             </child>
             <child>
               <object class="GtkComboBox" id="combobox_cipher">
-                <property name="width_request">90</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
 
 Configures symmetric encryption cipher algorithm
 
@@ -1472,6 +1440,96 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
+                          <object class="GtkExpander" id="expander_filemode">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <child>
+                              <object class="GtkHBox" id="hbox7">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkFileChooserButton" id="btn_filechooser">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip_text" translatable="yes">Choose a file to pass directly to gpg as input instead of loading into the Message area
+
+File WILL NOT be loaded into the text buffer, so this is the way to go when dealing with binary or very large files</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="title" translatable="yes">Choose gpg input file...</property>
+                                    <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="padding">4</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="space4b1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes"> </property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="padding">3</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="toggle_plaintext">
+                                    <property name="label" translatable="yes">Generate _Text Output</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+
+Tells gpg to output plaintext instead of binary data when encrypting and signing
+
+This kind of output is commonly called 'base64-encoded' or 'ASCII-armored'
+
+On opening a file, this is set based on whether the file is detected as binary data or text, but it can be overridden</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="padding">6</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel" id="label_filemode">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Inp_ut File For Direct Operation</property>
+                                <property name="use_underline">True</property>
+                                <property name="mnemonic_widget">expander_filemode</property>
+                                <attributes>
+                                  <attribute name="variant" value="small-caps"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="pack_type">end</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -1490,7 +1548,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                             <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="pack_type">end</property>
-                            <property name="position">0</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                       </object>
@@ -1581,45 +1639,6 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="toggle_plaintext">
-                <property name="label" translatable="yes">_Text Output</property>
-                <property name="use_action_appearance">False</property>
-                <property name="visible">True</property>
-                <property name="sensitive">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
-
-Tells gpg to output plaintext instead of binary data when encrypting and signing
-
-This is kind of output is commonly called 'base64-encoded' or 'ASCII-armored'
-
-On opening a file, this is set based on whether the file is detected as binary data or text, but it can be overridden</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkVSeparator" id="vseparator4a">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">12</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkCheckButton" id="toggle_signature">
                 <property name="label" translatable="yes">Add Si_gnature:</property>
                 <property name="use_action_appearance">False</property>
@@ -1628,11 +1647,11 @@ On opening a file, this is set based on whether the file is detected as binary d
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
 
 Tells gpg to use your secret key to sign the input
 
-This will likely require you to interact with gpg-agent -- gpg needs your secret key's passphrase in order to use your key to sign the message</property>
+This will likely require you to interact with gpg-agent</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
@@ -1641,7 +1660,7 @@ This will likely require you to interact with gpg-agent -- gpg needs your secret
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">3</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -1649,7 +1668,7 @@ This will likely require you to interact with gpg-agent -- gpg needs your secret
                 <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
 
 This allows you to choose the signature type for signing in Sign/Verify mode
 
@@ -1672,7 +1691,7 @@ Detached: creates a separate signature that does not contain the message</proper
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">1</property>
-                <property name="position">4</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -1685,7 +1704,7 @@ Detached: creates a separate signature that does not contain the message</proper
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">6</property>
-                <property name="position">5</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
@@ -1698,15 +1717,14 @@ Detached: creates a separate signature that does not contain the message</proper
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">6</property>
+                <property name="position">4</property>
               </packing>
             </child>
             <child>
               <object class="GtkComboBox" id="combobox_hash">
-                <property name="width_request">86</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[ Not used when decrypting or verifying ]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
 
 Configures message digest algorithm (used for hashing message, i.e., creating your signature)
 
@@ -1725,7 +1743,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">1</property>
-                <property name="position">7</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -1738,7 +1756,7 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">6</property>
-                <property name="position">8</property>
+                <property name="position">6</property>
               </packing>
             </child>
             <child>
@@ -1748,9 +1766,9 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Select which secret key gpg will use for signing
+                <property name="tooltip_text" translatable="yes">Tell gpg which secret key to use for signing
 
-Only useful if you have multiple secret keys in your keyring</property>
+This is only useful if you have multiple secret keys in your keyring</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
@@ -1759,7 +1777,7 @@ Only useful if you have multiple secret keys in your keyring</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">9</property>
+                <property name="position">7</property>
               </packing>
             </child>
             <child>
@@ -1787,7 +1805,7 @@ Input is passed to gpg '--local-user' option</property>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="padding">1</property>
-                <property name="position">10</property>
+                <property name="position">8</property>
               </packing>
             </child>
           </object>
@@ -2638,7 +2656,7 @@ class AEightCrypt:
         about_dialog.set_transient_for(self.g_window)
         about_dialog.set_destroy_with_parent(True)
         about_dialog.set_name('a8crypt')
-        about_dialog.set_version('0.9.9.11')
+        about_dialog.set_version('0.9.9.12')
         about_dialog.set_copyright("Copyright \xc2\xa9 2012 Ryan Sawhill")
         about_dialog.set_website('http://github.com/ryran/a8crypt')
         about_dialog.set_comments("Encryption, decryption, & signing via gpg/gpg2")
