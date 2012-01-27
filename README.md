@@ -13,8 +13,8 @@ Possibly more screenshots at: http://b19.org/linux/pyrite
 
 DEPENDENCIES
 ------------
-designed for linux
-need Python2.7 and pygtk
+designed for linux;
+need Python2.7 and pygtk; 
 need gpg or gpg2 or openssl
 
 
