@@ -1,6 +1,8 @@
 Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
 ===============================================================
 
+*"Pyrite, because people think they are getting your gold (data), but really it's gibberish to them. Fool's gold."*
+
 v1.0.0_dev:
 
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
@@ -10,6 +12,8 @@ v1.0.0_dev:
 ![](http://b19.org/linux/pyrite/5openssl.png)
 
 Possibly more screenshots at: http://b19.org/linux/pyrite
+
+
 
 DEPENDENCIES
 ------------
@@ -32,7 +36,7 @@ The original goal of this project was to make symmetric {en,de}cryption more acc
 
 After creating a few simple apps with BASH scripting, I decided it was time to learn Python. After the first few days I was in love.
 
-Long story short, after a couple weeks of learning, I released my first version of this project in January 2012, and have been improving it ever since. Have lots more to learn (I was also new to GTK+), but I'm damn proud of Pyrite.
+Long story short, after a couple weeks of learning, I released my first version of this project in January 2012, quickly added public-key encryption, signing, & verifying, and have been improving it ever since. This being my first learning experience with GTK+, I have lots more to learn, but I'm damn proud of Pyrite.
 
 PLEASE contact me (or post on the tracker) with any suggestions, feedback, bug reports, or questions!
 
