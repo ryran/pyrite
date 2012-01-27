@@ -1,9 +1,35 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+#
+# This file is part of Pyrite.
+# Last file mod: 2012/01/27
+# Latest version at <http://github.com/ryran/pyrite>
+# Copyright 2012 Ryan Sawhill <ryan@b19.org>
+#
+# License:
+#
+#    Pyrite is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Pyrite is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Pyrite.  If not, see <http://gnu.org/licenses/gpl.html>.
+#
+#------------------------------------------------------------------------------
+
 from sys import stderr
 from os import pipe, write, close
 from shlex import split
 from subprocess import Popen, PIPE, check_output
 
-class GpgInterface():
+
+class Xface():
     """GPG/GPG2 interface for encryption/decryption/signing/verifying.
     
     First thing: use subprocess module to call a gpg or gpg2 process, ensuring
@@ -12,7 +38,7 @@ class GpgInterface():
     
     See the docstring for the main method -- gpg() -- for next steps.
     
-    Security: GpgInterface.gpg() can take a passphrase for symmetric enc/dec as
+    Security: GpgXface.gpg() can take a passphrase for symmetric enc/dec as
     an argument, but it never stores that passphrase on disk; the passphrase is
     passed to gpg via an os file descriptor. If any access to your secret key is
     required, gpg() invokes gpg/gpg2 with gpg-agent enabled.
@@ -24,40 +50,24 @@ class GpgInterface():
         """Confirm we can run gpg or gpg2."""
         
         try:
-            vgpg = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
+            vers = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
             self.GPG = 'gpg2'
         except:
             try:
-                vgpg = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
+                vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
                 self.GPG = 'gpg'
             except:
-                stderr.write("This program requires either gpg or gpg2, neither "
-                             "of which were found on your system.\n\n")
+                stderr.write("gpg, gpg2 not found on your system.\n\n")
                 raise
         
-        # To show or not to show (gpg --version output)
+        # To show or not to show version info
         if show_version:
-            stderr.write("{}\n".format(vgpg))
+            stderr.write("{}\n".format(vers))
         
         # Class attributes
-        self.stdin  = None       # Stores input text for gpg()
-        self.stdout = None      # Stores stdout stream from gpg subprocess
-        self.stderr = None      # Stores stderr stream from gpg subprocess
-    
-    
-    def test_file_isbinary(self, filename):
-        """Utilize nix file cmd to determine if filename is binary or text."""
-        cmd = split("file -b -e soft '{}'".format(filename))
-        if check_output(cmd)[:4] in {'ASCI', 'UTF-'}:
-            return False
-        return True
-    
-    
-    def get_gpgdefaultkey(self):
-        """Return key id of first secret key in gpg keyring.""" 
-        return check_output(split(
-            "{} --list-secret-keys --with-colons --fast-list-mode"
-            .format(self.GPG))).split(':', 5)[4]
+        self.stdin  = None      # Stores input text for gpg()
+        self.stdout = None      # Stores stdout stream from subprocess
+        self.stderr = None      # Stores stderr stream from subprocess
     
     
     # Main gpg interface method
@@ -109,9 +119,9 @@ class GpgInterface():
         infile/outfile: If using infile, outfile is not necessarily required, but
             unless doing sign-only, it's probably a good idea.
         
-        If no infile is specified, input is read from GpgInterface.stdin.
+        If no infile is specified, input is read from GpgXface.stdin.
         Whether reading input from infile or stdin, each gpg command's stdout &
-        stderr streams are saved to GpgInterface.stdout and GpgInterface.stderr,
+        stderr streams are saved to GpgXface.stdout and GpgXface.stderr,
         overwriting their contents.
         
         Re gpg-agent: If symmetric & passwd are specified when encrypting or
@@ -127,10 +137,10 @@ class GpgInterface():
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
         
-        fd_in =     None
-        fd_out =    None
-        useagent =  True
-        cmd =       [self.GPG]
+        fd_in       = None
+        fd_out      = None
+        useagent    = True
+        cmd         = [self.GPG]
         
         # Setup passphrase file descriptor for symmetric enc/dec
         if (action in 'enc' and symmetric and passwd and not encsign) or (
@@ -232,5 +242,11 @@ class GpgInterface():
             return True
         else:
             return False
-
-
+    
+    
+    def get_gpgdefaultkey(self):
+        """Return key id of first secret key in gpg keyring.""" 
+        return check_output(split(
+            "{} --list-secret-keys --with-colons --fast-list-mode"
+            .format(self.GPG))).split(':', 5)[4]
+    

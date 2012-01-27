@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Pyrite
+Comment=GnuPG (gpg/gpg2) encryption front-end
+Exec=pyrite
+Terminal=false
+Type=Application
+Icon=/usr/share/pixmaps/password.png
+Categories=GNOME;Accessories;
+

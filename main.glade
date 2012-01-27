@@ -2,11 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkImage" id="img_open">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-open</property>
-  </object>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -22,6 +17,11 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-zoom-out</property>
   </object>
+  <object class="GtkImage" id="image9">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-execute</property>
+  </object>
   <object class="GtkImage" id="img_clear">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -36,6 +36,11 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-apply</property>
+  </object>
+  <object class="GtkImage" id="img_open">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
   </object>
   <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
@@ -139,7 +144,7 @@
   </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">a8crypt</property>
+    <property name="title" translatable="yes">Pyrite</property>
     <property name="window_position">center</property>
     <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
     <child>
@@ -335,15 +340,30 @@ WHOOPS</property>
                       </object>
                     </child>
                     <child>
+                      <object class="GtkImageMenuItem" id="mnu_switchengine">
+                        <property name="label" translatable="yes">Use OpenSSL as Engine</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Switch between using OpenSSL or GnuPG as the backend</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image9</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="activate" handler="action_switch_engine" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="mnu_savecipherpref">
                         <property name="label" translatable="yes">_Make Cipher Selection Default</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Attempts to modify the a8crypt script to permanently change the default cipher setting
+                        <property name="tooltip_text" translatable="yes">Attempts to modify the Pyrite script to permanently change the default cipher setting
 
-This will fail if a8crypt is not writable</property>
+This will fail if Pyrite is not writable</property>
                         <property name="use_underline">True</property>
                         <property name="image">img_save</property>
                         <property name="use_stock">False</property>
@@ -386,7 +406,7 @@ This will fail if a8crypt is not writable</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip_text" translatable="yes">Show/hide side pane containing gpg status messages</property>
-                        <property name="label" translatable="yes">_Task Status side panel</property>
+                        <property name="label" translatable="yes">_Task Status Side Panel</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <signal name="toggled" handler="action_toggle_taskstatus" swapped="no"/>
@@ -399,7 +419,7 @@ This will fail if a8crypt is not writable</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel or error messages)</property>
-                        <property name="label" translatable="yes">_Verbose gpg output</property>
+                        <property name="label" translatable="yes">_Verbose Output in Task Status</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                       </object>
@@ -955,6 +975,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                 <property name="model">liststore_ciphers</property>
                 <property name="active">0</property>
                 <property name="focus_on_click">False</property>
+                <signal name="changed" handler="action_cipher_changed" swapped="no"/>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext4"/>
                   <attributes>

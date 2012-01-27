@@ -1,49 +1,47 @@
-a8crypt - symmetric + asymmetric encryption/decryption, PGP signing/verifying [GTK/Python frontend for gpg or gpg2]
+Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
 ===============================================================
 
-v0.9.9.13:
+v1.0.0_dev:
 
-![](http://b19.org/linux/a8crypt/1enc_txt.png)
-![](http://b19.org/linux/a8crypt/2sign_file.png)
-![](http://b19.org/linux/a8crypt/3clearsign_txt.png)
-![](http://b19.org/linux/a8crypt/4dec_txt.png)
+![](http://b19.org/linux/pyrite/1enc_txt.png)
+![](http://b19.org/linux/pyrite/2clearsign_txt.png)
+![](http://b19.org/linux/pyrite/3sign_file.png)
+![](http://b19.org/linux/pyrite/4dec_txt.png)
+![](http://b19.org/linux/pyrite/5openssl.png)
 
-Possibly more more screenshots at: http://b19.org/linux/a8crypt
+Possibly more screenshots at: http://b19.org/linux/pyrite
 
 DEPENDENCIES
 ------------
-designed for linux; need Python2.7 + pygtk, gpg or gpg2
+designed for linux
+need Python2.7 and pygtk
+need gpg or gpg2 or openssl
 
 
 INSTALLATION
 ------------
-Simply download [a8crypt.py](https://raw.github.com/ryran/a8crypt/master/a8crypt.py), make sure it's executable, and run it. Ta da!
-
-Note: **a4crypt.py** is a terminal-only precursor app to a8crypt--you don't need that.
+Clone the repo or download the source and execute the interactive INSTALL script (or if you just want to try it out, you can run pyrite.py from wherever you download it to -- just make sure all of the other files are in the same dir).
 
 
 BACKGROUND
 ----------
 
-The original goal of this project was to make symmetric text {en,de}cryption more accessible and easy to use. While GPG rocks (for both symmetric & public-key) if you're comfortable on the commandline, and there are GUI encryption options for key-based, there's not much out there for people who need to do the simplest kind of encryption -- with a shared passphrase.
+The original goal of this project was to make symmetric {en,de}cryption more accessible and easy to use. While GPG rocks if you're comfortable on the commandline (for both symmetric & public-key), and there are GUI encryption options for public-key encryption (seahorse-plugins for nautilus being the best, in my opinion), there's not much out there for people who need to do the simplest kind of encryption -- with a shared passphrase.
 
-First I developed a super-simple wrapper for the commandline. (To see an evolution of that, check out [a3crypt](/ryran/a7crypt/blob/master/a3crypt). Screenshots of terminal action at the end of the [moarSCREENSHOTS](/ryran/a7crypt/blob/master/moarSCREENSHOTS.md) page.) Once that was complete, I decided it was time to the fill the hole of a GUI for symmetric encryption, and began fleshing it out and adding features, quickly adding the ability to pick files (and have the script automatically choose ASCII or binary output type based on the chosen file). I implemented that in BASH with the help of Zenity and called it [a7crypt](/ryran/a7crypt/) (screenshots there).
+After creating a few simple apps with BASH scripting, I decided it was time to learn Python. After the first few days I was in love.
 
-Separately from all this, I decided it was time to learn Python and what better way to learn than to have a project... so first I implemented a3crypt in Python (i.e., a non-gui terminal app) as [a4crypt](/ryran/a8crypt/blob/master/a4crypt.py). Much cooler than a3crypt. I was in love with Python.
+Long story short, after a couple weeks of learning, I released my first version of this project in January 2012, and have been improving it ever since. Have lots more to learn (I was also new to GTK+), but I'm damn proud of Pyrite.
 
-Next I decided to try to implement it with GTK. So here we are. Have lots more to learn, but I'm damn proud of v0.0.1 of a8crypt. While it doesn't have some of the features of a7crypt (sticking to GPG/GPG2 only; no OpenSSL), it's much much better in every other way. I used to love programming in BASH, but that was before learning Python ... oh the code is so lovely.
-
-A week after releasing v0.0.1, I've implemented things that I thought would take me forever to figure out -- a8crypt now does asymmetric encryption!
-
-Feel free to hit me/the tracker up if you have any questions or suggestions!
+PLEASE contact me (or post on the tracker) with any suggestions, feedback, bug reports, or questions!
 
 
 AUTHORS
 -------
 
+For now, just me.
 [ryran](https://github.com/ryran)
 
-And so far, that's it. Feel free to contribute!
+Feel free to contribute!
 
 
 LICENSE
