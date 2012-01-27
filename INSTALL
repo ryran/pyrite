@@ -48,6 +48,7 @@ echo OK
 
 echo -e "\nReady to copy files. Last chance to cancel with Ctrl-c. Enter to continue."
 read -p ": "
+rm -rv "$dir1"/*
 cp -v --preserve=mode,timestamps *.* "$dir1"
 sed -i "s,assetdir = '',assetdir = '$dir1/'," "$dir1/pyrite.py"
 cp -v --preserve=mode,timestamps pyrite "$dir2"

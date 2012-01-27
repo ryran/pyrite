@@ -5,5 +5,6 @@ Exec=pyrite
 Terminal=false
 Type=Application
 Icon=/usr/share/pixmaps/password.png
-Categories=GNOME;Accessories;
+# NEEEEEEED a real icon
+Categories=GNOME;Security
 
