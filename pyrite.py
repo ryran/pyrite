@@ -41,7 +41,7 @@ from subprocess import check_output
 import gpg
 
 version = 'v1.0.0_dev'
-assetdir = '/usr/share/pyrite/'
+assetdir = ''
 
 
 def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
