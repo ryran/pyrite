@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/01/27
+# Last file mod: 2012/01/28
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -41,7 +41,7 @@ from subprocess import check_output
 import gpg
 
 version = 'v1.0.0_dev'
-assetdir = ''
+assetdir = '/usr/share/pyrite/'
 
 
 def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
@@ -90,7 +90,7 @@ class Pyrite:
         self.g_mengine      = builder.get_object('mnu_switchengine')
         self.g_wrap         = builder.get_object('toggle_wordwrap')
         self.g_taskstatus   = builder.get_object('toggle_taskstatus')
-        self.g_taskverbose   = builder.get_object('toggle_gpgverbose')
+        self.g_taskverbose  = builder.get_object('toggle_gpgverbose')
         # Top action toolbar
         self.g_encrypt      = builder.get_object('button_encrypt')
         self.g_decrypt      = builder.get_object('button_decrypt')
@@ -162,6 +162,52 @@ class Pyrite:
         self.g_statusbar.push(self.status, "Enter message to encrypt/decrypt")
     
         self.instantiate_xface(startup=True)
+        
+        # Drag and drop funness
+        TARGET_TYPE_URI_LIST = 80
+        dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
+        
+        self.g_msgtxtview.drag_dest_set(gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
+                                        dnd_list,
+                                        gtk.gdk.ACTION_COPY)
+        self.g_chooserbtn.drag_dest_set(gtk.DEST_DEFAULT_ALL,
+                                        dnd_list,
+                                        gtk.gdk.ACTION_COPY)
+        self.g_msgtxtview.connect('drag_data_received', self.on_drag_data_received)
+        self.g_chooserbtn.connect('drag_data_received', self.on_drag_data_received)
+    
+    
+    def on_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
+        if target_type == 80:
+            from os.path import isfile
+            uri = selection.data.strip('\r\n\x00')
+            #uri_splitted = uri.split() # we may have more than one file dropped
+            #for uri in uri_splitted:
+            uri = uri.split()[0]
+            path = self.get_file_path_from_dnd_dropped_uri(uri)
+            #print widget
+            if isfile(path): # is it file?
+                if widget.get_name() in 'GtkTextView':
+                    self.open_in_txtview(path)
+                elif widget.get_name() in 'GtkFileChooserButton':
+                    print "\n[on_drag_data_received] arg passed to GtkFileChooserButton.set_filename() is:\n'{}'".format(path)
+                    print "\n[on_drag_data_received] GtkFileChooserButton.set_filename() return value:\n", widget.set_filename(path)
+                    print "\n[on_drag_data_received] GtkFileChooserButton.get_filename() returns:\n'{}'\n".format(widget.get_filename())
+                    self.initiate_filemode()
+    
+    
+    def get_file_path_from_dnd_dropped_uri(self, uri):
+        from urllib import url2pathname
+        path = ''
+        if uri.startswith('file:\\\\\\'): # windows
+            path = uri[8:] # 8 is len('file:///')
+        elif uri.startswith('file://'): # nautilus, rox
+            path = uri[7:] # 7 is len('file://')
+        elif uri.startswith('file:'): # xffm
+            path = uri[5:] # 5 is len('file:')
+        path = url2pathname(path) # escape special chars
+        path = path.strip('\r\n\x00') # remove \r\n and NULL
+        return path
     
     
     def instantiate_xface(self, xface='gpg', startup=False):
@@ -400,9 +446,13 @@ class Pyrite:
     
     
     def action_open(self, widget, data=None):
-        """Replace contents of msg TextView's TextBuffer with contents of file."""
         filename = self.chooser_grab_filename('open')
-        if not filename: return
+        if filename:
+            self.open_in_txtview(filename)
+    
+    
+    def open_in_txtview(self, filename):
+        """Replace contents of msg TextView's TextBuffer with contents of file."""
         try:
             with open(filename) as f:  self.buff.set_text(f.read())
             if self.buff.get_char_count() < 1:
@@ -414,6 +464,10 @@ class Pyrite:
     
     
     def action_filemode_chooser_set(self, widget, data=None):
+        self.initiate_filemode()
+    
+    
+    def initiate_filemode(self):
         """Ensure read access of file set by chooserwidget and notify user of next steps."""
         infile = self.g_chooserbtn.get_filename()
         if not access(infile, R_OK):

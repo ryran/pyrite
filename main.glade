@@ -965,7 +965,7 @@ Note for power users: if 'Change Default Key' in the signature options toolbar i
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying, unless in OpenSSL mode]
 
 Configures symmetric encryption cipher algorithm
 
