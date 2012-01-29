@@ -65,16 +65,26 @@ class Pyrite:
     def __init__(self):
         """Build GUI interface from XML, etc."""        
         
-        # Other class attributes
-        self.in_filename  = None
-        self.out_filename = None
-        
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
         try: builder.add_from_file(assetdir + 'main.glade') 
         except:
-            show_errmsg("Problem loading GtkBuilder UI definition! "
-                        "Cannot continue.")
+            show_errmsg(
+                "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
+                "Possible causes:\n\n1) You haven't downloaded the whole Pyrite "
+                "package (pyrite.py needs the .glade files in the same directory).\n\n"
+                "2) You didn't use the INSTALL script to install Pyrite (this is OK as "
+                "long as you execute pyrite.py from the pyrite directory; otherwise you "
+                "need to change the line near the beginning of pyrite.py that says "
+                "assetdir = '' to include the full path to the pyrite dir, w/trailing "
+                "slash, e.g.,\nassetdir = '/home/bob/apps/pyrite/'\n\n3) You moved the "
+                "pyrite dir after installing it.\n\nIn all cases, this could be solved "
+                "by simply downloading the package again from github.com/ryran/pyrite "
+                "and running INSTALL, following the directions.\n\nHowever, if you just "
+                "want to try out Pyrite and you're sure you downloaded the whole "
+                "package, you can avoid this error (as #2 says) by making sure you're "
+                "in the pyrite directory when you execute pyrite.py, e.g.,\n"
+                "'cd pyrite ; ./pyrite.py'")
             raise
         
         #--------------------------------------------------------- GET WIDGETS!
@@ -142,6 +152,16 @@ class Pyrite:
         
         # Connect signals
         builder.connect_signals(self)
+        
+        # Other class attributes
+        self.in_filename  = None
+        self.out_filename = None
+        from sys import argv
+        if len(argv) > 1 and (argv[1] == '--no-verbose' or argv[1] == '-n'):
+            self.verbose = False
+            self.g_taskverbose.set_active(False)
+        else:
+            self.verbose = True
         
         # sensitivity not defaulted to False because that makes this Entry's icons
         #   stay insensitive-looking forever
@@ -215,12 +235,12 @@ class Pyrite:
         
         if startup:
             try:
-                self.x = gpg.Xface()
+                self.x = gpg.Xface(self.verbose)
                 self.engine = self.x.GPG.upper()
             except:
                 try:
                     import openssl
-                    self.x = openssl.Xface()
+                    self.x = openssl.Xface(self.verbose)
                     self.engine = 'OpenSSL'
                     self.g_mengine.set_label("Use GnuPG as Engine")
                     self.g_mengine.set_sensitive(False)
@@ -235,13 +255,13 @@ class Pyrite:
         
         else:
             if xface in 'gpg':
-                self.x = gpg.Xface()
+                self.x = gpg.Xface(self.verbose)
                 self.engine = self.x.GPG.upper()
                 self.g_mengine.set_label("Use OpenSSL as Engine")
             else:
                 try:
                     import openssl
-                    self.x = openssl.Xface()
+                    self.x = openssl.Xface(self.verbose)
                     self.g_mengine.set_label("Use GnuPG as Engine")
                     self.engine = 'OpenSSL'
                     self.infobar("<b>Quite a few things are disabled in OpenSSL mode.</b>\n"
@@ -273,13 +293,7 @@ class Pyrite:
     
     #--------------------------------------------------------- HELPER FUNCTIONS
     
-    def action_switch_engine(self, widget, data=None):
-        if self.engine in 'OpenSSL':
-            self.instantiate_xface('gpg')
-        else:
-            self.instantiate_xface('openssl')    
-    
-    
+
     def set_stdstatus(self):
         """Set a standard status message that is mode-depenedent."""
         self.g_statusbar.pop(self.status)
@@ -405,6 +419,13 @@ class Pyrite:
     
     def on_window1_destroy  (self, widget, data=None):  gtk.main_quit()
     def action_quit         (self, widget, data=None):  gtk.main_quit()
+    
+    
+    def action_switch_engine(self, widget, data=None):
+        if self.engine in 'OpenSSL':
+            self.instantiate_xface('gpg')
+        else:
+            self.instantiate_xface('openssl')    
     
     
     def action_about(self, widget, data=None):
