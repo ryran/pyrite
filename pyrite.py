@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/01/28
+# Last file mod: 2012/01/30
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -107,6 +107,7 @@ class Pyrite:
         # Mode-setting toolbar
         self.g_signverify   = builder.get_object('toggle_mode_signverify')
         self.g_chk_outfile  = builder.get_object('toggle_sign_chooseoutput')
+        self.g_encdec       = builder.get_object('toggle_mode_encdec')
         self.g_symmetric    = builder.get_object('toggle_mode_symmetric')
         self.g_asymmetric   = builder.get_object('toggle_mode_asymmetric')
         self.g_advanced     = builder.get_object('toggle_advanced')
@@ -281,7 +282,18 @@ class Pyrite:
             self.g_chooserbtn.set_sensitive (x)
             self.g_taskverbose.set_visible  (x)
         if self.engine in 'OpenSSL':
-            setsensitive_gpgwidgets (False)
+            self.g_encdec.set_active        (True)
+            self.g_symmetric.set_active     (True)
+            self.g_advanced.set_active      (False)
+            if self.in_filename:
+                self.in_filename = None
+                self.set_stdstatus()
+                self.filemode_enablewidgets     (True)
+                self.buff.set_text              ('')
+                self.g_plaintext.set_sensitive  (False)
+                self.g_plaintext.set_active     (True)
+            setsensitive_gpgwidgets         (False)
+            self.action_cipher_changed()
         else:
             setsensitive_gpgwidgets (True)
         
@@ -365,7 +377,7 @@ class Pyrite:
             return gtk.FILE_CHOOSER_CONFIRMATION_SELECT_AGAIN
         else:
             return gtk.FILE_CHOOSER_CONFIRMATION_CONFIRM
-
+    
     
     # Generic file chooser for opening or saving
     def chooser_grab_filename(self, mode, save_suggestion=None):
@@ -425,7 +437,7 @@ class Pyrite:
         if self.engine in 'OpenSSL':
             self.instantiate_xface('gpg')
         else:
-            self.instantiate_xface('openssl')    
+            self.instantiate_xface('openssl')
     
     
     def action_about(self, widget, data=None):
@@ -443,7 +455,7 @@ class Pyrite:
     
     def action_clear(self, widget, data=None):
         """Reset Statusbar, TextBuffer, Entry, gpg input & filenames."""
-        self.set_stdstatus()        
+        self.set_stdstatus()
         self.filemode_enablewidgets         (True)
         self.buff.set_text                  ('')
         self.buff2.set_text                 ('')
@@ -601,13 +613,13 @@ class Pyrite:
         self.g_errtxtview.modify_font(FontDescription('normal {}'.format(self.errfontsz)))
     
     
-    def action_cipher_changed(self, widget, data=None):
+    def action_cipher_changed(self, widget=None, data=None):
         if self.engine in 'OpenSSL':
             cipher = self.grab_activetext_combobox(self.g_cipher)
             if not cipher:
                 self.g_cipher.set_active(1)
                 self.infobar("<b>OpenSSL doesn't have a default cipher.</b>\nAES256 "
-                             "is recommended.", gtk.MESSAGE_WARNING, 7)
+                             "is recommended.", timeout=7, icon=gtk.STOCK_DIALOG_INFO)
             elif cipher in 'Twofish':
                 self.g_cipher.set_active(1)
                 self.infobar("<b>Twofish is not supported by OpenSSL.</b>\nSelect "

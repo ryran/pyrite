@@ -953,6 +953,7 @@ Note for power users: if 'Change Default Key' in the signature options toolbar i
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Cipher:</property>
                 <property name="use_underline">True</property>
+                <property name="mnemonic_widget">combobox_cipher</property>
               </object>
               <packing>
                 <property name="expand">False</property>
