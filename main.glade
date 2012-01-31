@@ -93,7 +93,7 @@
       </row>
     </data>
   </object>
-  <object class="GtkListStore" id="liststore_hashes">
+  <object class="GtkListStore" id="liststore_digest">
     <columns>
       <!-- column-name Text -->
       <column type="gchararray"/>
@@ -214,6 +214,29 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem5">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="mnu_switchengine">
+                        <property name="label" translatable="yes">Use OpenSSL as Engine</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Switch between using OpenSSL or GnuPG as the backend</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image9</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
+                        <accelerator key="g" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="action_switch_engine" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="mnu_sep1a">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
@@ -329,46 +352,13 @@
                         <property name="label">gtk-preferences</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">NOT IMPLEMENTED YET
-WHOOPS</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="mnu_switchengine">
-                        <property name="label" translatable="yes">Use OpenSSL as Engine</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Switch between using OpenSSL or GnuPG as the backend</property>
-                        <property name="use_underline">True</property>
-                        <property name="image">image9</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <signal name="activate" handler="action_switch_engine" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="mnu_savecipherpref">
-                        <property name="label" translatable="yes">_Make Cipher Selection Default</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Attempts to modify the Pyrite script to permanently change the default cipher setting
-
-This will fail if Pyrite is not writable</property>
-                        <property name="use_underline">True</property>
-                        <property name="image">img_save</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <signal name="activate" handler="action_savecipherpref" swapped="no"/>
+                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="action_preferences" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -421,7 +411,6 @@ This will fail if Pyrite is not writable</property>
                         <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel or error messages)</property>
                         <property name="label" translatable="yes">_Verbose Output in Task Status</property>
                         <property name="use_underline">True</property>
-                        <property name="active">True</property>
                       </object>
                     </child>
                     <child>
@@ -530,6 +519,7 @@ This will fail if Pyrite is not writable</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
                     <property name="focus_on_click">False</property>
+                    <accelerator key="e" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                     <signal name="clicked" handler="action_encrypt" swapped="no"/>
                   </object>
                   <packing>
@@ -549,6 +539,7 @@ This will fail if Pyrite is not writable</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
                     <property name="focus_on_click">False</property>
+                    <accelerator key="d" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                     <signal name="clicked" handler="action_decrypt" swapped="no"/>
                   </object>
                   <packing>
@@ -726,7 +717,6 @@ Check this if you wish to choose the output filename yourself (e.g., because the
 Requires specifying a passphrase which is used as a shared key (for both encryption &amp; decryption)</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
-                <property name="active">True</property>
                 <property name="draw_indicator">True</property>
                 <signal name="toggled" handler="action_toggle_symmetric" swapped="no"/>
               </object>
@@ -810,6 +800,7 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
             <child>
               <object class="GtkLabel" id="label_entry_pass">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Passphrase:</property>
                 <property name="use_markup">True</property>
@@ -1451,11 +1442,11 @@ Detached: creates a separate signature that does not contain the message</proper
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label_combobox_hash">
+              <object class="GtkLabel" id="label_combobox_digest">
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">D_igest:</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">combobox_hash</property>
+                <property name="mnemonic_widget">combobox_digest</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1464,7 +1455,7 @@ Detached: creates a separate signature that does not contain the message</proper
               </packing>
             </child>
             <child>
-              <object class="GtkComboBox" id="combobox_hash">
+              <object class="GtkComboBox" id="combobox_digest">
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
@@ -1472,7 +1463,7 @@ Detached: creates a separate signature that does not contain the message</proper
 Configures message digest algorithm (used for hashing message, i.e., creating your signature)
 
 With 'Default', gpg decides the algorithm based on local system settings, weighing them against the preferences of your secret key</property>
-                <property name="model">liststore_hashes</property>
+                <property name="model">liststore_digest</property>
                 <property name="active">0</property>
                 <property name="focus_on_click">False</property>
                 <child>

@@ -50,7 +50,7 @@ echo -e "\nReady to copy files. Last chance to cancel with Ctrl-c. Enter to cont
 read -p ": "
 rm -rv "$dir1"/*
 cp -v --preserve=mode,timestamps *.* "$dir1"
-sed -i "s,assetdir = '',assetdir = '$dir1/'," "$dir1/pyrite.py"
+sed -i "/^assetdir.*=/s,'','$dir1'," "$dir1/pyrite.py"
 cp -v --preserve=mode,timestamps pyrite "$dir2"
 chmod +x "$dir2/pyrite"
 cp -v --preserve=mode,timestamps pyrite.desktop "$dir3"

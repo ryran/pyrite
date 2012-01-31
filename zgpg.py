@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/01/27
+# Last file mod: 2012/02/01
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -46,23 +46,35 @@ class Xface():
     """
     
     
-    def __init__(self, show_version=True):
+    def __init__(self, show_version=True, firstchoice='gpg2'):
         """Confirm we can run gpg or gpg2."""
         
-        try:
-            vers = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
+        def gpg1():
+            self.vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
+            self.GPG = 'gpg'
+        
+        def gpg2():
+            self.vers = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
             self.GPG = 'gpg2'
-        except:
-            try:
-                vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
-                self.GPG = 'gpg'
+        
+        if firstchoice == 'gpg':
+            try: gpg1()
             except:
-                stderr.write("gpg, gpg2 not found on your system.\n\n")
-                raise
+                try: gpg2()
+                except:
+                    stderr.write("gpg, gpg2 not found on your system.\n\n")
+                    raise
+        else:
+            try: gpg2()
+            except:
+                try: gpg1()
+                except:
+                    stderr.write("gpg, gpg2 not found on your system.\n\n")
+                    raise
         
         # To show or not to show version info
         if show_version:
-            stderr.write("{}\n".format(vers))
+            stderr.write("{}\n".format(self.vers))
         
         # Class attributes
         self.stdin  = None      # Stores input text for gpg()
