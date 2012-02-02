@@ -10,7 +10,7 @@ v1.0.0_dev:
 ![](http://b19.org/linux/pyrite/3sign_file.png)
 ![](http://b19.org/linux/pyrite/4dec_txt.png)
 ![](http://b19.org/linux/pyrite/5openssl.png)
-![](http://b19.org/linux/pyrite/6preferences.png)
+![](http://b19.org/linux/pyrite/6pref.png)
 
 Possibly more screenshots at: http://b19.org/linux/pyrite
 

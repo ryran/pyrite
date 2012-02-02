@@ -51,8 +51,8 @@ read -p ": "
 
 rm -rv "$install_dir"/*
 
-cp -rv --preserve=mode,timestamps *.* "$install_dir"  # Exclude our 2 files without dots in their names
-sed -i "/^assetdir.*=/s,'','$install_dir'," "$install_dir/modules/core.py"
+cp -rv --preserve=mode,timestamps modules ui pyrite.py "$install_dir"
+sed -i "/^assetdir.*=/s,'','$install_dir/'," "$install_dir/modules/core.py"
 
 cp -v --preserve=mode,timestamps pyrite "$bin_dir"
 sed -i "/^pyrite=/s,'.*','$install_dir/pyrite.py'," "$bin_dir/pyrite"
