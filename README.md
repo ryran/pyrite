@@ -27,7 +27,7 @@ INSTALLATION
 ------------
 1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` OR [download a zip of the source](/ryran/pyrite/zipball/master).
 
-2) Execute the interactive INSTALL script OR if you just want to try it out, you can run pyrite.py from wherever you download it to -- just make sure all of the other files are in the same dir.
+2) Execute the interactive INSTALL script OR if you just want to try it out, you can simply run the executable script `pyrite` from the root source folder (it's the file that's executable).
 
 
 BACKGROUND
