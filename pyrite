@@ -1,11 +1,11 @@
 #!/bin/sh
 
-if [ -f "/usr/share/pyrite/pyrite.py" ]; then
+pyrite='pyrite.py'
 
-    exec python2 "/usr/share/pyrite/pyrite.py" "$@"
+if [ -f "$pyrite" ]; then
+    exec python2 "$pyrite" "$@"
 
 else
-
-    echo -e "Error. '/usr/share/pyrite/pyrite.py' not found.\nRun INSTALL *or* execute pyrite.py manually."
+    echo -e "Error. '$pyrite' not found.\nRun INSTALL *or* execute pyrite.py manually."
 
 fi

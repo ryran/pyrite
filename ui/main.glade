@@ -515,6 +515,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_markup">&lt;i&gt;Ctrl+E&lt;/i&gt;</property>
                     <property name="image">img_encrypt</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
@@ -535,6 +537,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_markup">&lt;i&gt;Ctrl+D&lt;/i&gt;</property>
                     <property name="image">img_decrypt</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
@@ -600,6 +604,23 @@
                 <property name="fill">True</property>
                 <property name="padding">8</property>
                 <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHScale" id="opacity_slider">
+                <property name="width_request">100</property>
+                <property name="can_focus">True</property>
+                <property name="round_digits">0</property>
+                <property name="draw_value">False</property>
+                <property name="value_pos">left</property>
+                <signal name="value-changed" handler="action_opacity_slider" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">6</property>
+                <property name="pack_type">end</property>
+                <property name="position">5</property>
               </packing>
             </child>
           </object>
@@ -1191,6 +1212,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
 This is the way to go when dealing with binary or very large files</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="title" translatable="yes">Choose gpg input file...</property>
+                                    <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
                                     <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
                                   </object>
                                   <packing>
@@ -1275,6 +1297,7 @@ This is set when opening a file, based on whether the file is detected as binary
                                 <property name="can_focus">True</property>
                                 <property name="has_focus">True</property>
                                 <property name="wrap_mode">word</property>
+                                <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
                               </object>
                             </child>
                           </object>

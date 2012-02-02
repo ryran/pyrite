@@ -2,18 +2,18 @@
 
 echo -e "\nWill install Pyrite application files to /usr/share/pyrite/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/.local/share/pyrite/"
-read -p ": " dir1
-[[ -z $dir1 ]] && dir1=/usr/share/pyrite || dir1=${dir1%/}
-if [[ -d $dir1 ]]; then
-    echo "Directory '$dir1' already exists."
+read -p ": " install_dir
+[[ -z $install_dir ]] && install_dir=/usr/share/pyrite || install_dir=${install_dir%/}
+if [[ -d $install_dir ]]; then
+    echo "Directory '$install_dir' already exists."
     echo "All files in directory will be deleted prior to copying new pyrite files."
     read -p "Continue? [y/n] "
     [[ $REPLY != y ]] && exit
 else
-    if ! mkdir -vp "$dir1"; then
-        echo "Could not create directory '$dir1'"
-        if [[ ! -w ${dir1%/*} ]]; then
-            echo "Need write permission to mkdir in '${dir1%/*}'"
+    if ! mkdir -vp "$install_dir"; then
+        echo "Could not create directory '$install_dir'"
+        if [[ ! -w ${install_dir%/*} ]]; then
+            echo "Need write permission to mkdir in '${install_dir%/*}'"
             echo "Re-run this script as root, i.e., 'sudo $0' or 'su -c $0'"
         fi
         exit 1
@@ -24,10 +24,10 @@ echo OK
 
 echo -e "\nWill install a launcher ('pyrite') to /usr/bin/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/bin/"
-read -p ": " dir2
-[[ -z $dir2 ]] && dir2=/usr/bin
-if [[ ! -w $dir2 ]]; then
-    echo "Need write permission to create launcher in '$dir2'"
+read -p ": " bin_dir
+[[ -z $bin_dir ]] && bin_dir=/usr/bin
+if [[ ! -w $bin_dir ]]; then
+    echo "Need write permission to create launcher in '$bin_dir'"
     echo "Re-run this script as root, i.e., 'sudo $0' or 'su -c $0'"
     exit 2
 fi
@@ -36,10 +36,10 @@ echo OK
 
 echo -e "\nWill install a desktop shortcut ('pyrite.desktop') to /usr/share/applications/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/.local/share/applications/"
-read -p ": " dir3
-[[ -z $dir3 ]] && dir3=/usr/share/applications
-if [[ ! -w $dir3 ]]; then
-    echo "Need write permission to create desktop shortcut in '$dir3'"
+read -p ": " shortcut_dir
+[[ -z $shortcut_dir ]] && shortcut_dir=/usr/share/applications
+if [[ ! -w $shortcut_dir ]]; then
+    echo "Need write permission to create desktop shortcut in '$shortcut_dir'"
     echo "Re-run this script as root, i.e., 'sudo $0' or 'su -c $0'"
     exit 3
 fi
@@ -48,12 +48,17 @@ echo OK
 
 echo -e "\nReady to copy files. Last chance to cancel with Ctrl-c. Enter to continue."
 read -p ": "
-rm -rv "$dir1"/*
-cp -v --preserve=mode,timestamps *.* "$dir1"
-sed -i "/^assetdir.*=/s,'','$dir1'," "$dir1/pyrite.py"
-cp -v --preserve=mode,timestamps pyrite "$dir2"
-chmod +x "$dir2/pyrite"
-cp -v --preserve=mode,timestamps pyrite.desktop "$dir3"
+
+rm -rv "$install_dir"/*
+
+cp -rv --preserve=mode,timestamps *.* "$install_dir"  # Exclude our 2 files without dots in their names
+sed -i "/^assetdir.*=/s,'','$install_dir'," "$install_dir/modules/core.py"
+
+cp -v --preserve=mode,timestamps pyrite "$bin_dir"
+sed -i "/^pyrite=/s,'.*','$install_dir/pyrite.py'," "$bin_dir/pyrite"
+chmod +x "$bin_dir/pyrite"
+
+cp -v --preserve=mode,timestamps pyrite.desktop "$shortcut_dir"
 
 
 echo -e "\nFinished!\nRun Pyrite from a terminal as simply 'pyrite', or find the desktop shortcut in your applications menu."

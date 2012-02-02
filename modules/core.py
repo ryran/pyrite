@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/01
+# Last file mod: 2012/02/02
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -22,16 +22,7 @@
 #    along with Pyrite.  If not, see <http://gnu.org/licenses/gpl.html>.
 #
 #------------------------------------------------------------------------------
-#
-# TODO:
-#   * Dialog with progress bar & cancel button when working
-#   * Icons for for encrypt, decrypt, sign, verify buttons, application
-#   * Undo stack. Blech. Kill me.
-#   * Update notifications
-#   * Fix: as infobar vbox in preferences window expands, it causes the window
-#       to expand; need to figure out how to make the window auto-shrink after
-#
-#------------------------------------------------------------------------------
+
 
 # StdLib:
 import gtk
@@ -42,14 +33,13 @@ from pango import FontDescription
 from os import access, R_OK, getenv
 from shlex import split
 from subprocess import check_output
-# Custom:
-import zgpg
+
 
 # Important variables
-version                 = 'v1.0.0_dev_4'
+version                 = 'v1.0.0_dev_5'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
-userpref_format_info    = {'version':'mustafa'}
+userpref_format_info    = {'version':'Mu5tafa'}
 
 
 
@@ -77,7 +67,7 @@ def infobar(message, vbox, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
     vbox.pack_end           (ibar, False, False)
     ibar.set_message_type   (msgtype)
     ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
-    ibar.connect            ("response", lambda *args: ibar.destroy())
+    ibar.connect            ('response', lambda *args: ibar.destroy())
     img                     = gtk.Image()
     img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
     label                   = gtk.Label()
@@ -126,23 +116,28 @@ class Preferences:
                 defkey=False,
                 defkeytxt='',
                 txtoutput=0,
+                expander=False,
                 # Sign/Verify Mode
                 svoutfiles=False,
                 text_sigmode=1,
                 file_sigmode=2,
                 # Display
-                wrap=True,
                 taskstatus=True,
                 verbose=False,
+                wrap=True,
+                opc_slider=False,
+                opacity=100,
                 msgfntsize=9,
                 errfntsize=7)
     
     
     def open_preferences_window(self, parentwindow):
         builder = gtk.Builder()
-        builder.add_from_file(assetdir + 'preferences.glade')
+        builder.add_from_file(assetdir + 'ui/preferences.glade')
         # Main window
         self.window         = builder.get_object('window1')
+        self.btn_save       = builder.get_object('btn_save')
+        self.btn_apply      = builder.get_object('btn_apply')
         self.ib             = builder.get_object('vbox_ib')
         # Main Operation Mode
         self.cb_opmode      = builder.get_object('cb_opmode')
@@ -159,14 +154,17 @@ class Preferences:
         self.tg_defkey      = builder.get_object('tg_defkey')
         self.ent_defkey     = builder.get_object('ent_defkey')
         self.cb_txtoutput   = builder.get_object('cb_txtoutput')
+        self.tg_expander    = builder.get_object('tg_expander')
         # Sign/Verify Mode
         self.tg_svoutfiles  = builder.get_object('tg_svoutfiles')
         self.cb_text_sigmode= builder.get_object('cb_text_sigmode')
         self.cb_file_sigmode= builder.get_object('cb_file_sigmode')
         # Display
-        self.tg_wrap        = builder.get_object('tg_wrap')
         self.tg_taskstatus  = builder.get_object('tg_taskstatus')
         self.tg_verbose     = builder.get_object('tg_verbose')
+        self.tg_wrap        = builder.get_object('tg_wrap')
+        self.tg_opc_slider  = builder.get_object('tg_opc_slider')
+        self.sp_opacity     = builder.get_object('sp_opacity')
         self.sp_msgfntsize  = builder.get_object('sp_msgfntsize')
         self.sp_errfntsize  = builder.get_object('sp_errfntsize')
         # TODO: Advanced
@@ -197,14 +195,17 @@ class Preferences:
         self.tg_defkey.set_active       (self.p['defkey'])
         self.ent_defkey.set_text        (self.p['defkeytxt'])
         self.cb_txtoutput.set_active    (self.p['txtoutput'])
+        self.tg_expander.set_active     (self.p['expander'])
         # Sign/Verify Mode
         self.tg_svoutfiles.set_active   (self.p['svoutfiles'])
         self.cb_text_sigmode.set_active (self.p['text_sigmode'])
         self.cb_file_sigmode.set_active (self.p['file_sigmode'])
         # Display
-        self.tg_wrap.set_active         (self.p['wrap'])
         self.tg_taskstatus.set_active   (self.p['taskstatus'])
         self.tg_verbose.set_active      (self.p['verbose'])
+        self.tg_wrap.set_active         (self.p['wrap'])
+        self.tg_opc_slider.set_active   (self.p['opc_slider'])
+        self.sp_opacity.set_value       (self.p['opacity'])
         self.sp_msgfntsize.set_value    (self.p['msgfntsize'])
         self.sp_errfntsize.set_value    (self.p['errfntsize'])
     
@@ -226,36 +227,37 @@ class Preferences:
         'defkey'      : self.tg_defkey.get_active(),
         'defkeytxt'   : self.ent_defkey.get_text(),
         'txtoutput'   : self.cb_txtoutput.get_active(),
+        'expander'    : self.tg_expander.get_active(),
         # Sign/Verify Mode
         'svoutfiles'  : self.tg_svoutfiles.get_active(),
         'text_sigmode': self.cb_text_sigmode.get_active(),
         'file_sigmode': self.cb_file_sigmode.get_active(),
         # Display
-        'wrap'        : self.tg_wrap.get_active(),
         'taskstatus'  : self.tg_taskstatus.get_active(),
         'verbose'     : self.tg_verbose.get_active(),
+        'wrap'        : self.tg_wrap.get_active(),
+        'opc_slider'  : self.tg_opc_slider.get_active(),
+        'opacity'     : self.sp_opacity.get_value(),
         'msgfntsize'  : self.sp_msgfntsize.get_value(),
         'errfntsize'  : self.sp_errfntsize.get_value()}
         return self.p
     
     
-    def action_save_prefs(self, widget, data=None):
+    def save_prefs(self):
         try:
             with open(userpref_file, 'wb') as f:
                 pickle.dump(userpref_format_info, f, protocol=2)
                 pickle.dump(self.capture_current_prefs(), f, protocol=2)
                 stderr.write("Pyrite saved preferences to file {!r}\n".format(userpref_file))
         except:
-            raise
             infobar("<b>Saving preferences failed.</b>\nUnable to open config file "
                     "<span style='italic' size='smaller' face='monospace'>{} </span> for writing."
                     .format(userpref_file), self.ib, gtk.MESSAGE_ERROR, 0)
-            return
-        self.window.destroy()
+            return False
+        return True
     
     
     def action_cancel_prefs(self, widget, data=None):
-        self.__init__()
         self.window.destroy()
     
     
@@ -268,7 +270,8 @@ class Preferences:
     def action_default_prefs(self, widget, data=None):
         self.__init__(reset_defaults=True)
         self.populate_pref_window_prefs()
-        infobar("<b>Reset preferences to defaults.</b>", self.ib, timeout=3)
+        infobar("<b>Reset preferences to defaults. You still need to <i>Save</i> "
+                "or <i>Apply</i>.</b>", self.ib, timeout=3)
     
     
     def action_tg_enctoself(self, widget, data=None):
@@ -288,8 +291,9 @@ class Preferences:
     def action_cb_enctype(self, widget, data=None):
         if self.cb_enctype.get_active() == 2:
             infobar("<b>In order for both encryption types to be on by default, "
-                    "<i>Advanced</i> will\nalso be turned on, whether you select it or not.</b>",
+                    "<i>Advanced</i> will\nalso be turned on, whether or not you select it now.</b>",
                     self.ib, timeout=8, icon=gtk.STOCK_DIALOG_INFO)
+
 
 
 class Pyrite:
@@ -305,7 +309,7 @@ class Pyrite:
         
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
-        try: builder.add_from_file(assetdir + 'main.glade') 
+        try: builder.add_from_file(assetdir + 'ui/main.glade') 
         except:
             show_errmsg(
                 "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
@@ -342,6 +346,7 @@ class Pyrite:
         # Top action toolbar
         self.g_encrypt      = builder.get_object('button_encrypt')
         self.g_decrypt      = builder.get_object('button_decrypt')
+        self.g_slider       = builder.get_object('opacity_slider')
         # Mode-setting toolbar
         self.g_signverify   = builder.get_object('toggle_mode_signverify')
         self.g_chk_outfile  = builder.get_object('toggle_sign_chooseoutput')
@@ -365,6 +370,7 @@ class Pyrite:
         self.g_msgtxtview   = builder.get_object('textview1')
         self.buff           = self.g_msgtxtview.get_buffer()
         self.ib             = builder.get_object('vbox_ibar')
+        self.g_expander     = builder.get_object('expander_filemode')
         self.g_chooserbtn   = builder.get_object('btn_filechooser')
         self.g_plaintext    = builder.get_object('toggle_plaintext')
         self.g_frame2       = builder.get_object('frame2')
@@ -399,7 +405,7 @@ class Pyrite:
         #   that makes their icons stay insensitive-looking forever
         self.g_pass.set_sensitive           (False)
         self.g_recip.set_sensitive          (False)
-        
+
         #------------------------------ LOAD PREFERENCES AND SET WIDGET STATES!
         
         self.pref = Preferences()
@@ -410,22 +416,17 @@ class Pyrite:
         # Launch gpg/openssl interface
         self.instantiate_xface(startup=True)
         
-        # Configure operation modes, widget states, etc
-        self.set_defaults_from_prefs()
-        
         #------------------------------------------------ DRAG AND DROP FUNNESS
         
         TARGET_TYPE_URI_LIST = 80
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
         
-        self.g_msgtxtview.drag_dest_set(gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
-                                        dnd_list,
-                                        gtk.gdk.ACTION_COPY)
-        self.g_chooserbtn.drag_dest_set(gtk.DEST_DEFAULT_ALL,
-                                        dnd_list,
-                                        gtk.gdk.ACTION_COPY)
-        self.g_msgtxtview.connect('drag_data_received', self.on_drag_data_received)
-        self.g_chooserbtn.connect('drag_data_received', self.on_drag_data_received)
+        self.g_msgtxtview.drag_dest_set(
+            gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
+            dnd_list, gtk.gdk.ACTION_COPY)
+        self.g_chooserbtn.drag_dest_set(
+            gtk.DEST_DEFAULT_ALL,
+            dnd_list, gtk.gdk.ACTION_COPY)
         
     
     #----------------------------------------------------- BRING UP GPG/OPENSSL
@@ -443,7 +444,8 @@ class Pyrite:
         if not xface:  xface = self.p['backend_txt']
             
         def gpg(backend_pref, fallback=False):
-            self.x = zgpg.Xface(firstchoice=backend_pref)
+            import xgpg
+            self.x = xgpg.Xface(firstchoice=backend_pref)
             self.engine = self.x.GPG.upper()
             self.g_mengine.set_label("Use OpenSSL as Engine")
             if fallback:
@@ -452,8 +454,8 @@ class Pyrite:
                         "OpenSSL.</b>", self.ib, gtk.MESSAGE_WARNING)
 
         def openssl(fallback=False):
-            import zopenssl
-            self.x = zopenssl.Xface()
+            import xopenssl
+            self.x = xopenssl.Xface()
             self.engine = 'OpenSSL'
             self.g_mengine.set_label("Use GnuPG as Engine")
             if fallback:
@@ -501,6 +503,7 @@ class Pyrite:
             self.g_taskverbose.set_visible  (x)
         
         if self.engine in 'OpenSSL':
+            self.set_defaults_from_prefs(startup)
             # LOADING OPENSSL
             self.g_encdec.set_active        (True)
             self.g_symmetric.set_active     (True)
@@ -515,7 +518,7 @@ class Pyrite:
                 self.g_plaintext.set_sensitive  (False)
                 self.g_plaintext.set_active     (True)
             setsensitive_gpgwidgets         (False)
-            if self.g_cipher.get_active() in {0, 2}:
+            if startup or self.g_cipher.get_active() in {0, 2}:
                 # If current cipher set to 'Default' or 'Twofish',
                 #   we need to work some magic
                 if self.p['cipher'] not in {0, 2}:
@@ -526,7 +529,7 @@ class Pyrite:
         else:
             # LOADING GPG
             setsensitive_gpgwidgets (True)
-            self.set_defaults_from_prefs()
+            self.set_defaults_from_prefs(startup)
         
         self.buff2.set_text("Any output generated from calls to {} will be "
                             "displayed here.\n\nIn the View menu you can change "
@@ -536,7 +539,7 @@ class Pyrite:
     
     #--------------------------------------------- SET OPMODES, ETC, FROM PREFS
     
-    def set_defaults_from_prefs(self):
+    def set_defaults_from_prefs(self, startup=False):
         """Set window toggle states via preferences."""
 
         if self.p['opmode']:
@@ -559,30 +562,44 @@ class Pyrite:
             self.g_advanced.set_active      (True)
             self.g_symmetric.set_active     (True)
             self.g_asymmetric.set_active    (True)
+            
+        if not self.g_expander.get_expanded():
+            self.g_expander.set_expanded    (self.p['expander'])
         
         self.g_digest.set_active            (self.p['digest'])
         self.g_chk_defkey.set_active        (self.p['defkey'])
         self.g_defaultkey.set_text          (self.p['defkeytxt'])
         self.g_cipher.set_active            (self.p['cipher'])
-        self.g_wrap.set_active              (self.p['wrap'])
-        self.g_taskstatus.set_active        (self.p['taskstatus'])
-        self.g_taskverbose.set_active       (self.p['verbose'])
         
-        # Set TextView fonts
-        self.g_msgtxtview.modify_font(
-            FontDescription("monospace {}".format(self.p['msgfntsize'])))
-        self.g_errtxtview.modify_font(
-            FontDescription("normal {}".format(self.p['errfntsize'])))
-        """Might play with colors at some point...
-        self.g_msgtxtview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
-        self.g_msgtxtview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-        """
+        if startup:
+            self.g_taskstatus.set_active        (self.p['taskstatus'])
+            self.g_taskverbose.set_active       (self.p['verbose'])
+            self.g_wrap.set_active              (self.p['wrap'])
+            
+            # Set TextView fonts
+            self.g_msgtxtview.modify_font(
+                FontDescription("monospace {}".format(self.p['msgfntsize'])))
+            self.g_errtxtview.modify_font(
+                FontDescription("normal {}".format(self.p['errfntsize'])))
+            """Might play with colors at some point...
+            self.g_msgtxtview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
+            self.g_msgtxtview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+            """
+            
+            if self.p['opc_slider']:
+                self.g_slider.set_range         (0, 100)
+                self.g_slider.set_value         (self.p['opacity'])
+                self.g_slider.set_tooltip_text  ("Change window opacity (current:{}%)".format(self.p['opacity']))
+                self.g_slider.set_visible       (True)
+            else:
+                self.g_window.set_opacity(self.p['opacity']/100.0)
+
     
     
     #--------------------------------------------------------- HELPER FUNCTIONS
     
-    
-    def on_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
+
+    def action_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
         if target_type == 80:
             from os.path import isfile
             uri = selection.data.strip('\r\n\x00')
@@ -746,6 +763,13 @@ class Pyrite:
     def action_quit         (self, widget, data=None):  gtk.main_quit()
     
     
+    def action_opacity_slider(self, widget):
+        val = widget.get_value()
+        self.g_window.set_opacity(val/100.0)
+        widget.set_tooltip_text(
+            "Change window opacity (current:{:.1f}%)".format(val))
+    
+    
     def action_switch_engine(self, widget, data=None):
         if self.engine in 'OpenSSL':
             self.instantiate_xface('gpg')
@@ -755,20 +779,34 @@ class Pyrite:
     
     def action_about(self, widget, data=None):
         builder = gtk.Builder()
-        builder.add_from_file(assetdir + 'about.glade') 
-        about_dialog = builder.get_object('aboutdialog')
-        about_dialog.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
-        about_dialog.set_transient_for(self.g_window)
-        about_dialog.set_version(version)
-        def close(dialog, response, self):
-            about_dialog.destroy()
-        about_dialog.connect('response', close, self)
-        about_dialog.show()
+        builder.add_from_file(assetdir + 'ui/about.glade') 
+        about = builder.get_object('aboutdialog')
+        about.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
+        about.set_transient_for(self.g_window)
+        about.set_version(version)
+        about.connect('response', lambda *args: about.destroy())
+        about.show()
     
     
     def action_preferences(self, widget, data=None):
         self.pref.open_preferences_window(parentwindow=self.g_window)
-    
+        def savepref(*args):
+            if self.pref.save_prefs():
+                self.pref.window.destroy()
+                infobar("<b>Saved preferences to <span style='italic' size='smaller' "
+                        "face='monospace'>{}</span></b>\nbut no changes made to current session."
+                        .format(userpref_file), self.ib)
+        def applypref(*args):
+            if self.pref.save_prefs():
+                self.pref.window.destroy()
+                self.p = self.pref.p
+                self.instantiate_xface(startup=True)
+                infobar("<b>Saved preferences to <span style='italic' size='smaller' "
+                        "face='monospace'>{}</span></b>\nand applied them to current session."
+                        .format(userpref_file), self.ib)
+        self.pref.btn_save.connect  ('clicked', savepref)
+        self.pref.btn_apply.connect ('clicked', applypref)
+        
     
     def action_clear(self, widget, data=None):
         """Reset Statusbar, filemode stuff, TextView buffers."""
@@ -1294,14 +1332,3 @@ class Pyrite:
 
 
 
-if __name__ == "__main__":
-    
-    p = Pyrite()
-    try:
-        p.main()
-    except KeyboardInterrupt:
-        print
-        exit()
-    except:
-        raise
-    
