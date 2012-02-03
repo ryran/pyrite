@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/02
+# Last file mod: 2012/02/03
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -28,7 +28,7 @@
 import gtk
 import cPickle as pickle
 from sys import stderr
-from glib import timeout_add_seconds
+from glib import timeout_add_seconds, source_remove
 from pango import FontDescription
 from os import access, R_OK, getenv
 from shlex import split
@@ -36,50 +36,10 @@ from subprocess import check_output
 
 
 # Important variables
-version                 = 'v1.0.0_dev_5'
+version                 = 'v1.0.0_dev_6'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
-userpref_format_info    = {'version':'Mu5tafa'}
-
-
-
-def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
-    """Display message with GtkMessageDialog."""
-    dialog = gtk.MessageDialog(
-        None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        dialogtype, gtk.BUTTONS_OK, message)
-    dialog.run()
-    dialog.destroy()
-
-
-
-def infobar(message, vbox, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
-    """Instantiate a new auto-hiding InfoBar with a Label of message."""
-    
-    message = "<span foreground='#2E2E2E'>" + message + "</span>"
-    if icon:                                pass
-    elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
-    elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
-    elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
-    elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
-    
-    ibar                    = gtk.InfoBar()
-    vbox.pack_end           (ibar, False, False)
-    ibar.set_message_type   (msgtype)
-    ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
-    ibar.connect            ('response', lambda *args: ibar.destroy())
-    img                     = gtk.Image()
-    img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
-    label                   = gtk.Label()
-    label.set_markup        (message)
-    content                 = ibar.get_content_area()
-    content.add             (img)
-    content.add             (label)
-    img.show()
-    label.show()
-    ibar.show()
-    if timeout:
-        timeout_add_seconds(timeout, ibar.destroy)
+userpref_format_info    = {'version':'Must6fa'}
 
 
 
@@ -128,17 +88,56 @@ class Preferences:
                 opc_slider=False,
                 opacity=100,
                 msgfntsize=9,
-                errfntsize=7)
+                errfntsize=7,
+                color_fg='#000000000000',
+                color_bg='#ffffffffffff')
+    
+    
+    def infobar(self, message, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
+        """Instantiate a new auto-hiding InfoBar with a Label of message."""
+        
+        def destroy_ibar():
+            self.ibar_timeout = 0
+            self.ibar.destroy()
+            self.window.resize(1,1)
+        
+        if self.ibar_timeout > 0:
+            source_remove(self.ibar_timeout)
+            destroy_ibar()
+        
+        message = "<span foreground='#2E2E2E'>" + message + "</span>"
+        if icon:                                pass
+        elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
+        elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
+        elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
+        elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
+        
+        self.ibar                   = gtk.InfoBar()
+        self.vbox_ib.pack_end       (self.ibar, False, False)
+        self.ibar.set_message_type  (msgtype)
+        img                         = gtk.Image()
+        img.set_from_stock          (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        label                       = gtk.Label()
+        label.set_markup            (message)
+        content                     = self.ibar.get_content_area()
+        content.pack_start          (img, False, False)
+        content.pack_start          (label, False, False)
+        img.show()
+        label.show()
+        self.ibar.show()
+        
+        self.ibar_timeout = timeout_add_seconds(timeout, destroy_ibar)
     
     
     def open_preferences_window(self, parentwindow):
+        self.ibar_timeout = 0
         builder = gtk.Builder()
         builder.add_from_file(assetdir + 'ui/preferences.glade')
         # Main window
         self.window         = builder.get_object('window1')
         self.btn_save       = builder.get_object('btn_save')
         self.btn_apply      = builder.get_object('btn_apply')
-        self.ib             = builder.get_object('vbox_ib')
+        self.vbox_ib        = builder.get_object('vbox_ib')
         # Main Operation Mode
         self.cb_opmode      = builder.get_object('cb_opmode')
         # Engine
@@ -167,6 +166,8 @@ class Preferences:
         self.sp_opacity     = builder.get_object('sp_opacity')
         self.sp_msgfntsize  = builder.get_object('sp_msgfntsize')
         self.sp_errfntsize  = builder.get_object('sp_errfntsize')
+        self.btn_color_fg   = builder.get_object('btn_color_fg')
+        self.btn_color_bg   = builder.get_object('btn_color_bg')
         # TODO: Advanced
         #self.tg_args_gpg_e  = builder.get_object('tg_args_gpg_e')
         #self.en_args_gpg_e  = builder.get_object('en_args_gpg_e')
@@ -208,6 +209,8 @@ class Preferences:
         self.sp_opacity.set_value       (self.p['opacity'])
         self.sp_msgfntsize.set_value    (self.p['msgfntsize'])
         self.sp_errfntsize.set_value    (self.p['errfntsize'])
+        self.btn_color_fg.set_color     (gtk.gdk.color_parse(self.p['color_fg']))
+        self.btn_color_bg.set_color     (gtk.gdk.color_parse(self.p['color_bg']))
     
     
     def capture_current_prefs(self):
@@ -239,7 +242,9 @@ class Preferences:
         'opc_slider'  : self.tg_opc_slider.get_active(),
         'opacity'     : self.sp_opacity.get_value(),
         'msgfntsize'  : self.sp_msgfntsize.get_value(),
-        'errfntsize'  : self.sp_errfntsize.get_value()}
+        'errfntsize'  : self.sp_errfntsize.get_value(),
+        'color_fg'    : self.btn_color_fg.get_color().to_string(),
+        'color_bg'    : self.btn_color_bg.get_color().to_string()}
         return self.p
     
     
@@ -250,9 +255,10 @@ class Preferences:
                 pickle.dump(self.capture_current_prefs(), f, protocol=2)
                 stderr.write("Pyrite saved preferences to file {!r}\n".format(userpref_file))
         except:
-            infobar("<b>Saving preferences failed.</b>\nUnable to open config file "
-                    "<span style='italic' size='smaller' face='monospace'>{} </span> for writing."
-                    .format(userpref_file), self.ib, gtk.MESSAGE_ERROR, 0)
+            self.infobar(
+                "<b>Saving preferences failed.</b>\nUnable to open config file "
+                "<span style='italic' size='smaller' face='monospace'>{} </span> for writing."
+                .format(userpref_file), gtk.MESSAGE_ERROR, 20)
             return False
         return True
     
@@ -264,35 +270,83 @@ class Preferences:
     def action_revert_prefs(self, widget, data=None):
         self.__init__()
         self.populate_pref_window_prefs()
-        infobar("<b>Reverted to user-saved preferences.</b>", self.ib, timeout=3)
+        self.infobar(
+            "<b>Reverted to user-saved preferences.</b>", timeout=3)
     
     
     def action_default_prefs(self, widget, data=None):
         self.__init__(reset_defaults=True)
         self.populate_pref_window_prefs()
-        infobar("<b>Reset preferences to defaults. You still need to <i>Save</i> "
-                "or <i>Apply</i>.</b>", self.ib, timeout=3)
+        self.infobar(
+            "<b>Reset preferences to defaults. You still need to <i>Save</i> or "
+            "<i>Apply</i>.</b>", timeout=3)
     
     
     def action_tg_enctoself(self, widget, data=None):
         if self.tg_enctoself.get_active():
-            infobar("<b>If you want <i>Encrypt to Self</i> on in Symmetric mode, "
-                    "you must set\n<i>Encryption Type</i> to 'Both'.</b>",
-                    self.ib, timeout=8, icon=gtk.STOCK_DIALOG_INFO)
+            self.infobar(
+                "<b>If you want <i>Encrypt to Self</i> on in Symmetric mode, "
+                "you must set\n<i>Encryption Type</i> to 'Both'.</b>",
+                timeout=8, icon=gtk.STOCK_DIALOG_INFO)
     
     
     def action_tg_addsig(self, widget, data=None):
         if self.tg_addsig.get_active():
-            infobar("<b>If you want <i>Add Signature</i> on in Symmetric mode, "
-                    "you must also enable\n<i>Advanced</i></b>.",
-                    self.ib, timeout=8, icon=gtk.STOCK_DIALOG_INFO)
+            self.infobar(
+                "<b>If you want <i>Add Signature</i> on in Symmetric mode, "
+                "you must also\nenable <i>Advanced</i></b>.",
+                timeout=8, icon=gtk.STOCK_DIALOG_INFO)
     
     
     def action_cb_enctype(self, widget, data=None):
         if self.cb_enctype.get_active() == 2:
-            infobar("<b>In order for both encryption types to be on by default, "
-                    "<i>Advanced</i> will\nalso be turned on, whether or not you select it now.</b>",
-                    self.ib, timeout=8, icon=gtk.STOCK_DIALOG_INFO)
+            self.infobar(
+                "<b>In order for both encryption types to be on by default, "
+                "<i>Advanced</i> will\nalso be turned on, whether or not you "
+                "select it now.</b>",
+                timeout=8, icon=gtk.STOCK_DIALOG_INFO)
+
+
+
+
+def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
+    """Display message with GtkMessageDialog."""
+    dialog = gtk.MessageDialog(
+        None, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        dialogtype, gtk.BUTTONS_OK, message)
+    dialog.run()
+    dialog.destroy()
+
+
+def infobar(message, vbox, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
+    """Instantiate a new auto-hiding InfoBar with a Label of message."""
+    
+    message = "<span foreground='#2E2E2E'>" + message + "</span>"
+    if icon:                                pass
+    elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
+    elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
+    elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
+    elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
+    
+    ibar                    = gtk.InfoBar()
+    vbox.pack_end           (ibar, False, False)
+    ibar.set_message_type   (msgtype)
+    ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
+    ibar.connect            ('response', lambda *args: ibar.destroy())
+    img                     = gtk.Image()
+    img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
+    label                   = gtk.Label()
+    label.set_markup        (message)
+    content                 = ibar.get_content_area()
+    content.pack_start      (img, False, False)
+    content.pack_start      (label, False, False)
+    img.show()
+    label.show()
+    ibar.show()
+    
+    if timeout:
+        timeout_add_seconds(timeout, ibar.destroy)
+
 
 
 
@@ -434,16 +488,16 @@ class Pyrite:
     def instantiate_xface(self, xface=None, startup=False):
         """Instantiate Gpg or Openssl interface."""
         
-        if self.p['backend'] == 0:
-            self.p['backend_txt'] = 'gpg2'
-        elif self.p['backend'] == 1:
-            self.p['backend_txt'] = 'gpg'
-        elif self.p['backend'] == 2:
-            self.p['backend_txt'] = 'openssl'
+        b = ['gpg2', 'gpg', 'openssl']
+        # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
+        # Desired: convert the number to the value and store in b
+        b = b[any(n for n in xrange(3) if self.p['backend'] == n)]
         
-        if not xface:  xface = self.p['backend_txt']
-            
-        def gpg(backend_pref, fallback=False):
+        # If we weren't passed xface argument, set xface to backend
+        if not xface:  xface = b
+        
+        # Loading gpg
+        def gpg(backend_pref=b, fallback=False):
             import xgpg
             self.x = xgpg.Xface(firstchoice=backend_pref)
             self.engine = self.x.GPG.upper()
@@ -452,7 +506,8 @@ class Pyrite:
                 self.g_mengine.set_sensitive(False)
                 infobar("<b>Shockingly, your system does not appear to have "
                         "OpenSSL.</b>", self.ib, gtk.MESSAGE_WARNING)
-
+        
+        # Loading openssl
         def openssl(fallback=False):
             import xopenssl
             self.x = xopenssl.Xface()
@@ -472,19 +527,21 @@ class Pyrite:
             show_errmsg("To use this program you need either gpg, gpg2, or "
                         "openssl, none of which were found on your system.")
             raise
-
         
+        # Get it done!
         if xface in 'openssl':
+            # If loading openssl, try that first, then fallback to gpg
             try:
                 openssl()
             except:
                 try:
-                    gpg(self.p['backend_txt'], fallback=True)
+                    gpg(fallback=True)
                 except:
                     err_allmissing()
         else:
+            # If loading gpg, try that first, then fallback to openssl
             try:
-                gpg(self.p['backend_txt'])
+                gpg()
             except:
                 raise
                 try:
@@ -492,8 +549,11 @@ class Pyrite:
                 except:
                     err_allmissing()
         
+        # Now it's time to set our mode-specific stuff,
+        # e.g. window title, hiding widgets, etc
         self.g_window.set_title("Pyrite [{}]".format(self.engine))
         
+        # These are all the widgets that shouldn't be messed with in openssl mode
         def setsensitive_gpgwidgets(x=True):
             self.g_signverify.set_sensitive (x)
             self.g_symmetric.set_sensitive  (x)
@@ -503,14 +563,13 @@ class Pyrite:
             self.g_taskverbose.set_visible  (x)
         
         if self.engine in 'OpenSSL':
-            self.set_defaults_from_prefs(startup)
             # LOADING OPENSSL
+            self.set_defaults_from_prefs    (startup)
             self.g_encdec.set_active        (True)
             self.g_symmetric.set_active     (True)
             self.g_advanced.set_active      (False)
             if self.in_filename:
-                # If entering OpenSSL mode with a file loaded,
-                #   we need to clear it
+                # If entering OpenSSL mode with a file loaded, we need to clear it
                 self.in_filename = None
                 self.set_stdstatus()
                 self.filemode_enablewidgets     (True)
@@ -528,8 +587,8 @@ class Pyrite:
         
         else:
             # LOADING GPG
-            setsensitive_gpgwidgets (True)
-            self.set_defaults_from_prefs(startup)
+            setsensitive_gpgwidgets         (True)
+            self.set_defaults_from_prefs    (startup)
         
         self.buff2.set_text("Any output generated from calls to {} will be "
                             "displayed here.\n\nIn the View menu you can change "
@@ -581,10 +640,10 @@ class Pyrite:
                 FontDescription("monospace {}".format(self.p['msgfntsize'])))
             self.g_errtxtview.modify_font(
                 FontDescription("normal {}".format(self.p['errfntsize'])))
-            """Might play with colors at some point...
-            self.g_msgtxtview.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
-            self.g_msgtxtview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-            """
+            self.g_msgtxtview.modify_base(
+                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_bg']))
+            self.g_msgtxtview.modify_text(
+                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_fg']))
             
             if self.p['opc_slider']:
                 self.g_slider.set_range         (0, 100)
@@ -593,12 +652,21 @@ class Pyrite:
                 self.g_slider.set_visible       (True)
             else:
                 self.g_window.set_opacity(self.p['opacity']/100.0)
-
+    
     
     
     #--------------------------------------------------------- HELPER FUNCTIONS
     
-
+    
+    def fix_msgtxtviewcolor(self, sensitive):
+        if sensitive:
+            self.g_msgtxtview.modify_text(
+                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_fg']))
+        else:
+            self.g_msgtxtview.modify_text(
+                gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
+    
+    
     def action_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
         if target_type == 80:
             from os.path import isfile
@@ -658,6 +726,7 @@ class Pyrite:
                    self.g_msgtxtview]
         for w in widgets:
             w.set_sensitive(x)
+        self.fix_msgtxtviewcolor(x)
     
     
     # This is called when user tries to copyall or save or en/decrypt or sign/verify
@@ -1177,6 +1246,7 @@ class Pyrite:
             
             # Make TextView immutable to changes
             self.g_msgtxtview.set_sensitive(False)
+            self.fix_msgtxtviewcolor(False)
             
             # Save textview buffer to Xface.stdin
             self.x.stdin = self.buff.get_text(self.buff.get_start_iter(),
@@ -1284,6 +1354,7 @@ class Pyrite:
             
             self.set_stdstatus()
             self.g_msgtxtview.set_sensitive(True)
+            self.fix_msgtxtviewcolor(True)
             self.x.stdin = None
             
             # Success!
