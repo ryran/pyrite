@@ -367,7 +367,7 @@ class Pyrite:
         
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
-        try: builder.add_from_file(assetdir + 'ui/m.glade') 
+        try: builder.add_from_file(assetdir + 'ui/main.glade') 
         except:
             show_errmsg(
                 "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
