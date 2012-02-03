@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/03
+# Last file mod: 2012/02/04
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -36,7 +36,7 @@ from subprocess import check_output
 
 
 # Important variables
-version                 = 'v1.0.0_dev_6'
+version                 = 'v1.0.0_dev_7'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}
@@ -257,7 +257,7 @@ class Preferences:
         except:
             self.infobar(
                 "<b>Saving preferences failed.</b>\nUnable to open config file "
-                "<span style='italic' size='smaller' face='monospace'>{} </span> for writing."
+                "<i><tt><small>{} </small></tt></i>> for writing."
                 .format(userpref_file), gtk.MESSAGE_ERROR, 20)
             return False
         return True
@@ -318,36 +318,6 @@ def show_errmsg(message, dialogtype=gtk.MESSAGE_ERROR):
     dialog.destroy()
 
 
-def infobar(message, vbox, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
-    """Instantiate a new auto-hiding InfoBar with a Label of message."""
-    
-    message = "<span foreground='#2E2E2E'>" + message + "</span>"
-    if icon:                                pass
-    elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
-    elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
-    elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
-    elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
-    
-    ibar                    = gtk.InfoBar()
-    vbox.pack_end           (ibar, False, False)
-    ibar.set_message_type   (msgtype)
-    ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
-    ibar.connect            ('response', lambda *args: ibar.destroy())
-    img                     = gtk.Image()
-    img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
-    label                   = gtk.Label()
-    label.set_markup        (message)
-    content                 = ibar.get_content_area()
-    content.pack_start      (img, False, False)
-    content.pack_start      (label, False, False)
-    img.show()
-    label.show()
-    ibar.show()
-    
-    if timeout:
-        timeout_add_seconds(timeout, ibar.destroy)
-
-
 
 
 class Pyrite:
@@ -358,12 +328,46 @@ class Pyrite:
     """
     
     
+    def infobar(self, message, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None):
+        """Instantiate a new auto-hiding InfoBar with a Label of message."""
+        
+        message = "<span foreground='#2E2E2E'>" + message + "</span>"
+        if icon:                                pass
+        elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
+        elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
+        elif msgtype == gtk.MESSAGE_WARNING:    icon = gtk.STOCK_DIALOG_WARNING
+        elif msgtype == gtk.MESSAGE_QUESTION:   icon = gtk.STOCK_DIALOG_QUESTION
+        
+        ibar                    = gtk.InfoBar()
+        ibar.set_message_type   (msgtype)
+        if msgtype == gtk.MESSAGE_QUESTION:
+            self.vbox_ibar2.pack_end(ibar, False, False)
+            ibar.add_button         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+            ibar.connect            ('response', lambda *args: self.cleanup_filemode())
+        else:
+            self.vbox_ibar.pack_end (ibar, False, False)
+            ibar.add_button         (gtk.STOCK_OK, gtk.RESPONSE_OK)
+            ibar.connect            ('response', lambda *args: ibar.destroy())
+        img                     = gtk.Image()
+        img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        label                   = gtk.Label()
+        label.set_markup        (message)
+        content                 = ibar.get_content_area()
+        content.pack_start      (img, False, False)
+        content.pack_start      (label, False, False)
+        img.show()
+        label.show()
+        ibar.show()
+        if timeout:
+            timeout_add_seconds(timeout, ibar.destroy)
+        return ibar
+    
     def __init__(self):
         """Build GUI interface from XML, etc."""        
         
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
-        try: builder.add_from_file(assetdir + 'ui/main.glade') 
+        try: builder.add_from_file(assetdir + 'ui/m.glade') 
         except:
             show_errmsg(
                 "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
@@ -423,7 +427,8 @@ class Pyrite:
         self.g_bcopyall     = builder.get_object('btn_copyall')
         self.g_msgtxtview   = builder.get_object('textview1')
         self.buff           = self.g_msgtxtview.get_buffer()
-        self.ib             = builder.get_object('vbox_ibar')
+        self.vbox_ibar      = builder.get_object('vbox_ibar')
+        self.vbox_ibar2     = builder.get_object('vbox_ibar2')
         self.g_expander     = builder.get_object('expander_filemode')
         self.g_chooserbtn   = builder.get_object('btn_filechooser')
         self.g_plaintext    = builder.get_object('toggle_plaintext')
@@ -488,12 +493,21 @@ class Pyrite:
     def instantiate_xface(self, xface=None, startup=False):
         """Instantiate Gpg or Openssl interface."""
         
+        # These are all the widgets that can't be used in openssl mode
+        def setsensitive_gpgwidgets(x=True):
+            self.g_signverify.set_sensitive (x)
+            self.g_symmetric.set_sensitive  (x)
+            self.g_asymmetric.set_sensitive (x)
+            self.g_advanced.set_sensitive   (x)
+            self.g_chooserbtn.set_sensitive (x)
+            self.g_taskverbose.set_visible  (x)
+        
         b = ['gpg2', 'gpg', 'openssl']
         # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
         # Desired: convert the number to the value and store in b
         b = b[any(n for n in xrange(3) if self.p['backend'] == n)]
         
-        # If we weren't passed xface argument, set xface to backend
+        # If we weren't passed xface argument, set desired interface to backend preference
         if not xface:  xface = b
         
         # Loading gpg
@@ -501,11 +515,13 @@ class Pyrite:
             import xgpg
             self.x = xgpg.Xface(firstchoice=backend_pref)
             self.engine = self.x.GPG.upper()
-            self.g_mengine.set_label("Use OpenSSL as Engine")
+            self.g_mengine.set_label        ("Use OpenSSL as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
-                infobar("<b>Shockingly, your system does not appear to have "
-                        "OpenSSL.</b>", self.ib, gtk.MESSAGE_WARNING)
+                self.infobar("<b>Shockingly, your system does not appear to have "
+                             "OpenSSL.</b>", gtk.MESSAGE_WARNING)
+            setsensitive_gpgwidgets         (True)
+            self.set_defaults_from_prefs    (startup)
         
         # Loading openssl
         def openssl(fallback=False):
@@ -515,13 +531,26 @@ class Pyrite:
             self.g_mengine.set_label("Use GnuPG as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
-                infobar("<b>To make full use of this program you need either gpg\n"
-                        "or gpg2, neither of which were found on your system.</b>\n"
-                        "Operating in openssl fallback-mode with reduced functionality.",
-                        self.ib, gtk.MESSAGE_WARNING, 11)
+                self.infobar("<b>Operating in openssl fallback-mode with reduced functionality.</b>\n"
+                             "<small>To make full use of this program you need either <i><tt>gpg</tt></i>\n"
+                             "or <i><tt>gpg2</tt></i>, neither of which were found on your system.",
+                             gtk.MESSAGE_WARNING, 11)
             else:
-                infobar("<b>Quite a few things are disabled in OpenSSL mode.</b>\n"
-                        "You can still have fun though.", self.ib, icon=gtk.STOCK_DIALOG_INFO)
+                self.infobar("<b>OpenSSL only supports symmetric {en,de}cryption.</b>\n<small>"
+                             "All other functions are disabled.</small>", timeout=7, icon=gtk.STOCK_DIALOG_INFO)
+            self.set_defaults_from_prefs    (startup)
+            self.g_encdec.set_active        (True)
+            self.g_symmetric.set_active     (True)
+            self.g_advanced.set_active      (False)
+            setsensitive_gpgwidgets         (False)
+            if startup or self.g_cipher.get_active() in {0, 2}:
+                # If starting up, or current cipher set to 'Default' or 'Twofish'
+                if self.p['cipher'] not in {0, 2}:
+                    # Set cipher to preference unless pref is 'Default' or 'Twofish'
+                    self.g_cipher.set_active        (self.p['cipher'])   
+                else:
+                    # Otherwise, set to AES
+                    self.g_cipher.set_active        (1)
         
         def err_allmissing():
             show_errmsg("To use this program you need either gpg, gpg2, or "
@@ -549,46 +578,7 @@ class Pyrite:
                 except:
                     err_allmissing()
         
-        # Now it's time to set our mode-specific stuff,
-        # e.g. window title, hiding widgets, etc
         self.g_window.set_title("Pyrite [{}]".format(self.engine))
-        
-        # These are all the widgets that shouldn't be messed with in openssl mode
-        def setsensitive_gpgwidgets(x=True):
-            self.g_signverify.set_sensitive (x)
-            self.g_symmetric.set_sensitive  (x)
-            self.g_asymmetric.set_sensitive (x)
-            self.g_advanced.set_sensitive   (x)
-            self.g_chooserbtn.set_sensitive (x)
-            self.g_taskverbose.set_visible  (x)
-        
-        if self.engine in 'OpenSSL':
-            # LOADING OPENSSL
-            self.set_defaults_from_prefs    (startup)
-            self.g_encdec.set_active        (True)
-            self.g_symmetric.set_active     (True)
-            self.g_advanced.set_active      (False)
-            if self.in_filename:
-                # If entering OpenSSL mode with a file loaded, we need to clear it
-                self.in_filename = None
-                self.set_stdstatus()
-                self.filemode_enablewidgets     (True)
-                self.buff.set_text              ('')
-                self.g_plaintext.set_sensitive  (False)
-                self.g_plaintext.set_active     (True)
-            setsensitive_gpgwidgets         (False)
-            if startup or self.g_cipher.get_active() in {0, 2}:
-                # If current cipher set to 'Default' or 'Twofish',
-                #   we need to work some magic
-                if self.p['cipher'] not in {0, 2}:
-                    self.g_cipher.set_active        (self.p['cipher'])   
-                else:
-                    self.g_cipher.set_active        (1)
-        
-        else:
-            # LOADING GPG
-            setsensitive_gpgwidgets         (True)
-            self.set_defaults_from_prefs    (startup)
         
         self.buff2.set_text("Any output generated from calls to {} will be "
                             "displayed here.\n\nIn the View menu you can change "
@@ -635,7 +625,7 @@ class Pyrite:
             self.g_taskverbose.set_active       (self.p['verbose'])
             self.g_wrap.set_active              (self.p['wrap'])
             
-            # Set TextView fonts
+            # Set TextView fonts, sizes, and colors
             self.g_msgtxtview.modify_font(
                 FontDescription("monospace {}".format(self.p['msgfntsize'])))
             self.g_errtxtview.modify_font(
@@ -652,7 +642,6 @@ class Pyrite:
                 self.g_slider.set_visible       (True)
             else:
                 self.g_window.set_opacity(self.p['opacity']/100.0)
-    
     
     
     #--------------------------------------------------------- HELPER FUNCTIONS
@@ -721,9 +710,9 @@ class Pyrite:
     # This is called when entering & exiting direct-file mode.
     def filemode_enablewidgets(self, x=True):
         """Enable/disable certain widgets due to working in direct-file mode."""
-        widgets = [self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave,
-                   self.g_msave, self.g_mcut, self.g_mcopy, self.g_mpaste,
-                   self.g_msgtxtview]
+        widgets = [self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen,
+                   self.g_bsave, self.g_msave, self.g_mcut, self.g_mcopy,
+                   self.g_mpaste, self.g_msgtxtview]
         for w in widgets:
             w.set_sensitive(x)
         self.fix_msgtxtviewcolor(x)
@@ -732,7 +721,7 @@ class Pyrite:
     # This is called when user tries to copyall or save or en/decrypt or sign/verify
     def test_msgbuff_isempty(self, msg):
         if self.buff.get_char_count() < 1:
-            infobar("<b>{}</b>".format(msg), self.ib, gtk.MESSAGE_WARNING, 2)
+            self.infobar("<b>{}</b>".format(msg), gtk.MESSAGE_WARNING, 2)
             return True
     
     def confirm_overwrite_callback(self, chooser):
@@ -797,9 +786,8 @@ class Pyrite:
         """Ensure read access of file set by chooserwidget and notify user of next steps."""
         infile = self.g_chooserbtn.get_filename()
         if not access(infile, R_OK):
-            infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>"
-                    "{}</span> for reading.</b>\nChoose a new file."
-                    .format(infile), self.ib, gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file:\n<i><tt><small>{}</small></tt></i></b>\n"
+                         "<small>Choose a new file.</small>".format(infile), gtk.MESSAGE_ERROR)
             return
         if self.g_signverify.get_active():
             self.g_chk_outfile.set_visible  (True)
@@ -817,14 +805,38 @@ class Pyrite:
 
         self.g_statusbar.pop(self.status)
         self.g_statusbar.push(self.status, "Choose an action to perform on {!r}".format(infile))
-        self.buff.set_text(
-            "Ready to pass chosen filename directly to gpg.\n\nNext, choose an "
-            "action (i.e., Encrypt, Decrypt, Sign, Verify).\nYou will be prompted "
-            "for an output filename if necessary.\n\nClick the Clear button if "
-            "you decide not to operate on file.".format(infile))
+        self.filemode_saved_buff = self.buff.get_text(self.buff.get_start_iter(),
+                                                      self.buff.get_end_iter())
+        self.buff.set_text('')
+        self.ibar = self.infobar(
+            "<b>Ready to <i>Encrypt</i>, <i>Decrypt</i>, <i>Sign</i>, or <i>Verify</i> file:\n"
+            "<i><tt><small>{}</small></tt></i></b>\n"
+            "<small>You will be prompted for an output filename if necessary.</small>"
+            .format(infile), gtk.MESSAGE_QUESTION, 0)
         self.filemode_enablewidgets(False)
         self.in_filename = infile
     
+    
+    def cleanup_filemode(self):
+        self.buff.set_text(self.filemode_saved_buff)
+        del self.filemode_saved_buff
+        self.ibar.destroy()
+        self.filemode_enablewidgets         (True)
+        self.g_chk_outfile.set_visible      (False)
+        if self.g_signverify.get_active():
+            self.g_sigmode.set_active       (1)
+        else:
+            self.g_sigmode.set_active       (0)
+        self.set_stdstatus()
+        while gtk.events_pending(): gtk.main_iteration()
+        
+        # Reset filenames
+        self.in_filename = None ; self.out_filename = None
+        
+        # Disable plaintext CheckButton
+        self.g_plaintext.set_sensitive      (False)
+        self.g_plaintext.set_active         (True)
+            
     
     #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
     
@@ -862,30 +874,28 @@ class Pyrite:
         def savepref(*args):
             if self.pref.save_prefs():
                 self.pref.window.destroy()
-                infobar("<b>Saved preferences to <span style='italic' size='smaller' "
-                        "face='monospace'>{}</span></b>\nbut no changes made to current session."
-                        .format(userpref_file), self.ib)
+                self.infobar("<b>Saved preferences to <i><tt><small>{}</small></tt></i>\n"
+                             "but no changes made to current session.</b>".format(userpref_file))
         def applypref(*args):
             if self.pref.save_prefs():
                 self.pref.window.destroy()
                 self.p = self.pref.p
                 self.instantiate_xface(startup=True)
-                infobar("<b>Saved preferences to <span style='italic' size='smaller' "
-                        "face='monospace'>{}</span></b>\nand applied them to current session."
-                        .format(userpref_file), self.ib)
+                self.infobar("<b>Saved preferences to <i><tt><small>{}</small></tt></i>\n"
+                             "and applied them to current session.</b>"
+                        .format(userpref_file))
         self.pref.btn_save.connect  ('clicked', savepref)
         self.pref.btn_apply.connect ('clicked', applypref)
         
     
     def action_clear(self, widget, data=None):
         """Reset Statusbar, filemode stuff, TextView buffers."""
-        self.set_stdstatus()
-        self.filemode_enablewidgets         (True)
+        if self.in_filename:
+            self.cleanup_filemode()
+        else:
+            self.set_stdstatus()
         self.buff.set_text                  ('')
         self.buff2.set_text                 ('')
-        self.g_plaintext.set_sensitive      (False)
-        self.g_plaintext.set_active         (True)
-        self.g_chk_outfile.set_visible      (False)
         self.in_filename =                  None
         self.out_filename =                 None
         self.x.stdin =                      None
@@ -907,11 +917,12 @@ class Pyrite:
         try:
             with open(filename) as f:  self.buff.set_text(f.read())
             if self.buff.get_char_count() < 1:
-                infobar("<b>To operate on binary files, use the External Input File "
-                        "chooser button.</b>", self.ib, gtk.MESSAGE_WARNING)
+                self.infobar("<b>To operate on binary files, use the\n<i>Input File For "
+                             "Direct Operation </i> chooser button.</b>", 
+                             gtk.MESSAGE_INFO, 8, gtk.STOCK_DIALOG_INFO)
         except:
-            infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>{}"
-                    "</span> for reading.</b>".format(filename), self.ib, gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error opening file:\n<i><tt><small>{}</small></tt></i></b>"
+                         .format(filename), gtk.MESSAGE_ERROR)
     
     
     def action_filemode_chooser_set(self, widget, data=None):
@@ -920,7 +931,7 @@ class Pyrite:
     
     def action_save(self, widget, data=None):
         """Save contents of msg TextView's TextBuffer to file."""
-        if self.test_msgbuff_isempty("There's no text to save."): return
+        if self.test_msgbuff_isempty("No text to save!"): return
         filename = self.chooser_grab_filename('save')
         if not filename: return
         self.g_statusbar.push(self.status, "Saving {}".format(filename))
@@ -929,11 +940,11 @@ class Pyrite:
                                         self.buff.get_end_iter())
         try:
             with open(filename, 'w') as f:  f.write(buffertext)
-            infobar("<b>Saved contents of Message area to file <span style='italic' size='smaller' "
-                    "face='monospace'>{}</span></b>".format(filename), self.ib)
+            self.infobar("<b>Saved contents of Message area to file:\n"
+                         "<i><tt><small>{}</small></tt></i></b>".format(filename))
         except:
-            infobar("<b>Error opening file <span style='italic' size='smaller' face='monospace'>{}"
-                    "</span> for writing.</b>".format(filename), self.ib, gtk.MESSAGE_ERROR)
+            self.infobar("<b>Error saving to file:\n<i><tt><small>{}</small></tt></i></b>"
+                         .format(filename), gtk.MESSAGE_ERROR)
         self.g_statusbar.pop(self.status)
     
     
@@ -962,11 +973,11 @@ class Pyrite:
     
     def action_copyall(self, widget, data=None):
         """Select whole msg TextBuffer contents and copy to clipboard."""
-        if self.test_msgbuff_isempty("There's no text to copy."): return
+        if self.test_msgbuff_isempty("No text to copy!"): return
         self.buff.select_range(self.buff.get_start_iter(),
                                self.buff.get_end_iter())
         self.buff.copy_clipboard(gtk.clipboard_get())
-        infobar("<b>Copied contents of Message area to clipboard.</b>", self.ib, timeout=3)
+        self.infobar("<b>Copied contents of Message area to clipboard.</b>", timeout=3)
     
     
     def action_zoom(self, widget, data=None):
@@ -985,19 +996,20 @@ class Pyrite:
     
     
     def action_cipher_changed(self, widget=None, data=None):
+        """Disallow certain cipher selections in OpenSSL mode."""
         if self.engine in 'OpenSSL':
             cipher = self.grab_activetext_combobox(self.g_cipher)
             if not cipher:
                 self.g_cipher.set_active(1)
-                infobar("<b>Notice: OpenSSL doesn't have a default cipher.</b>\nAES256 is "
-                        "recommended.", self.ib, timeout=7, icon=gtk.STOCK_DIALOG_INFO)
+                self.infobar("<b>OpenSSL has no default cipher.</b>\n<small>AES256 is "
+                        "a good choice.</small>", timeout=7, icon=gtk.STOCK_DIALOG_INFO)
             elif cipher in 'Twofish':
                 self.g_cipher.set_active(1)
-                infobar("<b>Notice: OpenSSL doesn't support Twofish as a cipher.</b>",
-                        self.ib, icon=gtk.STOCK_DIALOG_INFO)
+                self.infobar("<b>OpenSSL has no support for the Twofish cipher.</b>",
+                        icon=gtk.STOCK_DIALOG_INFO)
             elif cipher in 'AES':
-                infobar("<b>Note for the command-line geeks:</b>\n'AES' translates "
-                        "to aes128.", self.ib, icon=gtk.STOCK_DIALOG_INFO)
+                self.infobar("<b>Note for the command-line geeks:</b>\n<small><i>AES</i> translates "
+                             "to OpenSSL's <i>aes-128-cbc</i>.</small>", icon=gtk.STOCK_DIALOG_INFO)
     
     
     # 'Encrypt'/'Sign' button
@@ -1186,7 +1198,7 @@ class Pyrite:
             passwd = self.g_pass.get_text()
             if not passwd:
                 if self.engine in 'OpenSSL':
-                    infobar("<b>You must enter a passphrase.</b>", self.ib, gtk.MESSAGE_WARNING, 3)
+                    self.infobar("<b>You must enter a passphrase.</b>", gtk.MESSAGE_WARNING, 3)
                     return
                 passwd = None  # If passwd was '' , set to None, which will trigger gpg-agent if necessary
         # recip
@@ -1237,11 +1249,14 @@ class Pyrite:
                     else:
                         return
         
+        elif self.in_filename and self.out_filename:
+            pass
+        
         # TEXT INPUT PREP
         else:
             
             # Make sure textview has a proper message in it
-            if self.test_msgbuff_isempty("You haven't entered any input yet."):
+            if self.test_msgbuff_isempty("Need input first!"):
                 return False
             
             # Make TextView immutable to changes
@@ -1282,72 +1297,49 @@ class Pyrite:
         # FILE INPUT MODE CLEANUP
         if self.in_filename:
             
-            if retval:  # Success!
+            if retval:  # File Success!
                 
-                #self.g_chooserbtn.set_filename('(None)')
-                self.filemode_enablewidgets     (True)
-                self.g_chk_outfile.set_visible  (False)
-                if self.g_signverify.get_active():
-                    self.g_sigmode.set_active(1)
-                else:
-                    self.g_sigmode.set_active(0)
-                self.set_stdstatus()
-                while gtk.events_pending(): gtk.main_iteration()
-                
-                # Replace textview buffer with success message
                 if action in {'enc', 'dec'}:
-                    infobar("<b>Saved {}rypted copy of input to:\n"
-                            "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
-                            .format(action, self.out_filename), self.ib)
+                    self.infobar("<b>Saved {}rypted copy of input to file:\n"
+                                 "<i><tt><small>{}</small></tt></i></b>"
+                                 .format(action, self.out_filename))
                 
                 elif action in {'embedsign', 'clearsign'}:
-                    infobar("<b>Saved signed copy of input to:\n"
-                            "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
-                            .format(outfile), self.ib)
+                    self.infobar("<b>Saved signed copy of input to file:\n"
+                                 "<i><tt><small>{}</small></tt></i></b>"
+                                 .format(self.out_filename))
                 
                 elif action in 'detachsign':
-                    infobar("<b>Saved detached signature of input to:\n"
-                            "<span style='italic' size='smaller' face='monospace'>{}</span></b>"
-                            .format(outfile), self.ib)
+                    self.infobar("<b>Saved detached signature of input to file:\n"
+                                 "<i><tt><small>{}</small></tt></i></b>"
+                                 .format(self.out_filename))
                 
                 elif action in 'verify':
-                    infobar("<b>Good signature verified.</b>", self.ib, timeout=4)
-                self.buff.set_text('')
+                    self.infobar("<b>Signature verified. Data integrity intact.</b>", timeout=4)
                 
-                # Reset filenames
-                self.in_filename = None ; self.out_filename = None
-                
-                # Disable plaintext CheckButton
-                self.g_plaintext.set_sensitive(False)
-                self.g_plaintext.set_active(True)
+                self.cleanup_filemode()
             
-            # Fail!
-            else:
+            else:  # File Fail!
                 
                 if action in 'verify':
-                    infobar("<b>Signature could not be verified.</b>\nSee<i> Task "
-                            "Status </i> for details.", self.ib, gtk.MESSAGE_WARNING, 7)
-                    """ Not sure about this, but I'm gonna go with forcing user to press Clear for now
-                    self.g_chooserbtn.set_filename('(None)')
-                    self.g_chk_outfile.set_visible(False)
-                    self.filemode_enablewidgets(True)
-                    self.set_stdstatus()
-                    self.buff.set_text('')
-                    self.in_filename = None
-                    self.g_plaintext.set_sensitive(False)
-                    self.g_plaintext.set_active(True)
-                    """
+                    self.infobar("<b>Signature or data integrity could not be verified.</b>\n<small>See<i> Task "
+                                 "Status </i> for details.</small>", gtk.MESSAGE_WARNING, 7, gtk.STOCK_DIALOG_ERROR)
                     return
-                    
+                elif action in 'enc' and asymmetric and not recip and not enctoself:
+                    self.infobar("<b>Problem asymmetrically encrypting input.</b>\n<small>If you don't "
+                                 "want to enter recipients and you don't want to select\n<i> Enc. To "
+                                 "Self</i>, you must add one of the directives\n"
+                                 "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
+                                 "to your <i><tt>gpg.conf</tt></i> file.</small>",
+                                 gtk.MESSAGE_ERROR, 0)
+                    return
                 elif action in {'enc', 'dec'}:
                     action = action + 'rypt'
-                
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
-                
-                infobar("<b>Problem {}ing file.</b>\nSee<i> Task Status </i> for details.\n"
-                        "Select<i> Clear </i> to do something else, or try again with a "
-                        "different passphrase.".format(action), self.ib, gtk.MESSAGE_ERROR, 8)
+                self.infobar("<b>Problem {}ing file.</b>\n<small>See<i> Task Status </i> for "
+                             "details. Try a different passphrase or <i>Cancel</i>.</small>"
+                             .format(action), gtk.MESSAGE_ERROR, 8)
         
         # TEXT INPUT MODE CLEANUP
         else:
@@ -1357,40 +1349,39 @@ class Pyrite:
             self.fix_msgtxtviewcolor(True)
             self.x.stdin = None
             
-            # Success!
-            if retval:
+            if retval:  # Text Success!
+                
                 if action in 'verify':
-                    infobar("<b>Good signature verified.</b>", self.ib, timeout=4)
+                    self.infobar("<b>Signature verified. Data integrity intact.</b>", timeout=4)
                 else:
                     # Set TextBuffer to gpg stdout
                     self.buff.set_text(self.x.stdout)
                     if self.engine in 'OpenSSL' and action in 'enc':
-                        infobar("<b>OpenSSL encrypted input with {} cipher.</b>\n"
-                                "In order to decrypt the output in the future, you will need\n"
-                                "to remember which cipher you used (or try them all)."
-                                .format(cipher), self.ib, timeout=9)
+                        self.infobar("<b>OpenSSL encrypted input with {} cipher.</b>\n"
+                                     "<small>In order to decrypt the output in the future, you will need to \n"
+                                     "remember which cipher you used .. or guess until you figure it out.</small>"
+                                     .format(cipher), timeout=9)
             
-            # Fail!
-            else:
+            else:  # Text Fail!
+                
                 if action in 'verify':
-                    infobar("<b>Signature could not be verified.</b>\nSee<i> "
-                            "Task Status </i> for details.", self.ib, gtk.MESSAGE_WARNING, 7)
+                    self.infobar("<b>Signature or data integrity could not be verified.</b>\n<small>See<i> "
+                                 "Task Status </i> for details.</small>", gtk.MESSAGE_WARNING, 7, gtk.STOCK_DIALOG_ERROR)
                     return
                 elif action in 'enc' and asymmetric and not recip and not enctoself:
-                    infobar("<b>Problem asymmetrically encrypting input.</b>\nIf you don't "
-                            "want to enter recipients and you don't want to select\n<i> Enc "
-                            "To Self</i>, you must add one of the following to your\ngpg.conf "
-                            "file:\n<b><span size='smaller' face='monospace'>default-recipient-"
-                            "self</span></b> or <b><span size='smaller' face='monospace'>"
-                            "default-recipient <i>name</i></span></b>", self.ib,
-                            gtk.MESSAGE_ERROR, 0)
+                    self.infobar("<b>Problem asymmetrically encrypting input.</b>\n<small>If you don't "
+                                 "want to enter recipients and you don't want to select\n<i> Enc. To "
+                                 "Self</i>, you must add one of the directives\n"
+                                 "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
+                                 "to your <i><tt>gpg.conf</tt></i> file.</small>",
+                                 gtk.MESSAGE_ERROR, 0)
                     return
                 elif action in {'enc', 'dec'}:
                     action = action + 'rypt'
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
-                infobar("<b>Problem {}ing input.</b>\nSee<i> Task Status </i> for details."
-                        .format(action), self.ib, gtk.MESSAGE_ERROR)
+                self.infobar("<b>Problem {}ing input.</b>\n<small>See<i> Task Status </i>"
+                             "for details.</small>".format(action), gtk.MESSAGE_ERROR)
     
     
     
