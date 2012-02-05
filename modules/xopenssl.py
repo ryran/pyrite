@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/01/27
+# Last file mod: 2012/02/05
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -68,11 +68,12 @@ class Xface():
         ):
         """Build an openssl cmdline and then launch it, saving output appropriately.
 
-        The io dict object should contain either the first or the second and third
-        of these keys:
+        The io dict object should contain all of these keys, at least initialized to 0:
             stdin       # Input text for subprocess
             infile      # Input filename for subprocess, in place of stdin
-            outfile     # Output filename if infile was given (even then, it's optional)
+            outfile     # Output filename if infile was given
+        io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
+        must contain the input data.
         
         Whether reading input from infile or stdin, each openssl command's stdout &
         stderr streams are saved to io['stdout'] and io['stderr'].
