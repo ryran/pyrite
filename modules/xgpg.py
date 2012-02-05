@@ -27,6 +27,8 @@ from sys import stderr
 from os import pipe, write, close
 from shlex import split
 from subprocess import Popen, PIPE, check_output
+#from multiprocessing import Process, Pipe
+#from time import sleep
 
 
 class Xface():
@@ -38,7 +40,7 @@ class Xface():
     
     See the docstring for the main method -- gpg() -- for next steps.
     
-    Security: GpgXface.gpg() can take a passphrase for symmetric enc/dec as
+    Security: Xface.gpg() can take a passphrase for symmetric enc/dec as
     an argument, but it never stores that passphrase on disk; the passphrase is
     passed to gpg via an os file descriptor. If any access to your secret key is
     required, gpg() invokes gpg/gpg2 with gpg-agent enabled.
@@ -75,16 +77,12 @@ class Xface():
         # To show or not to show version info
         if show_version:
             stderr.write("{}\n".format(self.vers))
-        
-        # Class attributes
-        self.stdin  = None      # Stores input text for gpg()
-        self.stdout = None      # Stores stdout stream from subprocess
-        self.stderr = None      # Stores stderr stream from subprocess
-    
+            
     
     # Main gpg interface method
     def gpg(
         self,
+        io,                 # Dictionary containing stdin, infile, outfile
         action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
@@ -96,55 +94,39 @@ class Xface():
         recip=      None,   # Recipients for asymmetric (semicolon-delimited)
         enctoself=  False,  # Add first id from secret keyring as recipient?
         cipher=     None,   # One of: aes256, 3des, etc; None == use gpg defaults
-        infile=     None,   # Input file
-        outfile=    None,   # Output file
         verbose=    False,  # Add '--verbose'?
         alwaystrust=False,  # Add '--trust-model always'?
         yes=        True    # Add '--yes'? (will overwrite files)
         ):
         """Build a gpg cmdline and then launch gpg/gpg2, saving output appropriately.
         
-        Arguments with their defaults + explanations, reproduced from the code:
+        The io dict object should contain at least one of these keys:
+            stdin       # Input text for subprocess
+            infile      # Input filename for subprocess, in place of stdin
+            outfile     # Output filename if infile was given (even then, it's optional)
+        If using infile, outfile is not necessarily required, but it's probably a good
+        idea unless you're doing sign-only.
         
-        action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
-        encsign=    False,  # Add '--sign' when encrypting?
-        digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
-        localuser=  None,   # Value passed to --local-user to set default key for signing, etc
-        base64=     True,   # Add '--armor' when encrypting/signing?
-        symmetric=  False,  # Add '--symmetric'?
-        passwd=     None,   # Passphrase for symmetric
-        asymmetric= False,  # Add '--encrypt'?
-        recip=      None,   # Recipients for asymmetric (semicolon-delimited)
-        enctoself=  False,  # Add first id from secret keyring as recipient?
-        cipher=     None,   # One of: aes256, 3des, etc; None == use gpg defaults
-        infile=     None,   # Input file
-        outfile=    None,   # Output file
-        verbose=    False,  # Add '--verbose'?
-        alwaystrust=False,  # Add '--trust-model always'?
-        yes=        True    # Add '--yes'? (will overwrite files)
-        
-        Things important enough to highlight:
+        Additional highlights:
         recip: Use a single semicolon to separate recipients. Superfluous leading/
             trailing semicolons or spaces are stripped.
         enctoself: Self is assumed to be first key returned by gpg --list-secret-keys;
             however, if localuser is provided, that is used as self instead.
-        infile/outfile: If using infile, outfile is not necessarily required, but
-            unless doing sign-only, it's probably a good idea.
         
-        If no infile is specified, input is read from GpgXface.stdin.
-        Whether reading input from infile or stdin, each gpg command's stdout &
-        stderr streams are saved to GpgXface.stdout and GpgXface.stderr,
-        overwriting their contents.
-        
-        Re gpg-agent: If symmetric & passwd are specified when encrypting or
-        decrypting, gpg-agent isn't called. In all other scenarios requiring a
+        Re gpg-agent:
+        If symmetric & passwd are specified when encrypting or decrypting (and
+        asymmetric is not), gpg-agent isn't called. In all other scenarios requiring a
         passphrase--whether encrypting, decrypting, or signing--gpg-agent will be
         invoked.
         
-        Finally, gpg() returns either True or False, depending on gpg's exit code.
+        Whether reading input from infile or stdin, each gpg command's stdout &
+        stderr streams are saved to io['stdout'] and io['stderr'].
+        
+        Finally, gpg() returns a tuple: the True/False return-value of the subprocess,
+        and the newly modified io object.
         """
         
-        if infile and infile == outfile:
+        if io['infile'] and io['infile'] == io['outfile']:
             stderr.write("Same file for both input and output, eh? Is it going "
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
@@ -226,34 +208,40 @@ class Xface():
         if alwaystrust:
             cmd.append('--trust-model')
             cmd.append('always')
-        if verbose:     cmd.append('--verbose')
-        if outfile:     cmd.append('--output') ; cmd.append(outfile)
-        if infile:      cmd.append(infile)
+        if verbose:
+            cmd.append('--verbose')
+        if io['outfile']:
+            cmd.append('--output')
+            cmd.append(io['outfile'])
+        if io['infile']:
+            cmd.append(io['infile'])
         
         stderr.write("{}\n".format(cmd))
         
         # If working direct with files, setup our Popen instance with no stdin
-        if infile:
+        if io['infile']:
             P = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
             P = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
         # Time to communicate! Save output for later
-        self.stdout, self.stderr = P.communicate(input=self.stdin)
+        io['stdout'], io['stderr'] = P.communicate(input=io['stdin'])
+        
+        # Clear stdin from our dictionary asap, in case it's huge
+        io['stdin'] = 0
         
         # Print gpg stderr
-        stderr.write(self.stderr)
+        stderr.write(io['stderr'])
         stderr.write("-----------\n")
         
         # Close os file descriptor if necessary
         if fd_in:  close(fd_in)
         
         # Return based on gpg exit code
-        if P.returncode == 0:
-            return True
-        else:
-            return False
+        if P.returncode == 0:   ret = True
+        else:                   ret = False
+        return (ret, io)
     
     
     def get_gpgdefaultkey(self):

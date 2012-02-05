@@ -30,7 +30,19 @@ from subprocess import Popen, PIPE, check_output
 
 
 class Xface():
-    """Woo."""
+    """OpenSSL interface for encryption/decryption.
+    
+    First thing: use subprocess module to call an openssl process, ensuring it
+    is available on the system; if not, of course we have to quit (raise
+    exception). Either way, that's all for __init__.
+    
+    See the docstring for the main method -- openssl() -- for next steps.
+    
+    Security: Xface.openssl() can take a passphrase for symmetric enc/dec as
+    an argument, but it never stores that passphrase on disk; the passphrase is
+    passed to openssl via an os file descriptor.
+    
+    """
     
     def __init__(self, show_version=True):
         """Confirm we can run openssl."""
@@ -44,28 +56,33 @@ class Xface():
         # To show or not to show version info
         if show_version:
             stderr.write("{}\n".format(vers))
-        
-        # Class attributes
-        self.stdin  = None      # Stores input text for openssl()
-        self.stdout = None      # Stores stdout stream from subprocess
-        self.stderr = None      # Stores stderr stream from subprocess
     
     
     # Main openssl interface method
     def openssl(
         self,
+        io,             # Dictionary containing stdin, infile, outfile
         action,         # One of: enc, dec
         passwd,         # Passphrase for symmetric
         cipher=None,    # Cipher in gpg-format; None = use default of aes256
-        infile=None,    # Input file
-        outfile=None,   # Output file
         ):
         """Build an openssl cmdline and then launch it, saving output appropriately.
 
-        openssl() returns either True or False, depending on openssl's exit code.
+        The io dict object should contain either the first or the second and third
+        of these keys:
+            stdin       # Input text for subprocess
+            infile      # Input filename for subprocess, in place of stdin
+            outfile     # Output filename if infile was given (even then, it's optional)
+        
+        Whether reading input from infile or stdin, each openssl command's stdout &
+        stderr streams are saved to io['stdout'] and io['stderr'].
+        
+        Finally, openssl() returns a tuple: the True/False return-value of the subprocess,
+        and the newly modified io object.
+        
         """
         
-        if infile and infile == outfile:
+        if io['infile'] and io['infile'] == io['outfile']:
             stderr.write("Same file for both input and output, eh? Is it going "
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
@@ -98,25 +115,24 @@ class Xface():
         stderr.write("{}\n".format(cmd))
         
         # If working direct with files, setup our Popen instance with no stdin
-        if infile:
+        if io['infile']:
             P = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
             P = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
         # Time to communicate! Save output for later
-        self.stdout, self.stderr = P.communicate(input=self.stdin)
+        io['stdout'], io['stderr'] = P.communicate(input=io['stdin'])
         
         # Print stderr
-        stderr.write(self.stderr)
+        stderr.write(io['stderr'])
         stderr.write("-----------\n")
         
         # Close os file descriptor
         close(fd_in)
         
         # Return based on openssl exit code
-        if P.returncode == 0:
-            return True
-        else:
-            return False
+        if P.returncode == 0:   ret = True
+        else:                   ret = False
+        return (ret, io)
 
