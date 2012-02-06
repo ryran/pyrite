@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/05
+# Last file mod: 2012/02/06
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -31,22 +31,19 @@ import cPickle as pickle
 from sys import stderr
 from glib import timeout_add_seconds, source_remove
 from pango import FontDescription
-from os import access, R_OK, getenv, getpid
+from os import access, R_OK, getenv, kill
 from shlex import split
 from subprocess import check_output
-# Threading funness:
 from threading import Thread
-from multiprocessing import Process
-from time import sleep
-from gobject import idle_add
 gtk.gdk.threads_init()
 
 
 # Important variables
-version                 = 'v1.0.0_dev_7'
+version                 = 'v1.0.0_dev8'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}
+SIGSTOP, SIGCONT        = 19, 18
 
     
 
@@ -285,7 +282,7 @@ class Preferences:
         self.__init__(reset_defaults=True)
         self.populate_pref_window_prefs()
         self.infobar(
-            "<b>Reset preferences to defaults. You still need to <i>Save</i> or "
+            "<b>Preferences reset to defaults. You still need to <i>Save</i> or "
             "<i>Apply</i>.</b>", timeout=3)
     
     
@@ -364,7 +361,13 @@ class Pyrite:
         
         # Main window
         self.g_window       = builder.get_object('window1')
+        # Toolbars
+        self.g_maintoolbar  = builder.get_object('hbox1')
+        self.g_modetoolbar  = builder.get_object('hbox2')
+        self.g_enctoolbar   = builder.get_object('hbox3')
+        self.g_sigtoolbar   = builder.get_object('hbox4')
         # Menu items
+        self.g_mclear       = builder.get_object('mnu_clear')
         self.g_mopen        = builder.get_object('mnu_open')
         self.g_msave        = builder.get_object('mnu_save')
         self.g_mcut         = builder.get_object('mnu_cut')
@@ -386,7 +389,6 @@ class Pyrite:
         self.g_asymmetric   = builder.get_object('toggle_mode_asymmetric')
         self.g_advanced     = builder.get_object('toggle_advanced')
         # Encryption toolbar
-        self.g_enctoolbar   = builder.get_object('hbox3')
         self.g_passlabel    = builder.get_object('label_entry_pass')
         self.g_pass         = builder.get_object('entry_pass')
         self.g_reciplabel   = builder.get_object('label_entry_recip')
@@ -426,15 +428,8 @@ class Pyrite:
         builder.connect_signals(self)
         
         # Other class attributes
-        self.io = dict(
-            stdin=0,    # Stores input text for subprocess
-            stdout=0,   # Stores stdout stream from subprocess
-            stderr=0,   # Stores stderr stream from subprocess
-            infile=0,   # Input filename for subprocess
-            outfile=0)  # Output filename for subprocess
-        self.ib_filemode  = None
-        self.ib_progress  = None
-        self.progbar      = None
+        self.ib_filemode    = None
+        self.ib_progress    = None
         
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
@@ -468,10 +463,11 @@ class Pyrite:
             dnd_list, gtk.gdk.ACTION_COPY)
         
     
-    def infobar(self, message, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None, vbox=None):
+    def infobar(self, message=None, msgtype=gtk.MESSAGE_INFO, timeout=5, icon=None, vbox=None):
         """Instantiate a new auto-hiding InfoBar with a Label of message."""
         
-        message = "<span foreground='#2E2E2E'>" + message + "</span>"
+        if message:
+            message = "<span foreground='#2E2E2E'>" + message + "</span>"
         if icon:                                pass
         elif msgtype == gtk.MESSAGE_INFO:       icon = gtk.STOCK_APPLY
         elif msgtype == gtk.MESSAGE_ERROR:      icon = gtk.STOCK_DIALOG_ERROR
@@ -486,10 +482,12 @@ class Pyrite:
         img.set_from_stock      (icon, gtk.ICON_SIZE_LARGE_TOOLBAR)
         content.pack_start      (img, False, False)
         img.show                ()
-        label                   = gtk.Label()
-        label.set_markup        (message)
-        label.show              ()
-        content.pack_start      (label, False, False)
+        if message:
+            label               = gtk.Label()
+            label.set_line_wrap (True)
+            label.set_markup    (message)
+            label.show          ()
+            content.pack_start  (label, False, False)
         if vbox == self.vbox_ibar:
             ibar.add_button     (gtk.STOCK_OK, gtk.RESPONSE_OK)
             ibar.connect        ('response', lambda *args: ibar.destroy())
@@ -497,14 +495,14 @@ class Pyrite:
             ibar.add_button     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
             ibar.connect        ('response', self.cleanup_filemode)
         else:
-            self.progbar        = gtk.ProgressBar()
-            content.pack_end    (self.progbar, False, False)
-            self.progbar.show   ()
-            self.progbar.set_pulse_step (0.3)
-            self.progbar.pulse  ()
-            idle_add            (lambda: self.progbar.pulse())
-            ibar.add_button     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-            ibar.connect        ('response', self.cancel_external_process)
+            self.g_progbar          = gtk.ProgressBar()
+            content.pack_start      (self.g_progbar, True, True)
+            self.g_progbar.set_pulse_step   (0.02)
+            self.g_progbar.set_text ("{} working...".format(self.engine))
+            self.g_progbar.show     ()
+            ibar.add_button         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+            ibar.add_button         (gtk.STOCK_MEDIA_PAUSE, -19)
+            ibar.connect            ('response', self.signal_child_process)
         ibar.show()
         if timeout:
             timeout_add_seconds(timeout, ibar.destroy)
@@ -522,7 +520,6 @@ class Pyrite:
             self.g_symmetric.set_sensitive  (x)
             self.g_asymmetric.set_sensitive (x)
             self.g_advanced.set_sensitive   (x)
-            self.g_chooserbtn.set_sensitive (x)
             self.g_taskverbose.set_visible  (x)
         
         b = ['gpg2', 'gpg', 'openssl']
@@ -750,7 +747,7 @@ class Pyrite:
     
     def confirm_overwrite_callback(self, chooser):
         outfile = chooser.get_filename()
-        if self.io['infile'] == outfile:
+        if self.x.io['infile'] == outfile:
             show_errmsg("Simultaneously reading from & writing to a file is a "
                         "baaad idea. Choose a different output filename.")
             return gtk.FILE_CHOOSER_CONFIRMATION_SELECT_AGAIN
@@ -799,10 +796,10 @@ class Pyrite:
     
     # This is called by encrypt/decrypt buttons when operating in direct-file mode
     def filemode_get_outfile(self, mode):
-        """Use FileChooser to get an output filename for gpg direct enc/dec."""
-        outfile = self.chooser_grab_filename('save', self.io['infile'])
+        """Use FileChooser to get an output filename for direct enc/dec."""
+        outfile = self.chooser_grab_filename('save', self.x.io['infile'])
         if outfile:
-            self.io['outfile'] = outfile
+            self.x.io['outfile'] = outfile
             self.launchxface(mode)
     
     
@@ -838,7 +835,7 @@ class Pyrite:
             "<small>You will be prompted for an output filename if necessary.</small>"
             .format(infile), gtk.MESSAGE_QUESTION, 0, vbox=self.vbox_ibar2)
         self.filemode_enablewidgets(False)
-        self.io['infile'] = infile
+        self.x.io['infile'] = infile
     
     
     def cleanup_filemode(self, *args):
@@ -856,10 +853,11 @@ class Pyrite:
         else:
             self.g_sigmode.set_active       (0)
         self.set_stdstatus()
-        while gtk.events_pending(): gtk.main_iteration()
+        #while gtk.events_pending():
+        gtk.main_iteration()
         # Reset filenames
-        self.io['infile'] = 0
-        self.io['outfile'] = 0
+        self.x.io['infile'] = 0
+        self.x.io['outfile'] = 0
         # Disable plaintext CheckButton
         self.g_plaintext.set_sensitive      (False)
         self.g_plaintext.set_active         (True)
@@ -920,15 +918,13 @@ class Pyrite:
     
     def action_clear(self, widget, data=None):
         """Reset Statusbar, filemode stuff, TextView buffers."""
-        if self.io['infile']:
+        if self.x.io['infile']:
             self.cleanup_filemode()
         else:
             self.set_stdstatus()
         self.buff.set_text                  ('')
         self.buff2.set_text                 ('')
-        self.io = dict(stdin=0, stdout=0, stderr=0, infile=0, outfile=0)
-        if self.ib_progress:
-            self.ib_progress.destroy()
+        self.x.io = dict(stdin='', stdout='', stderr='', infile=0, outfile=0)
     
     
     def action_clear_entry(self, widget, data=None, whatisthis=None):
@@ -966,7 +962,8 @@ class Pyrite:
         filename = self.chooser_grab_filename('save')
         if not filename: return
         self.g_statusbar.push(self.status, "Saving {}".format(filename))
-        while gtk.events_pending(): gtk.main_iteration()
+        #while gtk.events_pending(): 
+        gtk.main_iteration()
         buffertext = self.buff.get_text(self.buff.get_start_iter(),
                                         self.buff.get_end_iter())
         try:
@@ -1046,6 +1043,9 @@ class Pyrite:
     # 'Encrypt'/'Sign' button
     def action_encrypt(self, widget, data=None):
         """Encrypt or sign input."""
+        #FIXME:
+        """self.infobar(None, gtk.MESSAGE_INFO, 0, gtk.STOCK_EXECUTE, self.vbox_ibar2)
+        return"""
         if self.g_signverify.get_active():
             # Sign-only mode!
             if self.g_sigmode.get_active() == 0:
@@ -1153,7 +1153,7 @@ class Pyrite:
             self.g_signature.set_active     (True)
             # Sensitize sigmode combobox & change active to Clearsign
             self.g_sigmode.set_sensitive    (True)
-            if self.io['infile']:
+            if self.x.io['infile']:
                 self.g_sigmode.set_active       (self.p['file_sigmode'])
                 self.g_chk_outfile.set_visible  (True)
             else:
@@ -1211,11 +1211,14 @@ class Pyrite:
     #-------------------------------------------------------- MAIN GPG FUNCTION
     def launchxface(self, action):
         """Manage I/O between Gtk objects and our GpgXface or OpensslXface object."""
+        self.canceled       = False
+        self.paused         = False
+        self.x.childprocess = None
         
-        ### PREPARE GpgXface.gpg() ARGS
-        passwd = None ; recip = None ; localuser = None
-        # enctoself
-        enctoself =  self.g_enctoself.get_active()
+        ### PREPARE Xface ARGS
+        passwd      = None
+        recip       = None
+        localuser   = None
         # symmetric & passwd
         symmetric = self.g_symmetric.get_active()
         if symmetric:
@@ -1223,8 +1226,21 @@ class Pyrite:
             if not passwd:
                 if self.engine in 'OpenSSL':
                     self.infobar("<b>You must enter a passphrase.</b>", gtk.MESSAGE_WARNING, 3)
+                    
                     return
                 passwd = None  # If passwd was '' , set to None, which will trigger gpg-agent if necessary
+        
+        # INTERLUDE: If operating in textinput mode, check for input text
+        if not self.x.io['infile']:
+            # Make sure textview has a proper message in it
+            if self.test_msgbuff_isempty("Need input first!"):
+                return False
+            # Make TextView immutable to changes
+            self.g_msgtxtview.set_sensitive(False)
+            self.fix_msgtxtviewcolor(False)
+            
+        # enctoself
+        enctoself = self.g_enctoself.get_active()
         # recip
         asymmetric = self.g_asymmetric.get_active()
         if asymmetric:
@@ -1251,17 +1267,19 @@ class Pyrite:
             if not localuser:  localuser = None
         
         # FILE INPUT MODE PREP
-        if self.io['infile'] and not self.io['outfile']:
+        if self.x.io['infile'] and not self.x.io['outfile']:
             
             if base64 or action in 'clearsign':
-                outfile = self.io['infile'] + '.asc'
+                outfile = self.x.io['infile'] + '.asc'
+            elif self.engine in 'OpenSSL':
+                outfile = self.x.io['infile']
             elif action in 'detachsign':
-                outfile = self.io['infile'] + '.sig'
+                outfile = self.x.io['infile'] + '.sig'
             else:
-                outfile = self.io['infile'] + '.gpg'
+                outfile = self.x.io['infile'] + '.gpg'
             
             if action in 'dec':
-                outfile = self.io['infile'][:-4]
+                outfile = self.x.io['infile'][:-4]
             
             if action not in 'verify':
                 if self.g_signverify.get_active() and not self.g_chk_outfile.get_active():
@@ -1269,27 +1287,29 @@ class Pyrite:
                 else:
                     outfile = self.chooser_grab_filename('save', outfile)
                     if outfile:
-                        self.io['outfile'] = outfile
+                        self.x.io['outfile'] = outfile
                     else:
                         return
+            
+            working_widgets = [self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+            for w in working_widgets:  w.set_sensitive(False)
+
         
-        elif self.io['infile'] and self.io['outfile']:
-            pass
+        elif self.x.io['infile'] and self.x.io['outfile']:
+            working_widgets = [self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
         
         # TEXT INPUT PREP
         else:
             
-            # Make sure textview has a proper message in it
-            if self.test_msgbuff_isempty("Need input first!"):
-                return False
-            
-            # Make TextView immutable to changes
-            self.g_msgtxtview.set_sensitive(False)
-            self.fix_msgtxtviewcolor(False)
+            working_widgets = [
+                self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
+                self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave, self.g_msave,
+                self.g_mcut, self.g_mcopy, self.g_mpaste]
+            for w in working_widgets:  w.set_sensitive(False)
             
             # Save textview buffer to Xface.stdin
-            self.io['stdin'] = self.buff.get_text(self.buff.get_start_iter(),
-                                                  self.buff.get_end_iter())
+            self.x.io['stdin'] = self.buff.get_text(self.buff.get_start_iter(),
+                                                    self.buff.get_end_iter())
         
         # Set working status + spinner + progress bar
         if action in {'embedsign', 'clearsign', 'detachsign'}:
@@ -1301,57 +1321,84 @@ class Pyrite:
         self.g_statusbar.push(self.status, status)
         self.g_activityspin.set_visible(True)
         self.g_activityspin.start()
-        if self.io['infile']:
-            self.ib_filemode.hide()    
-        self.ib_progress = self.infobar("<b>{}</b>".format(status), gtk.MESSAGE_INFO,
-                                        0, gtk.STOCK_EXECUTE, self.vbox_ibar2)
-        while gtk.events_pending(): gtk.main_iteration()
-        
+        if self.x.io['infile']:
+            self.ib_filemode.hide()
+        self.ib_progress = self.infobar(None, gtk.MESSAGE_INFO, 0, gtk.STOCK_EXECUTE, self.vbox_ibar2)
+        gtk.main_iteration()
         
         # ATTEMPT EN-/DECRYPTION        
         if self.engine in 'OpenSSL':
-            retval, self.io = self.x.openssl(self.io,
-                                             action,
-                                             passwd,
-                                             cipher)
-        else:
-            retval, self.io = self.x.gpg(self.io,
-                                         action,
-                                         encsign,
-                                         digest,
-                                         localuser,
-                                         base64,
-                                         symmetric, passwd,
-                                         asymmetric, recip, enctoself,
-                                         cipher,
-                                         verbose,
-                                         alwaystrust)
+            Thread(target=self.x.openssl, args=(action, passwd, base64, cipher)).start()
         
+        else:
+            Thread(target=self.x.gpg, args=(action,
+                                            encsign,
+                                            digest,
+                                            localuser,
+                                            base64,
+                                            symmetric, passwd,
+                                            asymmetric, recip, enctoself,
+                                            cipher,
+                                            verbose,
+                                            alwaystrust)).start()
+        
+        # Wait for subprocess to finish or for cancel button to be clicked
+        c = 0
+        while not self.x.childprocess or self.x.childprocess.returncode == None:
+            if self.canceled:  break
+            if c % 10 == 0 and not self.paused:
+                self.g_progbar.pulse()
+            gtk.main_iteration()
+            c += 1
+        
+        for w in working_widgets:  w.set_sensitive(True)
         self.ib_progress.destroy()
         self.g_activityspin.stop()
         self.g_activityspin.set_visible(False)
         self.g_statusbar.pop(self.status)
-        self.buff2.set_text(self.io['stderr'])
+        self.buff2.set_text(self.x.io['stderr'])
         
         # FILE INPUT MODE CLEANUP
-        if self.io['infile']:
+        if self.x.io['infile']:
             
-            if retval:  # File Success!
+            if self.canceled:  # User Canceled!
+            
+                self.ib_filemode.show()
                 
                 if action in {'enc', 'dec'}:
+                    action = "{}rypt".format(action.title())
+                elif action in {'embedsign', 'clearsign', 'detachsign'}:
+                    action = "Sign"
+                elif action in 'verify':
+                    action = action.title()
+                    
+                self.infobar("<b>{} operation canceled.</b>\n<small>To choose different input or "
+                             "output filenames, select <i>Cancel</i>\nfrom the blue bar below.</small>"
+                             .format(action), gtk.MESSAGE_WARNING, 10, gtk.STOCK_DIALOG_INFO)
+            
+            elif self.x.childprocess.returncode == 0:  # File Success!
+
+                if self.engine in 'OpenSSL' and action in 'enc':
+                    self.infobar("<b>OpenSSL encrypted input file with {} cipher;\nsaved output to file:\n"
+                                 "<i><tt><small>{}</small></tt></i></b>\n"
+                                 "<small>In order to decrypt that file in the future, you will need to \n"
+                                 "remember which cipher you used .. or guess until you figure it out.</small>"
+                                 .format(cipher, self.x.io['outfile']), timeout=10)
+
+                elif action in {'enc', 'dec'}:
                     self.infobar("<b>Saved {}rypted copy of input to file:\n"
                                  "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(action, self.io['outfile']))
+                                 .format(action, self.x.io['outfile']))
                 
                 elif action in {'embedsign', 'clearsign'}:
                     self.infobar("<b>Saved signed copy of input to file:\n"
                                  "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(self.io['outfile']))
+                                 .format(self.x.io['outfile']))
                 
                 elif action in 'detachsign':
                     self.infobar("<b>Saved detached signature of input to file:\n"
                                  "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(self.io['outfile']))
+                                 .format(self.x.io['outfile']))
                 
                 elif action in 'verify':
                     self.infobar("<b>Signature verified. Data integrity intact.</b>", timeout=4)
@@ -1388,16 +1435,28 @@ class Pyrite:
             self.g_msgtxtview.set_sensitive(True)
             self.fix_msgtxtviewcolor(True)
             
-            if retval:  # Text Success!
+            if self.canceled:  # User Canceled!
+                
+                if action in {'enc', 'dec'}:
+                    action = "{}rypt".format(action.title())
+                elif action in {'embedsign', 'clearsign', 'detachsign'}:
+                    action = "Sign"
+                elif action in 'verify':
+                    action = action.title()
+                    
+                self.infobar("<b>{} operation canceled.</b>".format(action),
+                             gtk.MESSAGE_WARNING, 6, gtk.STOCK_DIALOG_INFO)
+            
+            elif self.x.childprocess.returncode == 0:  # Text Success!
                 
                 if action in 'verify':
                     self.infobar("<b>Signature verified. Data integrity intact.</b>", timeout=4)
                 else:
                     # Set TextBuffer to gpg stdout
-                    self.buff.set_text(self.io['stdout'])
-                    self.io['stdout'] = 0
+                    self.buff.set_text(self.x.io['stdout'])
+                    self.x.io['stdout'] = 0
                     if self.engine in 'OpenSSL' and action in 'enc':
-                        self.infobar("<b>OpenSSL encrypted input with {} cipher.</b>\n"
+                        self.infobar("<b>OpenSSL encrypted input using {} cipher.</b>\n"
                                      "<small>In order to decrypt the output in the future, you will need to \n"
                                      "remember which cipher you used .. or guess until you figure it out.</small>"
                                      .format(cipher), timeout=9)
@@ -1424,11 +1483,35 @@ class Pyrite:
                              "for details.</small>".format(action), gtk.MESSAGE_ERROR)
     
         
-    def cancel_external_process(self, ibar, rid):
-        # TODO
-        pass
-        
-    
+    def signal_child_process(self, ibar, rid):
+        if rid == -6:
+            stderr.write("Canceling Operation\n")
+            self.ib_progress.set_response_sensitive(-6, False)
+            self.ib_progress.set_response_sensitive(-19, False)
+            self.g_progbar.set_text         ("Canceling Operation...")
+            self.g_activityspin.stop()
+            self.canceled                   = True
+            gtk.main_iteration()
+            while not self.x.childprocess:
+                gtk.main_iteration()
+            if self.paused:
+                self.x.childprocess.send_signal(SIGCONT)
+            self.x.childprocess.terminate()
+        else:
+            while not self.x.childprocess:
+                gtk.main_iteration()
+            if self.paused:
+                stderr.write("Unpausing\n")
+                self.g_progbar.set_text     ("{} working...".format(self.engine))
+                self.g_activityspin.start()
+                self.paused = False
+                self.x.childprocess.send_signal(SIGCONT)
+            else:
+                stderr.write("Pausing\n")
+                self.g_progbar.set_text     ("Operation PAUSED")
+                self.g_activityspin.stop()
+                self.paused = True
+                self.x.childprocess.send_signal(SIGSTOP)
     
     
     # Run main application window

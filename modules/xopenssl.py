@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/05
+# Last file mod: 2012/02/06
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -56,34 +56,46 @@ class Xface():
         # To show or not to show version info
         if show_version:
             stderr.write("{}\n".format(vers))
+        
+        # I/O dictionary obj
+        self.io = dict(
+            stdin='',   # Input text for subprocess
+            stdout='',  # Stdout stream from subprocess
+            stderr='',  # Stderr stream from subprocess
+            infile=0,   # Input filename for subprocess
+            outfile=0)  # Output filename for subprocess
+        
+        self.childprocess = None
     
     
     # Main openssl interface method
     def openssl(
         self,
-        io,             # Dictionary containing stdin, infile, outfile
         action,         # One of: enc, dec
         passwd,         # Passphrase for symmetric
-        cipher=None,    # Cipher in gpg-format; None = use default of aes256
+        base64=True,    # Add '-a' when encrypting/decrypting?
+        cipher=None,    # Cipher in gpg-format; None = use aes256
         ):
         """Build an openssl cmdline and then launch it, saving output appropriately.
 
-        The io dict object should contain all of these keys, at least initialized to 0:
+        This method inspects the contents of class attr 'io' -- a dict object that should
+        contain all of the following keys, at least initialized to 0 or '':
             stdin       # Input text for subprocess
             infile      # Input filename for subprocess, in place of stdin
-            outfile     # Output filename if infile was given
+            outfile     # Output filename -- required if infile was given
         io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
         must contain the input data.
         
         Whether reading input from infile or stdin, each openssl command's stdout &
         stderr streams are saved to io['stdout'] and io['stderr'].
         
-        Finally, openssl() returns a tuple: the True/False return-value of the subprocess,
-        and the newly modified io object.
+        Nothing is returned -- it is expected that this method is being run as a separate
+        thread and therefore the responsibility to determine success or failure falls on
+        the caller (i.e., by examining the Popen instance's returncode attribute).
         
         """
         
-        if io['infile'] and io['infile'] == io['outfile']:
+        if self.io['infile'] and self.io['infile'] == self.io['outfile']:
             stderr.write("Same file for both input and output, eh? Is it going "
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
@@ -99,41 +111,44 @@ class Xface():
         elif cipher == 'camellia128':   cipher = 'camellia-128-cbc'
         elif cipher == 'camellia192':   cipher = 'camellia-192-cbc'
         elif cipher == 'camellia256':   cipher = 'camellia-256-cbc'
-        else:                           cipher = 'aes-256-cbc'
+        #else:                           cipher = 'aes-256-cbc'
         
         fd_in       = None
         fd_out      = None
-        cmd         = ['openssl', cipher, '-a', '-pass']
+        cmd         = ['openssl', cipher, '-pass']
         
         fd_in, fd_out = pipe() ; write(fd_out, passwd) ; close(fd_out)
         cmd.append('fd:{}'.format(fd_in))
         
+        if base64:
+            cmd.append('-a')
         if action in 'enc':
             cmd.append('-salt')
         elif action in 'dec':
             cmd.append('-d')
+        if self.io['infile']:
+            cmd.append('-in')
+            cmd.append(self.io['infile'])
+            cmd.append('-out')
+            cmd.append(self.io['outfile'])
         
         stderr.write("{}\n".format(cmd))
         
         # If working direct with files, setup our Popen instance with no stdin
-        if io['infile']:
-            P = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        if self.io['infile']:
+            self.childprocess = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            P = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
         # Time to communicate! Save output for later
-        io['stdout'], io['stderr'] = P.communicate(input=io['stdin'])
+        self.io['stdout'], self.io['stderr'] = self.childprocess.communicate(input=self.io['stdin'])
         
         # Print stderr
-        stderr.write(io['stderr'])
+        stderr.write(self.io['stderr'])
         stderr.write("-----------\n")
         
         # Close os file descriptor
         close(fd_in)
         
-        # Return based on openssl exit code
-        if P.returncode == 0:   ret = True
-        else:                   ret = False
-        return (ret, io)
 

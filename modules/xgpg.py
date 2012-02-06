@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/05
+# Last file mod: 2012/02/06
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -27,8 +27,6 @@ from sys import stderr
 from os import pipe, write, close
 from shlex import split
 from subprocess import Popen, PIPE, check_output
-#from multiprocessing import Process, Pipe
-#from time import sleep
 
 
 class Xface():
@@ -77,12 +75,21 @@ class Xface():
         # To show or not to show version info
         if show_version:
             stderr.write("{}\n".format(self.vers))
+        
+        # I/O dictionary obj
+        self.io = dict(
+            stdin='',   # Stores input text for subprocess
+            stdout='',  # Stores stdout stream from subprocess
+            stderr='',  # Stores stderr stream from subprocess
+            infile=0,   # Input filename for subprocess
+            outfile=0)  # Output filename for subprocess
+        
+        self.childprocess = None
             
     
     # Main gpg interface method
     def gpg(
         self,
-        io,                 # Dictionary containing stdin, infile, outfile
         action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
@@ -100,10 +107,11 @@ class Xface():
         ):
         """Build a gpg cmdline and then launch gpg/gpg2, saving output appropriately.
         
-        The io dict object should contain all of these keys, at least initialized to 0:
+        This method inspects the contents of class attr 'io' -- a dict object that should
+        contain all of the following keys, at least initialized to 0 or '':
             stdin       # Input text for subprocess
             infile      # Input filename for subprocess, in place of stdin
-            outfile     # Output filename if infile was given (even then, it's optional)
+            outfile     # Output filename if infile was given
         io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
         must contain the input data. If using infile, outfile is not necessarily required,
         but it's probably a good idea unless you're doing sign-only.
@@ -123,11 +131,13 @@ class Xface():
         Whether reading input from infile or stdin, each gpg command's stdout &
         stderr streams are saved to io['stdout'] and io['stderr'].
         
-        Finally, gpg() returns a tuple: the True/False return-value of the subprocess,
-        and the newly modified io object.
+        Nothing is returned -- it is expected that this method is being run as a separate
+        thread and therefore the responsibility to determine success or failure falls on
+        the caller (i.e., by examining the Popen instance's returncode attribute).
+        
         """
         
-        if io['infile'] and io['infile'] == io['outfile']:
+        if self.io['infile'] and self.io['infile'] == self.io['outfile']:
             stderr.write("Same file for both input and output, eh? Is it going "
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
@@ -211,38 +221,33 @@ class Xface():
             cmd.append('always')
         if verbose:
             cmd.append('--verbose')
-        if io['outfile']:
+        if self.io['outfile']:
             cmd.append('--output')
-            cmd.append(io['outfile'])
-        if io['infile']:
-            cmd.append(io['infile'])
+            cmd.append(self.io['outfile'])
+        if self.io['infile']:
+            cmd.append(self.io['infile'])
         
         stderr.write("{}\n".format(cmd))
         
         # If working direct with files, setup our Popen instance with no stdin
-        if io['infile']:
-            P = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        if self.io['infile']:
+            self.childprocess = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            P = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         
         # Time to communicate! Save output for later
-        io['stdout'], io['stderr'] = P.communicate(input=io['stdin'])
+        self.io['stdout'], self.io['stderr'] = self.childprocess.communicate(input=self.io['stdin'])
         
         # Clear stdin from our dictionary asap, in case it's huge
-        io['stdin'] = 0
+        self.io['stdin'] = 0
         
-        # Print gpg stderr
-        stderr.write(io['stderr'])
+        # Print stderr
+        stderr.write(self.io['stderr'])
         stderr.write("-----------\n")
         
         # Close os file descriptor if necessary
         if fd_in:  close(fd_in)
-        
-        # Return based on gpg exit code
-        if P.returncode == 0:   ret = True
-        else:                   ret = False
-        return (ret, io)
     
     
     def get_gpgdefaultkey(self):

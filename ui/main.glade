@@ -2,11 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkImage" id="img_encrypt">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-apply</property>
-  </object>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -36,6 +31,11 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-revert-to-saved</property>
+  </object>
+  <object class="GtkImage" id="img_encrypt">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-apply</property>
   </object>
   <object class="GtkImage" id="img_open">
     <property name="visible">True</property>
@@ -1244,7 +1244,7 @@ This is the way to go when dealing with binary or very large files</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+                                    <property name="tooltip_text" translatable="yes">[Not used when verifying and not used when gpg-decrypting; however, this does have an effect when openssl-decrypting]
 
 Tells gpg to output plaintext instead of binary data when encrypting and signing
 
