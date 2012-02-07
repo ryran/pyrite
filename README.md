@@ -1,7 +1,7 @@
 Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
 ===============================================================
 
-v1.0.0_dev9:
+v1.0.0_dev8:
 
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
 ![](http://b19.org/linux/pyrite/2clearsign_txt.png)
@@ -67,9 +67,13 @@ General Public License @[gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.
 
 
 
+--------
 
 Hmmmm. You're still here?
+
 Oh. You must be wondering why the name [*Pyrite*](http://en.wikipedia.org/wiki/Pyrite), eh?
+
 Well, I'll let my friend River--who came up with the name--explain it to you:
+
 *"It should be 'Pyrite', because people think they are getting your data, but really it's just gibberish to them. Fool's gold."*
 
