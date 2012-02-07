@@ -380,8 +380,12 @@ class Pyrite:
         self.g_taskstatus   = builder.get_object('toggle_taskstatus')
         self.g_taskverbose  = builder.get_object('toggle_gpgverbose')
         # Top action toolbar
-        self.g_encrypt      = builder.get_object('button_encrypt')
-        self.g_decrypt      = builder.get_object('button_decrypt')
+        self.g_encrypt      = builder.get_object('btn_encrypt')
+        self.g_decrypt      = builder.get_object('btn_decrypt')
+        self.g_bclear       = builder.get_object('btn_clear')
+        self.g_progbar      = builder.get_object('progressbar')
+        self.g_cancel       = builder.get_object('btn_cancel')
+        self.g_pause        = builder.get_object('btn_pause')
         self.g_slider       = builder.get_object('opacity_slider')
         # Mode-setting toolbar
         self.g_signverify   = builder.get_object('toggle_mode_signverify')
@@ -431,7 +435,6 @@ class Pyrite:
         
         # Other class attributes
         self.ib_filemode    = None
-        self.ib_progress    = None
         
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
@@ -495,16 +498,7 @@ class Pyrite:
         elif msgtype == gtk.MESSAGE_QUESTION:
             ibar.add_button     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
             ibar.connect        ('response', self.cleanup_filemode)
-        else:
-            self.g_progbar          = gtk.ProgressBar()
-            content.pack_start      (self.g_progbar, True, True)
-            self.g_progbar.set_pulse_step   (0.02)
-            self.g_progbar.set_text ("{} working...".format(self.engine))
-            self.g_progbar.show     ()
-            ibar.add_button         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-            ibar.add_button         (gtk.STOCK_MEDIA_PAUSE, -19)
-            ibar.connect            ('response', self.signal_child_process)
-        # FIXME: The close signal doesn't work! Why?!
+        # FIXME: Why doesn't Esc trigger this close signal?
         ibar.connect            ('close', lambda *args: ibar.destroy())
         ibar.show()
         if timeout:
@@ -916,10 +910,10 @@ class Pyrite:
             if self.pref.save_prefs():
                 self.pref.window.destroy()
                 self.p = self.pref.p
+                if self.x.io['infile']:  self.cleanup_filemode()
                 self.instantiate_xface(startup=True)
                 self.infobar("<b>Saved preferences to <i><tt><small>{}</small></tt></i>\n"
-                             "and applied them to current session.</b>"
-                        .format(userpref_file))
+                             "and applied them to current session.</b>".format(userpref_file))
         self.pref.btn_save.connect  ('clicked', savepref)
         self.pref.btn_apply.connect ('clicked', applypref)
         
@@ -1298,19 +1292,22 @@ class Pyrite:
                         self.x.io['outfile'] = outfile
                     else:
                         return
-            
-            working_widgets = [self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+
+            working_widgets = [self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
             for w in working_widgets:  w.set_sensitive(False)
+            self.ib_filemode.hide()
 
         
         elif self.x.io['infile'] and self.x.io['outfile']:
-            working_widgets = [self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+            working_widgets = [self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+            for w in working_widgets:  w.set_sensitive(False)
+            self.ib_filemode.hide()
         
         # TEXT INPUT PREP
         else:
             
             working_widgets = [
-                self.g_mclear, self.g_maintoolbar, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
+                self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
                 self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave, self.g_msave,
                 self.g_mcut, self.g_mcopy, self.g_mpaste]
             for w in working_widgets:  w.set_sensitive(False)
@@ -1320,19 +1317,7 @@ class Pyrite:
                                                     self.buff.get_end_iter())
         
         # Set working status + spinner + progress bar
-        if action in {'embedsign', 'clearsign', 'detachsign'}:
-            status = "Signing input ..."
-        elif action in 'verify':
-            status = "Verifying input ..."
-        else:
-            status = "{}rypting input ...".format(action.title())
-        self.g_statusbar.push(self.status, status)
-        self.g_activityspin.set_visible(True)
-        self.g_activityspin.start()
-        if self.x.io['infile']:
-            self.ib_filemode.hide()
-        self.ib_progress = self.infobar(None, gtk.MESSAGE_INFO, 0, gtk.STOCK_EXECUTE, self.vbox_ibar2)
-        gtk.main_iteration()
+        self.show_working_progress(True, action)
         
         # ATTEMPT EN-/DECRYPTION        
         if self.engine in 'OpenSSL':
@@ -1360,10 +1345,7 @@ class Pyrite:
             c += 1
         
         for w in working_widgets:  w.set_sensitive(True)
-        self.ib_progress.destroy()
-        self.g_activityspin.stop()
-        self.g_activityspin.set_visible(False)
-        self.g_statusbar.pop(self.status)
+        self.show_working_progress(False)
         self.buff2.set_text(self.x.io['stderr'])
         
         # FILE INPUT MODE CLEANUP
@@ -1382,7 +1364,7 @@ class Pyrite:
                     
                 self.infobar("<b>{} operation canceled.</b>\n<small>To choose different input or "
                              "output filenames, select <i>Cancel</i>\nfrom the blue bar below.</small>"
-                             .format(action), gtk.MESSAGE_WARNING, 10, gtk.STOCK_DIALOG_INFO)
+                             .format(action), gtk.MESSAGE_WARNING, 6, gtk.STOCK_DIALOG_INFO)
             
             elif self.x.childprocess.returncode == 0:  # File Success!
 
@@ -1453,7 +1435,7 @@ class Pyrite:
                     action = action.title()
                     
                 self.infobar("<b>{} operation canceled.</b>".format(action),
-                             gtk.MESSAGE_WARNING, 6, gtk.STOCK_DIALOG_INFO)
+                             gtk.MESSAGE_WARNING, 5, gtk.STOCK_DIALOG_INFO)
             
             elif self.x.childprocess.returncode == 0:  # Text Success!
                 
@@ -1490,36 +1472,65 @@ class Pyrite:
                 self.infobar("<b>Problem {}ing input.</b>\n<small>See<i> Task Status </i>"
                              "for details.</small>".format(action), gtk.MESSAGE_ERROR)
     
-        
-    def signal_child_process(self, ibar, rid):
-        if rid == -6:
-            stderr.write("Canceling Operation\n")
-            self.ib_progress.set_response_sensitive(-6, False)
-            self.ib_progress.set_response_sensitive(-19, False)
-            self.g_progbar.set_text         ("Canceling Operation...")
-            self.g_activityspin.stop()
-            self.canceled                   = True
-            gtk.main_iteration()
-            while not self.x.childprocess:
-                gtk.main_iteration()
-            if self.paused:
-                self.x.childprocess.send_signal(SIGCONT)
-            self.x.childprocess.terminate()
-        else:
-            while not self.x.childprocess:
-                gtk.main_iteration()
-            if self.paused:
-                stderr.write("Unpausing\n")
-                self.g_progbar.set_text     ("{} working...".format(self.engine))
-                self.g_activityspin.start()
-                self.paused = False
-                self.x.childprocess.send_signal(SIGCONT)
+    
+    def show_working_progress(self, show=True, action=None):
+        for w in self.g_progbar, self.g_cancel, self.g_pause:
+            w.set_visible(show)
+        if show:
+            self.g_progbar.set_text ("{} working...".format(self.engine))
+            if action in {'embedsign', 'clearsign', 'detachsign'}:
+                status = "Signing input ..."
+            elif action in 'verify':
+                status = "Verifying input ..."
             else:
-                stderr.write("Pausing\n")
-                self.g_progbar.set_text     ("Operation PAUSED")
-                self.g_activityspin.stop()
-                self.paused = True
-                self.x.childprocess.send_signal(SIGSTOP)
+                status = "{}rypting input ...".format(action.title())
+            self.g_statusbar.push(self.status, status)
+            self.g_activityspin.set_visible(True)
+            self.g_activityspin.start()
+            gtk.main_iteration()
+        else:
+            for w in self.g_cancel, self.g_pause:
+                w.set_sensitive(True)
+            self.g_activityspin.stop()
+            self.g_activityspin.set_visible(False)
+            self.g_statusbar.pop(self.status)
+    
+    
+    def cancel_child_process(self, button):
+        stderr.write            ("Canceling Operation\n")
+        self.canceled           = True
+        for w in self.g_cancel, self.g_pause:
+            w.set_sensitive     (False)
+        self.g_progbar.set_text ("Canceling Operation...")
+        self.g_activityspin.stop()
+        gtk.main_iteration()
+        while not self.x.childprocess:
+            gtk.main_iteration()
+        if self.paused:
+            self.x.childprocess.send_signal(SIGCONT)
+        self.x.childprocess.terminate()
+        self.show_working_progress(False)
+    
+    
+    def pause_child_process(self, button):
+        while not self.x.childprocess:
+            gtk.main_iteration()
+        if self.canceled:
+            pass
+        elif self.paused:
+            stderr.write            ("Unpausing\n")
+            self.paused             = False
+            #button.set_relief       (gtk.RELIEF_NORMAL)
+            self.g_progbar.set_text ("{} working...".format(self.engine))
+            self.g_activityspin.start()
+            self.x.childprocess.send_signal(SIGCONT)
+        else:
+            stderr.write            ("Pausing\n")
+            self.paused             = True            
+            #button.set_relief       (gtk.RELIEF_HALF)
+            self.g_progbar.set_text ("Operation PAUSED")
+            self.g_activityspin.stop()
+            self.x.childprocess.send_signal(SIGSTOP)
     
     
     # Run main application window

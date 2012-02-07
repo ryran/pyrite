@@ -509,7 +509,7 @@
                 <property name="can_focus">False</property>
                 <property name="layout_style">edge</property>
                 <child>
-                  <object class="GtkButton" id="button_encrypt">
+                  <object class="GtkButton" id="btn_encrypt">
                     <property name="label" translatable="yes">_Encrypt</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
@@ -531,7 +531,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="button_decrypt">
+                  <object class="GtkButton" id="btn_decrypt">
                     <property name="label" translatable="yes">_Decrypt</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
@@ -594,21 +594,8 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="space1c">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes"> </property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">8</property>
-                <property name="position">4</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkHScale" id="opacity_slider">
-                <property name="width_request">100</property>
+                <property name="width_request">70</property>
                 <property name="can_focus">True</property>
                 <property name="round_digits">0</property>
                 <property name="draw_value">False</property>
@@ -620,7 +607,91 @@
                 <property name="fill">True</property>
                 <property name="padding">6</property>
                 <property name="pack_type">end</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="space1c">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">8</property>
                 <property name="position">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="progressbar">
+                <property name="can_focus">False</property>
+                <property name="pulse_step">0.02</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="space1d">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">2</property>
+                <property name="pack_type">end</property>
+                <property name="position">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_pause">
+                <property name="use_action_appearance">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Pause processing</property>
+                <signal name="clicked" handler="pause_child_process" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="image10">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-media-pause</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack_type">end</property>
+                <property name="position">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_cancel">
+                <property name="use_action_appearance">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Cancel processing</property>
+                <signal name="clicked" handler="cancel_child_process" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="image11">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-cancel</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack_type">end</property>
+                <property name="position">8</property>
               </packing>
             </child>
           </object>
