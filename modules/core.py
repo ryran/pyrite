@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/06
+# Last file mod: 2012/02/07
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -31,7 +31,9 @@ import cPickle as pickle
 from sys import stderr
 from glib import timeout_add_seconds, source_remove
 from pango import FontDescription
-from os import access, R_OK, getenv, kill
+from os import access, R_OK, getenv
+from os.path import isfile
+from urllib import url2pathname
 from shlex import split
 from subprocess import check_output
 from threading import Thread
@@ -484,7 +486,6 @@ class Pyrite:
         img.show                ()
         if message:
             label               = gtk.Label()
-            label.set_line_wrap (True)
             label.set_markup    (message)
             label.show          ()
             content.pack_start  (label, False, False)
@@ -503,6 +504,8 @@ class Pyrite:
             ibar.add_button         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
             ibar.add_button         (gtk.STOCK_MEDIA_PAUSE, -19)
             ibar.connect            ('response', self.signal_child_process)
+        # FIXME: The close signal doesn't work! Why?!
+        ibar.connect            ('close', lambda *args: ibar.destroy())
         ibar.show()
         if timeout:
             timeout_add_seconds(timeout, ibar.destroy)
@@ -676,27 +679,7 @@ class Pyrite:
                 gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
     
     
-    def action_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
-        if target_type == 80:
-            from os.path import isfile
-            uri = selection.data.strip('\r\n\x00')
-            #uri_splitted = uri.split() # we may have more than one file dropped
-            #for uri in uri_splitted:
-            uri = uri.split()[0]
-            path = self.get_file_path_from_dnd_dropped_uri(uri)
-            #print widget
-            if isfile(path): # is it file?
-                if widget.get_name() in 'GtkTextView':
-                    self.open_in_txtview(path)
-                elif widget.get_name() in 'GtkFileChooserButton':
-                    print "\n[on_drag_data_received] arg passed to GtkFileChooserButton.set_filename() is:\n'{}'".format(path)
-                    print "\n[on_drag_data_received] GtkFileChooserButton.set_filename() return value:\n", widget.set_filename(path)
-                    print "\n[on_drag_data_received] GtkFileChooserButton.get_filename() returns:\n'{}'\n".format(widget.get_filename())
-                    self.initiate_filemode()
-    
-    
     def get_file_path_from_dnd_dropped_uri(self, uri):
-        from urllib import url2pathname
         path = ''
         if uri.startswith('file:\\\\\\'): # windows
             path = uri[8:] # 8 is len('file:///')
@@ -826,15 +809,22 @@ class Pyrite:
 
         self.g_statusbar.pop(self.status)
         self.g_statusbar.push(self.status, "Choose an action to perform on {!r}".format(infile))
-        self.filemode_saved_buff = self.buff.get_text(self.buff.get_start_iter(),
-                                                      self.buff.get_end_iter())
-        self.buff.set_text('')
+        
+        if self.ib_filemode:
+            # If already in filemode, but user just picked a new file, destroy filemode banner
+            self.ib_filemode.destroy()
+        else:
+            # Otherwise, save TextView buffer for later and then blow it away
+            self.filemode_saved_buff = self.buff.get_text(self.buff.get_start_iter(),
+                                                          self.buff.get_end_iter())
+            self.buff.set_text('')
+            self.filemode_enablewidgets(False)
+            
         self.ib_filemode = self.infobar(
             "<b>Ready to <i>Encrypt</i>, <i>Decrypt</i>, <i>Sign</i>, or <i>Verify</i> file:\n"
             "<i><tt><small>{}</small></tt></i></b>\n"
             "<small>You will be prompted for an output filename if necessary.</small>"
             .format(infile), gtk.MESSAGE_QUESTION, 0, vbox=self.vbox_ibar2)
-        self.filemode_enablewidgets(False)
         self.x.io['infile'] = infile
     
     
@@ -845,6 +835,7 @@ class Pyrite:
         del self.filemode_saved_buff
         # Destroy persistent filemode infobar
         self.ib_filemode.destroy()
+        self.ib_filemode = None
         # Enable/sensitize widgets
         self.filemode_enablewidgets         (True)
         self.g_chk_outfile.set_visible      (False)
@@ -865,8 +856,25 @@ class Pyrite:
     
     #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
     
-    def on_window1_destroy  (self, widget, data=None):  gtk.main_quit()
-    def action_quit         (self, widget, data=None):  gtk.main_quit()
+    def on_window1_destroy  (self, widget):
+        gtk.main_quit()
+    def action_quit         (self, widget):
+        gtk.main_quit()
+    
+    
+    def action_drag_data_received(self, widget, context, x, y, selection, target_type, timestamp):
+        if target_type == 80:
+            uri = selection.data.strip('\r\n\x00')
+            uri = uri.split()[0]
+            path = self.get_file_path_from_dnd_dropped_uri(uri)
+            if isfile(path):
+                if widget.get_name() in 'GtkTextView':
+                    self.open_in_txtview(path)
+                elif widget.get_name() in 'GtkFileChooserButton':
+                    print "\n[on_drag_data_received]\narg passed to FileChooserButton.set_filename() is:\n'{}'".format(path)
+                    print "\nFileChooserButton.set_filename() return value: ", widget.set_filename(path)
+                    print "\nFileChooserButton.get_filename() returns:\n'{}'\n".format(widget.get_filename())
+                    self.initiate_filemode()
     
     
     def action_opacity_slider(self, widget):
@@ -1413,7 +1421,7 @@ class Pyrite:
                                  "Status </i> for details.</small>", gtk.MESSAGE_WARNING, 7, gtk.STOCK_DIALOG_ERROR)
                     return
                 elif action in 'enc' and asymmetric and not recip and not enctoself:
-                    self.infobar("<b>Problem asymmetrically encrypting input.</b>\n<small>If you don't "
+                    self.infobar("<b>Need recipients!</b>\n<small>If you don't "
                                  "want to enter recipients and you don't want to select\n<i> Enc. To "
                                  "Self</i>, you must add one of the directives\n"
                                  "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
@@ -1468,7 +1476,7 @@ class Pyrite:
                                  "Task Status </i> for details.</small>", gtk.MESSAGE_WARNING, 7, gtk.STOCK_DIALOG_ERROR)
                     return
                 elif action in 'enc' and asymmetric and not recip and not enctoself:
-                    self.infobar("<b>Problem asymmetrically encrypting input.</b>\n<small>If you don't "
+                    self.infobar("<b>Need recipients!</b>\n<small>If you don't "
                                  "want to enter recipients and you don't want to select\n<i> Enc. To "
                                  "Self</i>, you must add one of the directives\n"
                                  "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
