@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/02
+# Last file mod: 2012/02/08
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -24,12 +24,10 @@
 #------------------------------------------------------------------------------
 #
 # TODO:
-#   * Dialog with progress bar & cancel button when working
 #   * Icons for for encrypt, decrypt, sign, verify buttons, application
 #   * Undo stack. Blech. Kill me.
 #   * Update notifications
-#   * Fix: as infobar vbox in preferences window expands, it causes the window
-#       to expand; need to figure out how to make the window auto-shrink after
+#   * BUG: First drag/drop onto FileChooserButton fails; 2nd, 3rd, etc succeed.
 #
 #------------------------------------------------------------------------------
 

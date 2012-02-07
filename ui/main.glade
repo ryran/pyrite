@@ -655,6 +655,8 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Pause processing</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="pause_child_process" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image10">
@@ -678,6 +680,8 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Cancel processing</property>
+                <property name="relief">none</property>
+                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="cancel_child_process" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image11">
