@@ -41,7 +41,7 @@ gtk.gdk.threads_init()
 
 
 # Important variables
-version                 = 'v1.0.0_dev8'
+version                 = 'v1.0.0_dev9'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}

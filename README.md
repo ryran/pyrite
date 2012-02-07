@@ -1,16 +1,14 @@
 Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
 ===============================================================
 
-*As River--who came up with the name--said: "Pyrite, because people think they are getting your data--your gold, but really it's just gibberish to them. Fool's gold."*
-
-v1.0.0_dev:
+v1.0.0_dev9:
 
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
 ![](http://b19.org/linux/pyrite/2clearsign_txt.png)
-![](http://b19.org/linux/pyrite/3sign_file_prog.png)
+![](http://b19.org/linux/pyrite/3enc_prog.png)
 ![](http://b19.org/linux/pyrite/4dec_txt.png)
-![](http://b19.org/linux/pyrite/5openssl.png)
-![](http://b19.org/linux/pyrite/6pref.png)
+![](http://b19.org/linux/pyrite/5openssl_txt.png)
+![](http://b19.org/linux/pyrite/6prefs.png)
 
 Possibly more screenshots at: http://b19.org/linux/pyrite
 
@@ -65,4 +63,13 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 General Public License @[gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.html>) for more details.
+
+
+
+
+
+Hmmmm. You're still here?
+Oh. You must be wondering why the name [*Pyrite*](http://en.wikipedia.org/wiki/Pyrite), eh?
+Well, I'll let my friend River--who came up with the name--explain it to you:
+*"It should be 'Pyrite', because people think they are getting your data, but really it's just gibberish to them. Fool's gold."*
 
