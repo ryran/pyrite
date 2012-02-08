@@ -461,8 +461,8 @@ class Pyrite:
             dnd_list, gtk.gdk.ACTION_COPY)
     
      
-    def infobar(self, message=None, config=(1,1), timeout=5, vbox=None):
-        """Instantiate a new auto-hiding InfoBar with a Label of message."""
+    def infobar(self, msg=None, config=(1,1), timeout=5, vbox=None):
+        """Instantiate a new auto-hiding InfoBar with a Label of msg."""
         
         msgtype, imgtype = config
         
@@ -492,10 +492,9 @@ class Pyrite:
         img.set_from_stock      (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
         content.pack_start      (img, False, False)
         img.show                ()
-        if message:
-            message = "<span foreground='#2E2E2E'>" + message + "</span>"
+        if msg:
             label               = gtk.Label()
-            label.set_markup    (message)
+            label.set_markup    ("<span foreground='#2E2E2E'>{}</span>".format(msg))
             content.pack_start  (label, False, False)
             label.show          ()
         # FIXME: Why doesn't Esc trigger this close signal?

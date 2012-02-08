@@ -28,6 +28,32 @@ INSTALLATION
 2) Execute the interactive INSTALL script OR if you just want to try it out, you can simply run the executable script `pyrite` from the root source folder (it's the file that's executable).
 
 
+FEATURES
+----------
+Pyrite acts as a frontend for GnuPG, doing symmetric or asymmetric encrypting/decrypting, as well as signing and verifying. Additionally, it can use OpenSSL for simple symmetric encryption/decryption.
+
+Pyrite can operate on text input or can take input and output filenames (text or binary) to pass directly to the backend program (i.e., gpg/gpg2 or openssl).
+
+As you can see from the screenshots, Pyrite can utilize virtually all of the encrypting features of GnuPG -- you can mix and match passphrase & public-key encryption & signing with one file, just like gpg, which will require interacting with your gpg-agent. Or you can keep it simple and just use a passphrase as a shared key, in which case gpg-agent is bypassed and you only have to type the passphrase once.
+
+Also shown in the screenshots is a Sign/Verify mode, where you can choose between the three types of signing: normal (Pyrite calls it "embedded"), where a signed copy of the message is created; clearsign, where the message is wrapped with a plaintext ASCII sig; or detached-sign, where a separate sig file is created.
+
+If you're operating directly on files (in sign or encrypt mode) instead of ASCII text in the Pyrite window, you can choose what kind of output you want -- ASCII-armored (base64-encoded) text or normal binary output.
+
+Not shown in the screenshots is drag & drop. You can drag text files onto the Message area and they are loaded up and you can drag text or binary files onto the *Input File For Direct Operation* button to set that.
+
+If you end up working on very large input, you'll get a chance to *really* see the progress bar + pause/cancel buttons. At the moment the progress bar doesn't report actual progress (that's coming), but the buttons do what they advertise, pausing or canceling the backend processing.
+
+To top it all off, everything is configurable. There's a preferences dialog that lets you play with all the settings, from tweaking gpg verbosity to setting the default operating mode to choosing your favorite cipher to configuring font size/color and window opacity.
+
+
+BUGS
+----------
+1) After launching Pyrite, the **first** drag/drop of a file onto the *Input File For Direct Operation* GtkFileChooserButton fails. After that the button works properly. I've been seeking out expertise on this weird bug but I haven't gotten anywhere. If you have any hints, hit me up, or check out [my post about it on stackoverflow](http://stackoverflow.com/questions/9047844/pygtk-troubles-with-drag-and-drop-file-to-gtkfilechooserbutton).
+
+2) No undo. It wasn't a top priority at the beginning, but I think it's pretty essential for an application that basically contains a text editor to have an undo/redo stack. I'll do it eventually.
+
+
 BACKGROUND
 ----------
 
@@ -47,6 +73,8 @@ For now, just me.
 [ryran](https://github.com/ryran)
 
 Feel free to contribute!
+The project could really use a little assistance from an artist -- it doesn't have an application icon. (!) Also, it could use icons for the encrypt, decrypt, sign, and verify buttons.
+
 
 
 LICENSE
@@ -68,6 +96,7 @@ General Public License @[gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.
 
 
 --------
+
 
 Hmmmm. You're still here?
 
