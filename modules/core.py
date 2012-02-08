@@ -956,7 +956,7 @@ class Pyrite:
     
     
     def action_chooserbtn_file_set(self, widget):
-        print "[on_file-set] GtkFileChooserButton.get_filename output:\n{!r}\n".format(widget.get_filename())
+        print "[on_file-set] FileChooserButton.get_filename() output:\n{!r}\n".format(widget.get_filename())
         self.initiate_filemode()
     
     
