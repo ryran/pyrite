@@ -25,7 +25,7 @@ INSTALLATION
 ------------
 1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` OR [download a zip of the source](/ryran/pyrite/zipball/master).
 
-2) Execute the interactive INSTALL script OR if you just want to try it out, you can simply run the executable script `pyrite` from the root source folder (it's the file that's executable).
+2) Execute the interactive INSTALL script OR if you just want to try it out, you can simply run the script `pyrite` from the root source folder (it's the file that's executable).
 
 
 FEATURES
@@ -45,6 +45,8 @@ Not shown in the screenshots is drag & drop. You can drag text files onto the Me
 If you end up working on very large input, you'll get a chance to *really* see the progress bar + pause/cancel buttons. At the moment the progress bar doesn't report actual progress (that's coming), but the buttons do what they advertise, pausing or canceling the backend processing.
 
 To top it all off, everything is configurable. There's a preferences dialog that lets you play with all the settings, from tweaking gpg verbosity to setting the default operating mode to choosing your favorite cipher to configuring font size/color and window opacity.
+
+If you find yourself wondering about a particular feature, just hover your mouse over its widget -- there are detailed tooltips for everything.
 
 
 BUGS

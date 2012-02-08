@@ -189,7 +189,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
+                        <property name="tooltip_text" translatable="yes">Open text file in Message area</property>
                         <property name="use_underline">True</property>
                         <property name="image">img_open</property>
                         <property name="use_stock">False</property>
@@ -204,7 +204,7 @@
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Save contents of Message Input/Output area to a text file</property>
+                        <property name="tooltip_text" translatable="yes">Save Message to text file</property>
                         <property name="use_underline">True</property>
                         <property name="image">img_saveas</property>
                         <property name="use_stock">False</property>
@@ -382,7 +382,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Toggles wrapping of lines the Message area. This will not actually add newline characters.</property>
+                        <property name="tooltip_text" translatable="yes">Toggles line-wrapping in Message area
+This will not add newline characters to Message</property>
                         <property name="label" translatable="yes">Text _Wrapping</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
@@ -395,7 +396,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show/hide side pane containing gpg status messages</property>
+                        <property name="tooltip_text" translatable="yes">Show/hide side pane containing gpg/openssl cmd stderr (success/failure messages)</property>
                         <property name="label" translatable="yes">_Task Status Side Panel</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
@@ -408,7 +409,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel or error messages)</property>
+                        <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel)</property>
                         <property name="label" translatable="yes">_Verbose Output in Task Status</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -854,7 +855,7 @@ Requires specifying recipients whose public keys will be used for encryption; or
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Allow mixing symmetric encryption with asymmetric and signing
+                <property name="tooltip_text" translatable="yes">Allow mixing simple symmetric encryption with asymmetric encryption and/or signing
 
 When creating a signed + symmetrically-encrypted message, anything in the passphrase entry box will be ignored -- gpg-agent will need to ask for both the symmetric encryption key (passphrase) and [potentially] the passphrase to your secret key</property>
                 <property name="use_underline">True</property>
@@ -916,7 +917,17 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Symmetric encryption/decryption key
 
-Max length limited only by available memory</property>
+Max length limited only by available memory
+
+NOTES FOR ADVANCED MODE USERS:
+
+If you do symmetric encrypt + sign, the contents of this box are ignored; you'll need to provide all passphrases to gpg-agent in that case
+
+The contents of this box are checked when decrypting and used as the decryption passphrase, whether the input is a symmetrically- or asymmetrically-encrypted message
+
+Example: You encrypt a message with your public key + symmetrically with a passphrase
+
+When you go to decrypt said message, you could leave the passphrase box empty (in which case gpg-agent will ask you for your private key passphrase); you could enter the symmetric passphrase you used, or you could enter your private key passphrase (both these options will bypass gpg-agent)</property>
                 <property name="visibility">False</property>
                 <property name="invisible_char">●</property>
                 <property name="width_chars">10</property>
@@ -1053,7 +1064,7 @@ Note for power users: if 'Change Default Key' in the signature options toolbar i
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying, unless in OpenSSL mode]
+                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying in gpg mode]
 
 Configures symmetric encryption cipher algorithm
 
@@ -1117,7 +1128,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Open a text file as Message Input for encrypting, decrypting, signing, or verifying</property>
+                        <property name="tooltip_text" translatable="yes">Open text file in Message area</property>
                         <property name="relief">none</property>
                         <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_open" swapped="no"/>
@@ -1142,7 +1153,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Save contents of Message area to a text file</property>
+                        <property name="tooltip_text" translatable="yes">Save Message to text file</property>
                         <property name="relief">none</property>
                         <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_save" swapped="no"/>
@@ -1167,7 +1178,7 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Copy contents of Message area to the clipboard</property>
+                        <property name="tooltip_text" translatable="yes">Copy Message to clipboard</property>
                         <property name="relief">none</property>
                         <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_copyall" swapped="no"/>
@@ -1282,9 +1293,12 @@ With 'Default', gpg decides the algorithm based on local system settings (weighi
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">Choose an input file to pass directly to gpg instead of loading into the Message area
+                                    <property name="tooltip_text" translatable="yes">Choose input file to pass directly to gpg/openssl instead of loading into Message area
 
-This is the way to go when dealing with binary or very large files</property>
+This is the way to go when dealing with binary or very large files
+
+Drag/drop of files onto this button is supported
+BUGALERT: The first drag/drop after opening Pyrite will not work! -- do it a 2nd time and all will be fine</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="title" translatable="yes">Choose gpg input file...</property>
                                     <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
@@ -1319,13 +1333,17 @@ This is the way to go when dealing with binary or very large files</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">[Not used when verifying and not used when gpg-decrypting; however, this does have an effect when openssl-decrypting]
+                                    <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying in gpg-mode]
 
-Tells gpg to output plaintext instead of binary data when encrypting and signing
+Tells gpg/openssl to output plaintext instead of binary data when encrypting and signing
 
 This kind of output is commonly called 'base64-encoded' or 'ASCII-armored'
 
-This is set when opening a file, based on whether the file is detected as binary data or text, but it can be overridden</property>
+When operating on files directly, this is set based on whether the file is detected as binary data or text, but of course you can override the initial state (or check out the appropriate setting in Preferences)
+
+OpenSSL Note:
+This is used for both encryption and decryption in openssl-mode
+When decrypting, openssl needs to know if the input is base64 or binary (unlike gpg), so when decrypting files in openssl mode, just let Pyrite auto-detect the input file type and auto-set this toggle appropriately</property>
                                     <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="active">True</property>
@@ -1386,6 +1404,9 @@ This is set when opening a file, based on whether the file is detected as binary
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="has_focus">True</property>
+                                <property name="has_tooltip">True</property>
+                                <property name="tooltip_text" translatable="yes">Type or paste input text here
+Drag/drop of text files also supported</property>
                                 <property name="wrap_mode">word</property>
                                 <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
                               </object>
@@ -1519,11 +1540,14 @@ This will likely require you to interact with gpg-agent</property>
 
 This allows you to choose the signature type for signing in Sign/Verify mode
 
-Embedded: encodes the signature and message together (this is most often used along with encryption)
+Embedded:
+Encodes the signature and message together -- this is most often used along with encryption; however, even if you use it without encryption (in Sign/Verify mode), you will need to 'Decrypt' the signed output in order to retrieve the original message 
 
-Clearsign: wraps the message with a plaintext signature
+Clearsign:
+Wraps the message with a plaintext signature
 
-Detached: creates a separate signature that does not contain the message</property>
+Detached:
+Creates a separate signature that does not contain the message -- in order to verify a message/file that has a detached signature, you will need to ensure the message and signature are both in files (with the same name, except for the extra extension of the sig file) in the same directory</property>
                 <property name="model">liststore_sigmodes</property>
                 <property name="active">0</property>
                 <property name="focus_on_click">False</property>
