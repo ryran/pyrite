@@ -456,9 +456,6 @@ class Pyrite:
         self.g_msgtxtview.drag_dest_set(
             gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
             dnd_list, gtk.gdk.ACTION_COPY)
-        self.g_chooserbtn.drag_dest_set(
-            gtk.DEST_DEFAULT_ALL,
-            dnd_list, gtk.gdk.ACTION_COPY)
     
      
     def infobar(self, msg=None, config=(1,1), timeout=5, vbox=None):
@@ -872,13 +869,7 @@ class Pyrite:
             uri = uri.split()[0]
             path = self.get_file_path_from_dnd_dropped_uri(uri)
             if isfile(path):
-                if widget.get_name() in 'GtkTextView':
-                    self.open_in_txtview(path)
-                elif widget.get_name() in 'GtkFileChooserButton':
-                    print "\n[on_drag_data_received]\narg passed to FileChooserButton.set_filename() is:\n'{}'".format(path)
-                    print "\nFileChooserButton.set_filename() return value: ", widget.set_filename(path)
-                    print "\nFileChooserButton.get_filename() returns:\n'{}'\n".format(widget.get_filename())
-                    self.initiate_filemode()
+                self.open_in_txtview(path)
     
     
     def action_opacity_slider(self, widget):
@@ -964,7 +955,8 @@ class Pyrite:
                          .format(filename), (3,4))
     
     
-    def action_filemode_chooser_set(self, widget, data=None):
+    def action_chooserbtn_file_set(self, widget):
+        print "[on_file-set] GtkFileChooserButton.get_filename output:\n{!r}\n".format(widget.get_filename())
         self.initiate_filemode()
     
     

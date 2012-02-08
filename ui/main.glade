@@ -1301,8 +1301,7 @@ Drag/drop of files onto this button is supported
 BUGALERT: The first drag/drop after opening Pyrite will not work! -- do it a 2nd time and all will be fine</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="title" translatable="yes">Choose gpg input file...</property>
-                                    <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
-                                    <signal name="file-set" handler="action_filemode_chooser_set" swapped="no"/>
+                                    <signal name="file-set" handler="action_chooserbtn_file_set" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
