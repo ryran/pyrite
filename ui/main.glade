@@ -1070,7 +1070,11 @@ Configures symmetric encryption cipher algorithm
 
 In asymmetric mode, the chosen cipher is used in concert with recipients' pubkeys for encryption
 
-With 'Default', gpg decides the algorithm based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)</property>
+With 'Default', gpg decides the algorithm based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)
+
+OpenSSL Note:
+This is used for both encryption and decryption in openssl-mode
+When decrypting, openssl needs to be told what cipher the input was encrypted with (unlike gpg)</property>
                 <property name="model">liststore_ciphers</property>
                 <property name="active">0</property>
                 <property name="focus_on_click">False</property>
