@@ -146,7 +146,7 @@
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Pyrite</property>
     <property name="window_position">center</property>
-    <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
+    <signal name="destroy" handler="action_quit" swapped="no"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>

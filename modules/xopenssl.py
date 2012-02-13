@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/06
+# Last file mod: 2012/02/14
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -27,6 +27,7 @@ from sys import stderr
 from os import pipe, write, close
 from shlex import split
 from subprocess import Popen, PIPE, check_output
+from time import sleep
 
 
 class Xface():
@@ -59,9 +60,9 @@ class Xface():
         
         # I/O dictionary obj
         self.io = dict(
-            stdin='',   # Input text for subprocess
-            stdout='',  # Stdout stream from subprocess
-            stderr='',  # Stderr stream from subprocess
+            stdin='',   # Stores input text for subprocess
+            stdout='',  # Stores stdout stream from subprocess
+            stderr=0,   # Stores tuple of r/w file descriptors for stderr stream
             infile=0,   # Input filename for subprocess
             outfile=0)  # Output filename for subprocess
         
@@ -113,12 +114,15 @@ class Xface():
         elif cipher == 'camellia256':   cipher = 'camellia-256-cbc'
         #else:                           cipher = 'aes-256-cbc'
         
-        fd_in       = None
-        fd_out      = None
+        fd_pwd_R    = None
+        fd_pwd_W    = None
         cmd         = ['openssl', cipher, '-pass']
         
-        fd_in, fd_out = pipe() ; write(fd_out, passwd) ; close(fd_out)
-        cmd.append('fd:{}'.format(fd_in))
+        # Setup passphrase file descriptors
+        fd_pwd_R, fd_pwd_W = pipe()
+        write(fd_pwd_W, passwd)
+        close(fd_pwd_W)
+        cmd.append('fd:{}'.format(fd_pwd_R))
         
         if base64:
             cmd.append('-a')
@@ -136,19 +140,21 @@ class Xface():
         
         # If working direct with files, setup our Popen instance with no stdin
         if self.io['infile']:
-            self.childprocess = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
         
         # Time to communicate! Save output for later
-        self.io['stdout'], self.io['stderr'] = self.childprocess.communicate(input=self.io['stdin'])
+        self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
         
-        # Print stderr
-        stderr.write(self.io['stderr'])
-        stderr.write("-----------\n")
+        # Clear stdin from our dictionary asap, in case it's huge
+        self.io['stdin'] = ''
         
-        # Close os file descriptor
-        close(fd_in)
-        
-
+        # Close os file descriptors
+        close(fd_pwd_R)
+        sleep(0.1)  # Sleep a bit to ensure everything gets read
+        close(self.io['stderr'][1])
+        stderr.write("\n---------------------\n\n")
+    
+    

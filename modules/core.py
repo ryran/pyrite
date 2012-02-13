@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/07
+# Last file mod: 2012/02/14
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -29,19 +29,20 @@
 import gtk
 import cPickle as pickle
 from sys import stderr
-from glib import timeout_add_seconds, source_remove
+from glib import timeout_add_seconds, source_remove, io_add_watch, IO_IN, IO_HUP
 from pango import FontDescription
-from os import access, R_OK, getenv
+from os import access, R_OK, getenv, read, close, pipe
 from os.path import isfile
 from urllib import url2pathname
 from shlex import split
 from subprocess import check_output
+from time import sleep
 from threading import Thread
 gtk.gdk.threads_init()
 
 
 # Important variables
-version                 = 'v1.0.0_dev9'
+version                 = 'v1.0.0_dev10'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}
@@ -226,36 +227,36 @@ class Preferences:
     
     def capture_current_prefs(self):
         self.p = {
-        # Main Operation Mode
-        'opmode'      : self.cb_opmode.get_active(),
-        # Engine
-        'backend'     : self.cb_backend.get_active(),
-        # Enc/Dec Mode
-        'enctype'     : self.cb_enctype.get_active(),
-        'advanced'    : self.tg_advanced.get_active(),
-        'enctoself'   : self.tg_enctoself.get_active(),
-        'cipher'      : self.cb_cipher.get_active(),
-        'addsig'      : self.tg_addsig.get_active(),
-        # Mode-Independent
-        'digest'      : self.cb_digest.get_active(),
-        'defkey'      : self.tg_defkey.get_active(),
-        'defkeytxt'   : self.ent_defkey.get_text(),
-        'txtoutput'   : self.cb_txtoutput.get_active(),
-        'expander'    : self.tg_expander.get_active(),
-        # Sign/Verify Mode
-        'svoutfiles'  : self.tg_svoutfiles.get_active(),
-        'text_sigmode': self.cb_text_sigmode.get_active(),
-        'file_sigmode': self.cb_file_sigmode.get_active(),
-        # Display
-        'taskstatus'  : self.tg_taskstatus.get_active(),
-        'verbose'     : self.tg_verbose.get_active(),
-        'wrap'        : self.tg_wrap.get_active(),
-        'opc_slider'  : self.tg_opc_slider.get_active(),
-        'opacity'     : self.sp_opacity.get_value(),
-        'msgfntsize'  : self.sp_msgfntsize.get_value(),
-        'errfntsize'  : self.sp_errfntsize.get_value(),
-        'color_fg'    : self.btn_color_fg.get_color().to_string(),
-        'color_bg'    : self.btn_color_bg.get_color().to_string()}
+            # Main Operation Mode
+            'opmode'      : self.cb_opmode.get_active(),
+            # Engine
+            'backend'     : self.cb_backend.get_active(),
+            # Enc/Dec Mode
+            'enctype'     : self.cb_enctype.get_active(),
+            'advanced'    : self.tg_advanced.get_active(),
+            'enctoself'   : self.tg_enctoself.get_active(),
+            'cipher'      : self.cb_cipher.get_active(),
+            'addsig'      : self.tg_addsig.get_active(),
+            # Mode-Independent
+            'digest'      : self.cb_digest.get_active(),
+            'defkey'      : self.tg_defkey.get_active(),
+            'defkeytxt'   : self.ent_defkey.get_text(),
+            'txtoutput'   : self.cb_txtoutput.get_active(),
+            'expander'    : self.tg_expander.get_active(),
+            # Sign/Verify Mode
+            'svoutfiles'  : self.tg_svoutfiles.get_active(),
+            'text_sigmode': self.cb_text_sigmode.get_active(),
+            'file_sigmode': self.cb_file_sigmode.get_active(),
+            # Display
+            'taskstatus'  : self.tg_taskstatus.get_active(),
+            'verbose'     : self.tg_verbose.get_active(),
+            'wrap'        : self.tg_wrap.get_active(),
+            'opc_slider'  : self.tg_opc_slider.get_active(),
+            'opacity'     : self.sp_opacity.get_value(),
+            'msgfntsize'  : self.sp_msgfntsize.get_value(),
+            'errfntsize'  : self.sp_errfntsize.get_value(),
+            'color_fg'    : self.btn_color_fg.get_color().to_string(),
+            'color_bg'    : self.btn_color_bg.get_color().to_string()}
         return self.p
     
     
@@ -340,15 +341,14 @@ class Pyrite:
                 "Possible causes:\n\n1) You haven't downloaded the whole Pyrite "
                 "package (pyrite.py needs the .glade files in the ui subdirectory).\n\n"
                 "2) You didn't use the INSTALL script to install Pyrite. This is OK as "
-                "long as you execute 'pyrite' from the pyrite directory."
-                "\n\n3) You moved the "
-                "pyrite dir after installing it.\n\nIn all cases, this could be solved "
-                "by simply downloading the package again from github.com/ryran/pyrite "
-                "and running INSTALL, following the directions.\n\nHowever, if you just "
-                "want to try out Pyrite and you're sure you downloaded the whole "
-                "package, you can avoid this error (as #2 says) by making sure you're "
-                "in the pyrite directory when you execute ie, i.e.,\n"
-                "'cd pyrite ; ./pyrite'")
+                "long as you execute 'pyrite' from the pyrite directory.\n\n3) You "
+                "moved the pyrite dir after installing it.\n\nIn all cases, this could "
+                "be solved by simply downloading the package again from "
+                "github.com/ryran/pyrite and running INSTALL, following the directions."
+                "\n\nHowever, if you just want to try out Pyrite and you're sure you "
+                "downloaded the whole package, you can avoid this error (as #2 says) "
+                "by making sure you're in the pyrite directory when you execute it, "
+                "i.e.,\n'cd pyrite ; ./pyrite'")
             raise
         
         #--------------------------------------------------------- GET WIDGETS!
@@ -577,7 +577,7 @@ class Pyrite:
             for w in self.g_encrypt, self.g_decrypt:  w.set_sensitive(False)
             class dummy:  pass
             self.x = dummy()
-            self.x.io = dict(stdin='', stdout='', stderr='', infile=0, outfile=0)
+            self.x.io = dict(stdin='', stdout='', gstatus=0, infile=0, outfile=0)
 
         
         # Get it done!
@@ -857,9 +857,9 @@ class Pyrite:
     
     #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
     
-    def on_window1_destroy  (self, widget):
-        gtk.main_quit()
     def action_quit         (self, widget):
+        if self.x.childprocess and self.x.childprocess.returncode == None:
+            self.x.childprocess.terminate()
         gtk.main_quit()
     
     
@@ -927,7 +927,7 @@ class Pyrite:
             self.set_stdstatus()
         self.buff.set_text                  ('')
         self.buff2.set_text                 ('')
-        self.x.io = dict(stdin='', stdout='', stderr='', infile=0, outfile=0)
+        self.x.io = dict(stdin='', stdout='', gstatus=0, infile=0, outfile=0)
     
     
     def action_clear_entry(self, widget, data=None, whatisthis=None):
@@ -1315,12 +1315,22 @@ class Pyrite:
         
         # Set working status + spinner + progress bar
         self.show_working_progress(True, action)
+        self.buff2.set_text('')
         
-        # ATTEMPT EN-/DECRYPTION        
+        # Setup stderr file descriptors & update task status while processing
+        self.x.io['stderr'] = pipe()
+        io_add_watch(self.x.io['stderr'][0], IO_IN | IO_HUP, self.update_task_status)
+        
         if self.engine in 'OpenSSL':
+            # ATTEMPT EN-/DECRYPTION w/OPENSSL
             Thread(target=self.x.openssl, args=(action, passwd, base64, cipher)).start()
         
         else:
+            if verbose:
+                # Setup gpg-status file descriptors & update terminal while processing
+                self.x.io['gstatus'] = pipe()
+                io_add_watch(self.x.io['gstatus'][0], IO_IN | IO_HUP, self.update_task_status, 'terminal')
+            # ATTEMPT EN-/DECRYPTION w/GPG
             Thread(target=self.x.gpg, args=(action,
                                             encsign,
                                             digest,
@@ -1343,7 +1353,6 @@ class Pyrite:
         
         for w in working_widgets:  w.set_sensitive(True)
         self.show_working_progress(False)
-        self.buff2.set_text(self.x.io['stderr'])
         
         # FILE INPUT MODE CLEANUP
         if self.x.io['infile']:
@@ -1466,6 +1475,18 @@ class Pyrite:
                     action = 'sign'
                 self.infobar("<b>Problem {}ing input.</b>\n<small>See<i> Task Status </i>"
                              "for details.</small>".format(action), (3,4))
+    
+    
+    def update_task_status(self, fd, condition, output='task'):
+        if condition == IO_IN:
+            if output in 'task':
+                self.buff2.insert(self.buff2.get_end_iter(), read(fd, 1024))
+            else:
+                stderr.write(read(fd, 1024))
+            return True
+        elif condition == IO_HUP:
+            close(fd)
+            return False
     
     
     def show_working_progress(self, show=True, action=None):

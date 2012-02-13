@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/06
+# Last file mod: 2012/02/14
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -27,6 +27,7 @@ from sys import stderr
 from os import pipe, write, close
 from shlex import split
 from subprocess import Popen, PIPE, check_output
+from time import sleep
 
 
 class Xface():
@@ -80,12 +81,13 @@ class Xface():
         self.io = dict(
             stdin='',   # Stores input text for subprocess
             stdout='',  # Stores stdout stream from subprocess
-            stderr='',  # Stores stderr stream from subprocess
+            stderr=0,   # Stores tuple of r/w file descriptors for stderr stream
+            gstatus=0,  # Stores tuple of r/w file descriptors for gpg-status stream
             infile=0,   # Input filename for subprocess
             outfile=0)  # Output filename for subprocess
         
         self.childprocess = None
-            
+    
     
     # Main gpg interface method
     def gpg(
@@ -142,18 +144,25 @@ class Xface():
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
         
-        fd_in       = None
-        fd_out      = None
+        fd_pwd_R    = None
+        fd_pwd_W    = None
         useagent    = True
         cmd         = [self.GPG]
+        
+        if self.io['gstatus']:
+            # Status to file descriptor option
+            cmd.append('--status-fd')
+            cmd.append(str(self.io['gstatus'][1]))
         
         # Setup passphrase file descriptor for symmetric enc/dec
         if (action in 'enc' and symmetric and passwd and not encsign) or (
             action in 'dec' and symmetric and passwd):
                 useagent=False
-                fd_in, fd_out = pipe() ; write(fd_out, passwd) ; close(fd_out)
+                fd_pwd_R, fd_pwd_W = pipe()
+                write(fd_pwd_W, passwd)
+                close(fd_pwd_W)
                 cmd.append('--passphrase-fd')
-                cmd.append(str(fd_in))
+                cmd.append(str(fd_pwd_R))
         
         # Encrypt opts
         if action in 'enc':
@@ -227,27 +236,28 @@ class Xface():
         if self.io['infile']:
             cmd.append(self.io['infile'])
         
-        stderr.write("{}\n".format(cmd))
+        stderr.write("{}\n\n".format(cmd))
         
         # If working direct with files, setup our Popen instance with no stdin
         if self.io['infile']:
-            self.childprocess = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
         
         # Time to communicate! Save output for later
-        self.io['stdout'], self.io['stderr'] = self.childprocess.communicate(input=self.io['stdin'])
+        self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
         
         # Clear stdin from our dictionary asap, in case it's huge
-        self.io['stdin'] = 0
+        self.io['stdin'] = ''
         
-        # Print stderr
-        stderr.write(self.io['stderr'])
-        stderr.write("-----------\n")
-        
-        # Close os file descriptor if necessary
-        if fd_in:  close(fd_in)
+        # Close os file descriptors
+        if fd_pwd_R:  close(fd_pwd_R)
+        sleep(0.1)  # Sleep a bit to ensure everything gets read
+        close(self.io['stderr'][1])
+        if self.io['gstatus']:
+            close(self.io['gstatus'][1])
+        stderr.write("\n---------------------\n\n")
     
     
     def get_gpgdefaultkey(self):
@@ -255,4 +265,5 @@ class Xface():
         return check_output(split(
             "{} --list-secret-keys --with-colons --fast-list-mode"
             .format(self.GPG))).split(':', 5)[4]
+    
     
