@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/14
+# Last file mod: 2012/02/16
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -27,9 +27,12 @@
 
 # StdLib:
 import gtk
+gtk.gdk.threads_init()
+import glib
+glib.threads_init()
+from threading import Thread
 import cPickle as pickle
 from sys import stderr
-from glib import timeout_add_seconds, source_remove, io_add_watch, IO_IN, IO_HUP
 from pango import FontDescription
 from os import access, R_OK, getenv, read, close, pipe
 from os.path import isfile
@@ -37,12 +40,10 @@ from urllib import url2pathname
 from shlex import split
 from subprocess import check_output
 from time import sleep
-from threading import Thread
-gtk.gdk.threads_init()
 
 
 # Important variables
-version                 = 'v1.0.0_dev10'
+version                 = 'v1.0.0_dev11'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}
@@ -109,7 +110,7 @@ class Preferences:
             self.window.resize(1,1)
         
         if self.ibar_timeout > 0:
-            source_remove(self.ibar_timeout)
+            glib.source_remove(self.ibar_timeout)
             destroy_ibar()
         
         msgtype, imgtype = config
@@ -138,7 +139,7 @@ class Preferences:
         img.show                ()
         label.show              ()
         self.ibar.show          ()
-        self.ibar_timeout       = timeout_add_seconds(timeout, destroy_ibar)
+        self.ibar_timeout       = glib.timeout_add_seconds(timeout, destroy_ibar)
     
     
     def open_preferences_window(self, parentwindow):
@@ -428,6 +429,15 @@ class Pyrite:
         # Other class attributes
         self.ib_filemode    = None
         self.engine         = 'missing_backend'
+        self.quiting        = False
+        self.working_widgets_filemode = [
+            self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear,
+            self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+        self.working_widgets_textmode = [
+            self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear,
+            self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
+            self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave,
+            self.g_msave, self.g_mcut, self.g_mcopy, self.g_mpaste]
         
         # Initialize main Statusbar
         self.status = self.g_statusbar.get_context_id('main')
@@ -498,7 +508,7 @@ class Pyrite:
         ibar.connect            ('close', lambda *args: ibar.destroy())
         ibar.show()
         if timeout:
-            timeout_add_seconds(timeout, ibar.destroy)
+            glib.timeout_add_seconds(timeout, ibar.destroy)
         return ibar
     
     
@@ -858,8 +868,13 @@ class Pyrite:
     #------------------------------------------- HERE BE GTK SIGNAL DEFINITIONS
     
     def action_quit         (self, widget):
+        self.quiting = True
         if self.x.childprocess and self.x.childprocess.returncode == None:
+            if self.paused:
+                self.x.childprocess.send_signal(SIGCONT)
             self.x.childprocess.terminate()
+            stderr.write("<Quiting>\n")
+            #sleep(0.2)
         gtk.main_quit()
     
     
@@ -1290,23 +1305,20 @@ class Pyrite:
                     else:
                         return
 
-            working_widgets = [self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+            working_widgets = self.working_widgets_filemode
             for w in working_widgets:  w.set_sensitive(False)
             self.ib_filemode.hide()
 
         
         elif self.x.io['infile'] and self.x.io['outfile']:
-            working_widgets = [self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
+            working_widgets = self.working_widgets_filemode
             for w in working_widgets:  w.set_sensitive(False)
             self.ib_filemode.hide()
         
         # TEXT INPUT PREP
         else:
             
-            working_widgets = [
-                self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear, self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
-                self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave, self.g_msave,
-                self.g_mcut, self.g_mcopy, self.g_mpaste]
+            working_widgets = self.working_widgets_textmode
             for w in working_widgets:  w.set_sensitive(False)
             
             # Save textview buffer to Xface.stdin
@@ -1319,38 +1331,45 @@ class Pyrite:
         
         # Setup stderr file descriptors & update task status while processing
         self.x.io['stderr'] = pipe()
-        io_add_watch(self.x.io['stderr'][0], IO_IN | IO_HUP, self.update_task_status)
+        glib.io_add_watch(
+            self.x.io['stderr'][0],
+            glib.IO_IN | glib.IO_HUP,
+            self.update_task_status)
         
         if self.engine in 'OpenSSL':
             # ATTEMPT EN-/DECRYPTION w/OPENSSL
-            Thread(target=self.x.openssl, args=(action, passwd, base64, cipher)).start()
+            Thread(
+                target=self.x.openssl,
+                args=(action, passwd, base64, cipher)
+                ).start()
         
         else:
             if verbose:
                 # Setup gpg-status file descriptors & update terminal while processing
                 self.x.io['gstatus'] = pipe()
-                io_add_watch(self.x.io['gstatus'][0], IO_IN | IO_HUP, self.update_task_status, 'terminal')
+                glib.io_add_watch(
+                    self.x.io['gstatus'][0],
+                    glib.IO_IN | glib.IO_HUP,
+                    self.update_task_status, 'terminal')
             # ATTEMPT EN-/DECRYPTION w/GPG
-            Thread(target=self.x.gpg, args=(action,
-                                            encsign,
-                                            digest,
-                                            localuser,
-                                            base64,
-                                            symmetric, passwd,
-                                            asymmetric, recip, enctoself,
-                                            cipher,
-                                            verbose,
-                                            alwaystrust)).start()
+            Thread(
+                target=self.x.gpg,
+                args=(action, encsign, digest, localuser, base64, symmetric, passwd,
+                      asymmetric, recip, enctoself, cipher, verbose, alwaystrust)
+                ).start()
         
         # Wait for subprocess to finish or for cancel button to be clicked
         c = 0
         while not self.x.childprocess or self.x.childprocess.returncode == None:
             if self.canceled:  break
-            if c % 10 == 0 and not self.paused:
+            if c % 25 == 0 and not self.paused:
                 self.g_progbar.pulse()
             gtk.main_iteration()
             c += 1
-        
+        if self.quiting:
+            # If application is shutting down
+            return
+        # Restore widgets to normal states
         for w in working_widgets:  w.set_sensitive(True)
         self.show_working_progress(False)
         
@@ -1478,13 +1497,13 @@ class Pyrite:
     
     
     def update_task_status(self, fd, condition, output='task'):
-        if condition == IO_IN:
+        if condition == glib.IO_IN:
             if output in 'task':
                 self.buff2.insert(self.buff2.get_end_iter(), read(fd, 1024))
             else:
                 stderr.write(read(fd, 1024))
             return True
-        elif condition == IO_HUP:
+        elif condition == glib.IO_HUP:
             close(fd)
             return False
     
@@ -1535,14 +1554,14 @@ class Pyrite:
         if self.canceled:
             pass
         elif self.paused:
-            stderr.write            ("Unpausing\n")
+            stderr.write            ("<Unpausing>\n")
             self.paused             = False
             button.set_relief       (gtk.RELIEF_NONE)
             self.g_progbar.set_text ("{} working...".format(self.engine))
             self.g_activityspin.start()
             self.x.childprocess.send_signal(SIGCONT)
         else:
-            stderr.write            ("Pausing\n")
+            stderr.write            ("<Pausing>\n")
             self.paused             = True            
             button.set_relief       (gtk.RELIEF_NORMAL)
             self.g_progbar.set_text ("Operation PAUSED")
@@ -1555,7 +1574,8 @@ class Pyrite:
         self.g_window.show()
         settings = gtk.settings_get_default()
         settings.props.gtk_button_images = True
-        gtk.main()
+        with gtk.gdk.lock:
+            gtk.main()
 
 
 
