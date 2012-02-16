@@ -365,10 +365,11 @@ class Pyrite:
         self.g_mclear       = builder.get_object('mnu_clear')
         self.g_mopen        = builder.get_object('mnu_open')
         self.g_msave        = builder.get_object('mnu_save')
+        self.g_mengine      = builder.get_object('mnu_switchengine')
         self.g_mcut         = builder.get_object('mnu_cut')
         self.g_mcopy        = builder.get_object('mnu_copy')
         self.g_mpaste       = builder.get_object('mnu_paste')
-        self.g_mengine      = builder.get_object('mnu_switchengine')
+        self.g_mprefs       = builder.get_object('mnu_preferences')
         self.g_wrap         = builder.get_object('toggle_wordwrap')
         self.g_taskstatus   = builder.get_object('toggle_taskstatus')
         self.g_taskverbose  = builder.get_object('toggle_gpgverbose')
@@ -431,10 +432,10 @@ class Pyrite:
         self.engine         = 'missing_backend'
         self.quiting        = False
         self.working_widgets_filemode = [
-            self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear,
+            self.g_mclear, self.g_mprefs, self.g_encrypt, self.g_decrypt, self.g_bclear,
             self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar]
         self.working_widgets_textmode = [
-            self.g_mclear, self.g_encrypt, self.g_decrypt, self.g_bclear,
+            self.g_mclear, self.g_mprefs, self.g_encrypt, self.g_decrypt, self.g_bclear,
             self.g_modetoolbar, self.g_enctoolbar, self.g_expander, self.g_sigtoolbar,
             self.g_mengine, self.g_bcopyall, self.g_bopen, self.g_mopen, self.g_bsave,
             self.g_msave, self.g_mcut, self.g_mcopy, self.g_mpaste]
