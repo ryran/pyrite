@@ -1,18 +1,7 @@
 Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
 ===============================================================
 
-v1.0.0_dev8:
-
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
-![](http://b19.org/linux/pyrite/2clearsign_txt.png)
-![](http://b19.org/linux/pyrite/3enc_prog.png)
-![](http://b19.org/linux/pyrite/4dec_txt.png)
-![](http://b19.org/linux/pyrite/5openssl_txt.png)
-![](http://b19.org/linux/pyrite/6prefs.png)
-
-Possibly more screenshots at: http://b19.org/linux/pyrite
-
-
 
 DEPENDENCIES
 ------------
@@ -23,9 +12,18 @@ Python2.7; GTK+ v2.24 & pygtk; gpg or gpg2 or openssl
 
 INSTALLATION
 ------------
-1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` OR [download a zip of the source](/ryran/pyrite/zipball/master).
+1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](/ryran/pyrite/zipball/master).
 
 2) Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
+
+
+MORE SCREENSHOTS (v1.0.0_dev8):
+-------------------------------
+![](http://b19.org/linux/pyrite/2clearsign_txt.png)
+![](http://b19.org/linux/pyrite/3enc_prog.png)
+![](http://b19.org/linux/pyrite/4dec_txt.png)
+![](http://b19.org/linux/pyrite/5openssl_txt.png)
+![](http://b19.org/linux/pyrite/6prefs.png)
 
 
 FEATURES
@@ -65,14 +63,14 @@ After creating a few simple apps with BASH scripting, I decided it was time to l
 
 Long story short, after a couple weeks of learning, I released my first version of this project in January 2012, quickly added public-key encryption, signing, & verifying, and have been improving it ever since. This being my first learning experience with GTK+, I have lots more to learn, but I'm damn proud of Pyrite.
 
-PLEASE contact me (or post on the tracker) with any suggestions, feedback, bug reports, or questions!
+PLEASE contact me (or [post a new issue on the tracker](/ryran/pyrite/issues)) with any suggestions, feedback, bug reports, or questions!
 
 
 AUTHORS
 -------
 
 For now, just me.
-[ryran](https://github.com/ryran)
+[ryran](/ryran)
 
 Feel free to contribute!
 The project could really use a little assistance from an artist -- it doesn't have an application icon. (!) Also, it could use icons for the encrypt, decrypt, sign, and verify buttons.
@@ -82,7 +80,7 @@ The project could really use a little assistance from an artist -- it doesn't ha
 LICENSE
 -------
 
-Copyright (C) 2012 [Ryan Sawhill](http://b19.org) aka [ryran](https://github.com/ryran)
+Copyright (C) 2012 [Ryan Sawhill](http://b19.org) aka [ryran](/ryran)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
