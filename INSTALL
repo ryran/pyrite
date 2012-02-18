@@ -52,7 +52,7 @@ read -p ": "
 rm -rv "$install_dir"/*
 
 cp -rv --preserve=mode,timestamps modules ui pyrite.py "$install_dir"
-sed -i "/^assetdir.*=/s,'','$install_dir/'," "$install_dir/modules/core.py"
+sed -i "/^assetdir.*=/s,'','$install_dir/'," "$install_dir/modules/core.py" "$install_dir/modules/prefs.py"
 
 cp -v --preserve=mode,timestamps pyrite.desktop "$shortcut_dir"
 echo -n "Creating symlink: "
