@@ -16,17 +16,16 @@ Possibly more screenshots at: http://b19.org/linux/pyrite
 
 DEPENDENCIES
 ------------
-designed for linux;
-need Python2.7;
-need GTK+ 2.24 + pygtk;
-need gpg or gpg2 or openssl
+(Note: Designed for linux)
+
+Python2.7; GTK+ v2.24 & pygtk; gpg or gpg2 or openssl
 
 
 INSTALLATION
 ------------
 1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` OR [download a zip of the source](/ryran/pyrite/zipball/master).
 
-2) Execute the interactive INSTALL script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
+2) Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
 
 
 FEATURES
