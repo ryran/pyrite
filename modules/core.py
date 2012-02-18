@@ -43,7 +43,7 @@ from time import sleep
 
 
 # Important variables
-version                 = 'v1.0.0_dev12'
+version                 = 'v1.0.0_dev13'
 assetdir                = ''
 userpref_file           = getenv('HOME') + '/.pyrite'
 userpref_format_info    = {'version':'Must6fa'}
@@ -543,20 +543,10 @@ class Pyrite:
     def instantiate_xface(self, xface=None, startup=False):
         """Instantiate Gpg or Openssl interface."""        
         
-        self.set_defaults_from_prefs(startup)
-        
-        # These are all the widgets that can't be used in openssl mode
-        def setsensitive_gpgwidgets(x=True):
-            self.g_signverify.set_sensitive (x)
-            self.g_symmetric.set_sensitive  (x)
-            self.g_asymmetric.set_sensitive (x)
-            self.g_advanced.set_sensitive   (x)
-            self.g_taskverbose.set_visible  (x)
-        
         b = ['gpg2', 'gpg', 'openssl']
         # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
-        # Desired: convert the number to the value and store in b
-        b = b[any(n for n in xrange(3) if self.p['backend'] == n)]
+        # Desired: convert the number setting to the human-readable name and store as b
+        b = b[self.p['backend']]
         
         # If we weren't passed xface argument, set desired interface to backend preference
         if not xface:  xface = b
@@ -571,7 +561,6 @@ class Pyrite:
                 self.g_mengine.set_sensitive(False)
                 self.infobar("<b>Shockingly, your system does not appear to have "
                              "OpenSSL.</b>", (1,3))
-            setsensitive_gpgwidgets         (True)
         
         # Loading openssl
         def openssl(fallback=False):
@@ -589,18 +578,6 @@ class Pyrite:
             else:
                 self.infobar("<b>OpenSSL only supports symmetric {en,de}cryption.</b>\n<small>"
                              "All key-based functions are disabled.</small>", (1,1), 7) 
-            self.g_encdec.set_active        (True)
-            self.g_symmetric.set_active     (True)
-            self.g_advanced.set_active      (False)
-            setsensitive_gpgwidgets         (False)
-            if startup or self.g_cipher.get_active() in {0, 2}:
-                # If starting up, or current cipher set to 'Default' or 'Twofish'
-                if self.p['cipher'] not in {0, 2}:
-                    # Set cipher to preference unless pref is 'Default' or 'Twofish'
-                    self.g_cipher.set_active        (self.p['cipher'])   
-                else:
-                    # Otherwise, set to AES
-                    self.g_cipher.set_active        (1)
         
         # Setup for neutered-run (when missing all backends)
         def err_allmissing():
@@ -640,10 +617,11 @@ class Pyrite:
                             "displayed here.\n\nIn the View menu you can change "
                             "the verbosity level, hide this pane, or simply change "
                             "the font size.".format(self.engine.lower()))
+        
+        self.set_defaults_from_prefs(startup)
     
     
     #--------------------------------------------- SET OPMODES, ETC, FROM PREFS
-    
     def set_defaults_from_prefs(self, startup=False):
         """Set window toggle states via preferences."""
         
@@ -700,6 +678,30 @@ class Pyrite:
                 self.g_slider.set_visible       (True)
             else:
                 self.g_window.set_opacity(self.p['opacity']/100.0)
+        
+        # These are all the widgets that can't be used in openssl mode
+        def setsensitive_gpgwidgets(x=True):
+            self.g_signverify.set_sensitive (x)
+            self.g_symmetric.set_sensitive  (x)
+            self.g_asymmetric.set_sensitive (x)
+            self.g_advanced.set_sensitive   (x)
+            self.g_taskverbose.set_visible  (x)  # OpenSSL doesn't have verbosity
+        
+        if self.engine in 'OpenSSL':
+            self.g_encdec.set_active        (True)
+            self.g_symmetric.set_active     (True)
+            self.g_advanced.set_active      (False)
+            if startup or self.g_cipher.get_active() in {0, 2}:
+                # If starting up, or current cipher set to 'Default' or 'Twofish'
+                if self.p['cipher'] not in {0, 2}:
+                    # Set cipher to preference unless pref is 'Default' or 'Twofish'
+                    self.g_cipher.set_active        (self.p['cipher'])   
+                else:
+                    # Otherwise, set to AES
+                    self.g_cipher.set_active        (1)        
+            setsensitive_gpgwidgets (False)
+        else:
+            setsensitive_gpgwidgets (True)
     
     
     #--------------------------------------------------------- HELPER FUNCTIONS

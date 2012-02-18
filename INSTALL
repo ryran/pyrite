@@ -22,12 +22,12 @@ fi
 echo OK
 
 
-echo -e "\nWill install a launcher ('pyrite') to /usr/bin/"
+echo -e "\nWill install a symlink ('pyrite') to /usr/bin/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/bin/"
 read -p ": " bin_dir
 [[ -z $bin_dir ]] && bin_dir=/usr/bin
 if [[ ! -w $bin_dir ]]; then
-    echo "Need write permission to create launcher in '$bin_dir'"
+    echo "Need write permission to create symlink in '$bin_dir'"
     echo "Re-run this script as root, i.e., 'sudo $0' or 'su -c $0'"
     exit 2
 fi
@@ -54,11 +54,8 @@ rm -rv "$install_dir"/*
 cp -rv --preserve=mode,timestamps modules ui pyrite.py "$install_dir"
 sed -i "/^assetdir.*=/s,'','$install_dir/'," "$install_dir/modules/core.py"
 
-cp -v --preserve=mode,timestamps pyrite "$bin_dir"
-sed -i "/^pyrite=/s,'.*','$install_dir/pyrite.py'," "$bin_dir/pyrite"
-chmod +x "$bin_dir/pyrite"
-
 cp -v --preserve=mode,timestamps pyrite.desktop "$shortcut_dir"
-
+echo -n "Creating symlink: "
+ln -vsf "$install_dir/pyrite.py" "$bin_dir/pyrite"
 
 echo -e "\nFinished!\nRun Pyrite from a terminal as simply 'pyrite', or find the desktop shortcut in your applications menu."
