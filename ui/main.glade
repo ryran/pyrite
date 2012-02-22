@@ -1020,7 +1020,7 @@ Use a semicolon to separate recipients</property>
 
 This is done in addition to any other recipients, or if in Advanced mode and performing symmetric encryption with a passphrase, then in addition to that
 
-Note for power users: if 'Change Default Key' in the signature options toolbar is enabled, the contents of its entry box are used as self, instead of the first secret key in your keyring</property>
+Note for power users: if "Change Default Key" in the signature options toolbar is enabled, the contents of its entry box are used as self, instead of the first secret key in your keyring</property>
                 <property name="use_underline">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="draw_indicator">True</property>
@@ -1070,7 +1070,7 @@ Configures symmetric encryption cipher algorithm
 
 In asymmetric mode, the chosen cipher is used in concert with recipients' pubkeys for encryption
 
-With 'Default', gpg decides the algorithm based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)
+With "Default", gpg decides the algorithm based on local system settings (weighing them against the preferences of recipient pubkeys if performing asymmetric encryption)
 
 OpenSSL Note:
 This is used for both encryption and decryption in openssl-mode
@@ -1544,7 +1544,7 @@ This will likely require you to interact with gpg-agent</property>
 This allows you to choose the signature type for signing in Sign/Verify mode
 
 Embedded:
-Encodes the signature and message together -- this is most often used along with encryption; however, even if you use it without encryption (in Sign/Verify mode), you will need to 'Decrypt' the signed output in order to retrieve the original message 
+Encodes the signature and message together -- this is most often used along with encryption; however, even if you use it without encryption (in Sign/Verify mode), you will need to "Decrypt" the signed output in order to retrieve the original message 
 
 Clearsign:
 Wraps the message with a plaintext signature
@@ -1602,7 +1602,7 @@ Creates a separate signature that does not contain the message -- in order to ve
 
 Configures message digest algorithm (used for hashing message, i.e., creating your signature)
 
-With 'Default', gpg decides the algorithm based on local system settings, weighing them against the preferences of your secret key</property>
+With "Default", gpg decides the algorithm based on local system settings, weighing them against the preferences of your secret key</property>
                 <property name="model">liststore_digest</property>
                 <property name="active">0</property>
                 <property name="focus_on_click">False</property>
@@ -1637,10 +1637,11 @@ With 'Default', gpg decides the algorithm based on local system settings, weighi
               <object class="GtkCheckButton" id="toggle_defaultkey">
                 <property name="label" translatable="yes">Change Default _Key:</property>
                 <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Tell gpg which secret key to use for signing
+                <property name="tooltip_text" translatable="yes">Tell gpg which secret key to use -- under common circumstances, this will only affect: (1) signing; (2) the calculation of "self" when using the "Enc. To Self" feature
 
 This is only useful if you have multiple secret keys in your keyring</property>
                 <property name="use_underline">True</property>
@@ -1660,7 +1661,7 @@ This is only useful if you have multiple secret keys in your keyring</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Key identifier of the non-default key to use for signing
 
-Input is passed to gpg '--local-user' option</property>
+Input is passed to gpg "--local-user" option</property>
                 <property name="invisible_char">●</property>
                 <property name="width_chars">11</property>
                 <property name="truncate_multiline">True</property>

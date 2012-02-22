@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/19
+# Last file mod: 2012/02/23
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -43,7 +43,7 @@ import prefs
 
 
 # Important variables
-version                 = 'v1.0.0_dev13'
+version                 = 'v1.0.0_dev14'
 assetdir                = ''
 SIGSTOP, SIGCONT        = 19, 18
 
@@ -62,7 +62,7 @@ class Pyrite:
         d.destroy()
     
     
-    def __init__(self):
+    def __init__(self, cmdlineargs):
         """Build GUI interface from XML, etc."""        
         
         # Use GtkBuilder to build our GUI from the XML file 
@@ -187,7 +187,12 @@ class Pyrite:
         self.p = self.preferences.p
         
         # Launch gpg/openssl interface
-        self.instantiate_xface(startup=True)
+        if cmdlineargs and cmdlineargs.backend:
+            backend = cmdlineargs.backend
+        else:
+            backend = None
+        
+        self.instantiate_xface(xface=backend, startup=True)
         
         #------------------------------------------------ DRAG AND DROP FUNNESS
         TARGET_TYPE_URI_LIST = 80
@@ -196,29 +201,54 @@ class Pyrite:
         self.g_msgtxtview.drag_dest_set(
             gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
             dnd_list, gtk.gdk.ACTION_COPY)
+        
+        #---------------------------------------------------- CMDLINE ARGUMENTS
+        if cmdlineargs:
+            a = cmdlineargs
+
+            if a.input:
+                # Direct-file mode arg broken until GtkFileChooserButton bug gets fixed
+                if a.direct_file:
+                    self.g_chooserbtn.set_filename(a.input)
+                    self.g_expander.set_expanded(True)
+                elif a.text_input:  self.buff.set_text(a.input)
+                else:               self.open_in_txtview(a.input)
+            
+            if self.engine not in 'OpenSSL':
+                if a.recipients:
+                    self.g_recip.set_text(a.recipients)
+                    self.g_asymmetric.set_active(True)
+                if a.symmetric:
+                    if a.recipients:  self.g_advanced.set_active(True)
+                    self.g_symmetric.set_active(True)
+                if a.defaultkey:
+                    self.g_defaultkey.set_text(a.defaultkey)
+                    self.g_chk_defkey.set_active(True)
+                if a.encdec:
+                    self.g_encdec.set_active(True)
+                elif a.signverify:
+                    self.g_signverify.set_active(True)
     
-    
-    def infobar(self, msg=None, config=(1,1), timeout=5, vbox=None):
-        """Instantiate a new auto-hiding InfoBar with a Label of msg."""
+    #--------------------------------------------------- OUR LOVELY COMM DEVICE
+    def infobar(self, msg=None, type=(1,1), timeout=5, vbox=None):
+        """Popup a new auto-hiding InfoBar."""
         
-        # Unpack message type, image type
-        msgtype, imgtype = config
+        # List of possible infobar message types
+        msgtypes = [0,
+                    gtk.MESSAGE_INFO,      # 1
+                    gtk.MESSAGE_QUESTION,  # 2
+                    gtk.MESSAGE_WARNING,   # 3
+                    gtk.MESSAGE_ERROR]     # 4
         
-        # Figure out what type of infobar was called
-        if   msgtype == 1:  msgtype = gtk.MESSAGE_INFO
-        elif msgtype == 2:  msgtype = gtk.MESSAGE_QUESTION
-        elif msgtype == 3:  msgtype = gtk.MESSAGE_WARNING
-        elif msgtype == 4:  msgtype = gtk.MESSAGE_ERROR
-        
-        # Figure out what kind of icon to show on the left of ibar
-        if   imgtype == 0:  imgtype = gtk.STOCK_APPLY
-        elif imgtype == 1:  imgtype = gtk.STOCK_DIALOG_INFO
-        elif imgtype == 2:  imgtype = gtk.STOCK_DIALOG_QUESTION
-        elif imgtype == 3:  imgtype = gtk.STOCK_DIALOG_WARNING
-        elif imgtype == 4:  imgtype = gtk.STOCK_DIALOG_ERROR
+        # List of possible images to show in infobar
+        imgtypes = [gtk.STOCK_APPLY,            # 0
+                    gtk.STOCK_DIALOG_INFO,      # 1
+                    gtk.STOCK_DIALOG_QUESTION,  # 2
+                    gtk.STOCK_DIALOG_WARNING,   # 3
+                    gtk.STOCK_DIALOG_ERROR]     # 4
             
         ibar                    = gtk.InfoBar()
-        ibar.set_message_type   (msgtype)
+        ibar.set_message_type   (msgtypes[type[0]])
         if vbox:
             # If specific vbox requested: assume ibar for filemode, add cancel button
             ibar.add_button     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
@@ -231,7 +261,7 @@ class Pyrite:
         vbox.pack_end           (ibar, False, False)
         content                 = ibar.get_content_area()
         img                     = gtk.Image()
-        img.set_from_stock      (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        img.set_from_stock      (imgtypes[type[1]], gtk.ICON_SIZE_LARGE_TOOLBAR)
         content.pack_start      (img, False, False)
         img.show                ()
         if msg:
@@ -349,20 +379,18 @@ class Pyrite:
         if self.p['advanced'] or self.p['enctype'] > 0:
             if self.p['addsig']:
                 self.g_signature.set_active     (True)
-                self.g_chk_defkey.set_active    (self.p['defkey'])
-            
             if self.p['enctoself']:
                 self.g_enctoself.set_active     (True)
         
         if self.p['opmode']:
             self.g_signverify.set_active    (True)
-            self.g_chk_defkey.set_active    (self.p['defkey'])
 
         if not self.g_expander.get_expanded():
             self.g_expander.set_expanded    (self.p['expander'])
         
         self.g_cipher.set_active            (self.p['cipher'])
         self.g_digest.set_active            (self.p['digest'])
+        self.g_chk_defkey.set_active        (self.p['defkey'])
         self.g_defaultkey.set_text          (self.p['defkeytxt'])
         
         if startup:
@@ -394,12 +422,14 @@ class Pyrite:
             self.g_symmetric.set_sensitive  (x)
             self.g_asymmetric.set_sensitive (x)
             self.g_advanced.set_sensitive   (x)
+            self.g_chk_defkey.set_sensitive (x)
             self.g_taskverbose.set_visible  (x)  # OpenSSL doesn't have verbosity
         
         if self.engine in 'OpenSSL':
             self.g_encdec.set_active        (True)
             self.g_symmetric.set_active     (True)
             self.g_advanced.set_active      (False)
+            self.g_chk_defkey.set_active    (False)
             if startup or self.g_cipher.get_active() in {0, 2}:
                 # If starting up, or current cipher set to 'Default' or 'Twofish'
                 if self.p['cipher'] not in {0, 2}:
@@ -1028,7 +1058,7 @@ class Pyrite:
     def action_toggle_signature(self, w):
         """Hide/show some widgets when toggling adding of a signature to input."""
 
-        sig_widgets = [self.g_sigmode, self.g_digest, self.g_digestlabel, self.g_chk_defkey]
+        sig_widgets = [self.g_sigmode, self.g_digest, self.g_digestlabel]
         
         if w.get_active():
             # If entering toggled state, show sig toolbar widgets
@@ -1038,7 +1068,6 @@ class Pyrite:
             # If leaving toggled state, hide sig toolbar widgets
             for widget in sig_widgets:
                 widget.set_visible      (False)
-            self.g_chk_defkey.set_active(False)
     
     
     # Called by 'Task Status Side Panel' checkbox toggle
@@ -1384,7 +1413,7 @@ class Pyrite:
                              "for details.</small>".format(action), (3,4))
     
     
-    #--------------------------------- HELPER FUNCTIONS FOR MAIN XFACE FUNCTION
+    #------------------------------------------ HELPERS FOR MAIN XFACE FUNCTION
     
     # CB for glib.io_add_watch()
     def update_task_status(self, fd, condition, output='task'):
