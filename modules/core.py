@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/23
+# Last file mod: 2012/02/29
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -40,12 +40,28 @@ from subprocess import check_output
 from time import sleep
 # Custom Modules:
 import prefs
+from messages import MESSAGE_DICT
 
 
 # Important variables
-version                 = 'v1.0.0_dev14'
-assetdir                = ''
+VERSION                 = 'v1.0.0_dev15'
+ASSETDIR                = ''
 SIGSTOP, SIGCONT        = 19, 18
+TARGET_TYPE_URI_LIST    = 80
+
+# List of possible Infobar message types
+MSGTYPES = [0,
+            gtk.MESSAGE_INFO,      # 1
+            gtk.MESSAGE_QUESTION,  # 2
+            gtk.MESSAGE_WARNING,   # 3
+            gtk.MESSAGE_ERROR]     # 4
+
+# List of possible images to show in Infobar
+IMGTYPES = [gtk.STOCK_APPLY,            # 0
+            gtk.STOCK_DIALOG_INFO,      # 1
+            gtk.STOCK_DIALOG_QUESTION,  # 2
+            gtk.STOCK_DIALOG_WARNING,   # 3
+            gtk.STOCK_DIALOG_ERROR]     # 4
 
 
 
@@ -67,7 +83,7 @@ class Pyrite:
         
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
-        try: builder.add_from_file(assetdir + 'ui/main.glade') 
+        try: builder.add_from_file(ASSETDIR + 'ui/main.glade') 
         except:
             self.show_errmsg(
                 "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
@@ -195,9 +211,7 @@ class Pyrite:
         self.instantiate_xface(xface=backend, startup=True)
         
         #------------------------------------------------ DRAG AND DROP FUNNESS
-        TARGET_TYPE_URI_LIST = 80
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
-        
         self.g_msgtxtview.drag_dest_set(
             gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
             dnd_list, gtk.gdk.ACTION_COPY)
@@ -230,51 +244,46 @@ class Pyrite:
                     self.g_signverify.set_active(True)
     
     #--------------------------------------------------- OUR LOVELY COMM DEVICE
-    def infobar(self, msg=None, type=(1,1), timeout=5, vbox=None):
+    def infobar(self, id, filename=None, customtext=None, vbox=None):
         """Popup a new auto-hiding InfoBar."""
         
-        # List of possible infobar message types
-        msgtypes = [0,
-                    gtk.MESSAGE_INFO,      # 1
-                    gtk.MESSAGE_QUESTION,  # 2
-                    gtk.MESSAGE_WARNING,   # 3
-                    gtk.MESSAGE_ERROR]     # 4
+        # Find the needed dictionary inside our message dict, by id
+        MSG = MESSAGE_DICT[id]
+        # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
+        msgtype = MSGTYPES[ MSG['type'] ]
+        imgtype = IMGTYPES[ MSG['icon'] ]
+        # Replace variables in message text & change text color
+        message = ("<span foreground='#2E2E2E'>" +
+                   MSG['text'].format(filename=filename, customtext=customtext) +
+                   "</span>")
         
-        # List of possible images to show in infobar
-        imgtypes = [gtk.STOCK_APPLY,            # 0
-                    gtk.STOCK_DIALOG_INFO,      # 1
-                    gtk.STOCK_DIALOG_QUESTION,  # 2
-                    gtk.STOCK_DIALOG_WARNING,   # 3
-                    gtk.STOCK_DIALOG_ERROR]     # 4
-            
-        ibar                    = gtk.InfoBar()
-        ibar.set_message_type   (msgtypes[type[0]])
+        # Now that we have all the data we need, START creating!
+        ibar = gtk.InfoBar()
+        ibar.set_message_type(msgtype)
         if vbox:
             # If specific vbox requested: assume ibar for filemode, add cancel button
-            ibar.add_button     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-            ibar.connect        ('response', self.cleanup_filemode)
+            ibar.add_button (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+            ibar.connect    ('response', self.cleanup_filemode)
         else:
             # If no specific vbox requested: do normal ibar at the top of message area
-            vbox = self.vbox_ibar
-            ibar.add_button     (gtk.STOCK_OK, gtk.RESPONSE_OK)
-            ibar.connect        ('response', lambda *args: ibar.destroy())
-        vbox.pack_end           (ibar, False, False)
-        content                 = ibar.get_content_area()
-        img                     = gtk.Image()
-        img.set_from_stock      (imgtypes[type[1]], gtk.ICON_SIZE_LARGE_TOOLBAR)
-        content.pack_start      (img, False, False)
-        img.show                ()
-        if msg:
-            # If msg was specified, show it, but change the default color
-            label               = gtk.Label()
-            label.set_markup    ("<span foreground='#2E2E2E'>{}</span>".format(msg))
-            content.pack_start  (label, False, False)
-            label.show          ()
+            vbox            = self.vbox_ibar
+            ibar.add_button (gtk.STOCK_OK, gtk.RESPONSE_OK)
+            ibar.connect    ('response', lambda *args: ibar.destroy())
+        vbox.pack_end       (ibar, False, False)
+        content             = ibar.get_content_area()
+        img                 = gtk.Image()
+        img.set_from_stock  (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        content.pack_start  (img, False, False)
+        img.show            ()
+        label               = gtk.Label()
+        label.set_markup    (message)
+        content.pack_start  (label, False, False)
+        label.show          ()
         # FIXME: Why doesn't Esc trigger this close signal?
-        ibar.connect            ('close', lambda *args: ibar.destroy())
+        ibar.connect        ('close', lambda *args: ibar.destroy())
         ibar.show()
-        if timeout:
-            glib.timeout_add_seconds(timeout, ibar.destroy)
+        if MSG['timeout'] > 0:
+            glib.timeout_add_seconds(MSG['timeout'], ibar.destroy)
         return ibar
     
     
@@ -298,8 +307,7 @@ class Pyrite:
             self.g_mengine.set_label        ("Use OpenSSL as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
-                self.infobar("<b>Shockingly, your system does not appear to have "
-                             "OpenSSL.</b>", (1,3))
+                self.infobar('engine_openssl_missing')
         
         # Loading openssl
         def openssl(fallback=False):
@@ -309,21 +317,13 @@ class Pyrite:
             self.g_mengine.set_label("Use GnuPG as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
-                self.infobar("<b>GnuPG not found. Operating in OpenSSL fallback-mode.</b>\n"
-                             "<small>To make full use of this program you need either "
-                             "<tt>gpg</tt> or <tt>gpg2</tt> installed.\nWithout one of them, "
-                             "you won't have access key-based functions like\nasymmetric "
-                             "encryption or singing.</small>", (1,3), 20)
+                self.infobar('engine_gpg_missing')
             else:
-                self.infobar("<b>OpenSSL only supports symmetric {en,de}cryption.</b>\n<small>"
-                             "All key-based functions are disabled.</small>", (1,1), 7) 
+                self.infobar('engine_openssl_notice')
         
         # Setup for neutered-run (when missing all backends)
         def err_allmissing():
-            self.infobar("<b>This program requires one of: <tt>gpg</tt>, <tt>gpg2</tt>, or <tt>openssl</tt></b>\n"
-                         "<small>None of these were found on your system. You can look around\n"
-                         "the interface, but to have real fun you'll need to install <tt>gpg</tt> or <tt>gpg2</tt>\n"
-                         "from your linux distribution's software repository.</small>", (4,3), 0)
+            self.infobar('engine_all_missing')
             self.g_mengine.set_sensitive(False)
             for w in self.g_encrypt, self.g_decrypt:  w.set_sensitive(False)
             class dummy:  pass
@@ -491,12 +491,9 @@ class Pyrite:
         try:
             with open(filename) as f:  self.buff.set_text(f.read())
             if self.buff.get_char_count() < 1:
-                self.infobar("<b>To operate on binary files, use the\n<i>Input File For "
-                             "Direct Operation </i> chooser button.</b>", 
-                             (1,3), 8)
+                self.infobar('txtview_fileopen_binary_error')
         except:
-            self.infobar("<b>Error. Could not open file:\n<i><tt><small>{}</small></tt></i></b>"
-                         .format(filename), (3,4))
+            self.infobar('txtview_fileopen_error', filename)
     
     
     # This is called when entering & exiting direct-file mode
@@ -511,10 +508,10 @@ class Pyrite:
     
     
     # This is called when user tries to copyall, save, or {en,de}crypt/sign/verify
-    def test_msgbuff_isempty(self, msg):
+    def test_msgbuff_isempty(self, message):
         """Return True + show infobar containing msg if Message area is empty."""
         if self.buff.get_char_count() < 1:
-            self.infobar("<b>{}</b>".format(msg), (1,3), 2)
+            self.infobar('txtview_empty', customtext=message)
             return True
     
     
@@ -589,8 +586,7 @@ class Pyrite:
         # Prompt for filename but err out if file can't be read
         infile = self.g_chooserbtn.get_filename()
         if not access(infile, R_OK):
-            self.infobar("<b>Error. Could not open file:\n<i><tt><small>{}</small></tt></i></b>\n"
-                         "<small>Choose a new file.</small>".format(infile), (3,4))
+            self.infobar('filemode_fileopen_error', infile)
             return
         
         # Tweak some widgets if in Sign/Verify mode
@@ -629,12 +625,7 @@ class Pyrite:
             self.filemode_enablewidgets(False)
         
         # Create filemode infobar with cancel button
-        self.ib_filemode = self.infobar(
-            "<b><i>Encrypt</i>, <i>Decrypt</i>, <i>Sign</i>, or <i>Verify</i>?</b>\n"
-            "<small>Ready to operate on file:\n"
-            "<i><tt>{}</tt></i>\n"
-            "You will be prompted for an output filename if necessary.</small>"
-            .format(infile), (2,2), 0, self.vbox_ibar2)
+        self.ib_filemode = self.infobar('filemode_blue_banner', infile, vbox=self.vbox_ibar2)
         
         # Set input file
         self.x.io['infile'] = infile
@@ -686,7 +677,7 @@ class Pyrite:
     # Called when dnd occurs on Message TextView
     def action_drag_data_received(self, w, context, x, y, selection, target_type, timestamp):
         """Read dragged text file into Message area."""
-        if target_type == 80:
+        if target_type == TARGET_TYPE_URI_LIST:
             uri = selection.data.strip('\r\n\x00')
             uri = uri.split()[0]
             path = self.get_file_path_from_dnd_dropped_uri(uri)
@@ -716,11 +707,11 @@ class Pyrite:
     def action_about(self, w):
         """Launch About dialog."""
         builder = gtk.Builder()
-        builder.add_from_file(assetdir + 'ui/about.glade') 
+        builder.add_from_file(ASSETDIR + 'ui/about.glade') 
         about = builder.get_object('aboutdialog')
         about.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
         about.set_transient_for(self.g_window)
-        about.set_version(version)
+        about.set_version(VERSION)
         about.connect('response', lambda *args: about.destroy())
         about.show()
     
@@ -738,8 +729,7 @@ class Pyrite:
             if self.preferences.save_prefs():
                 # If success: destroy pref window, show infobar
                 self.preferences.window.destroy()
-                self.infobar("<b>Saved preferences to <i><tt><small>{}</small></tt></i>\n"
-                             "but no changes made to current session.</b>".format(prefs.userpref_file), (1,0))
+                self.infobar('preferences_save_success', prefs.USERPREF_FILE)
         
         # CB for pref window's apply button
         def applypref(*args):
@@ -750,8 +740,7 @@ class Pyrite:
                 self.p = self.preferences.p
                 if self.x.io['infile']:  self.cleanup_filemode()
                 self.instantiate_xface(startup=True)
-                self.infobar("<b>Saved preferences to <i><tt><small>{}</small></tt></i>\n"
-                             "and applied them to current session.</b>".format(prefs.userpref_file), (1,0))
+                self.infobar('preferences_apply_success', prefs.USERPREF_FILE)
         
         # Connect signals
         self.preferences.btn_save.connect  ('clicked', savepref)
@@ -815,12 +804,10 @@ class Pyrite:
         try:
             # If can open file for writing, show success infobar
             with open(filename, 'w') as f:  f.write(buffertext)
-            self.infobar("<b>Saved contents of Message area to file:\n"
-                         "<i><tt><small>{}</small></tt></i></b>".format(filename), (1,0))
+            self.infobar('txtview_save_success', filename)
         except:
             # Otherwise, show error
-            self.infobar("<b>Error. Could not save to file:\n<i><tt><small>{}</small></tt></i></b>"
-                         .format(filename), (3,4))
+            self.infobar('txtview_save_error', filename)
         
         # Clear saving status
         self.g_statusbar.pop(self.status)
@@ -860,7 +847,7 @@ class Pyrite:
         self.buff.select_range(self.buff.get_start_iter(),
                                self.buff.get_end_iter())
         self.buff.copy_clipboard(gtk.clipboard_get())
-        self.infobar("<b>Copied contents of Message area to clipboard.</b>", (1,0), 3)
+        self.infobar('txtview_copyall_success')
     
     
     # Called by Zoom menu items
@@ -886,19 +873,22 @@ class Pyrite:
             cipher = self.grab_activetext_combobox(self.g_cipher)
             if not cipher:
                 self.g_cipher.set_active(1)
-                self.infobar("<b>OpenSSL has no default cipher.</b>\n<small>AES256 is "
-                             "a good choice.</small>", (1,1), 7)
+                self.infobar('cipher_openssl_no_default')
             elif cipher in 'Twofish':
                 self.g_cipher.set_active(1)
-                self.infobar("<b>OpenSSL has no support for the Twofish cipher.</b>", (1,1))
+                self.infobar('cipher_openssl_no_twofish')
             elif cipher in 'AES':
-                self.infobar("<b>Note for the command-line geeks:</b>\n<small><i>AES</i> translates "
-                             "to OpenSSL's <i>aes-128-cbc</i>.</small>", (1,1))
+                self.infobar('cipher_openssl_aes_note')
     
     
     # Called by Encrypt/Sign toolbar btn
     def action_encrypt(self, w):
         """Encrypt or sign input."""
+        # DEBUG
+        #self.g_chooserbtn.select_filename('/etc/passwd')
+        #self.g_expander.set_expanded(True)
+        #gtk.main_iteration()
+        #return
         if self.g_signverify.get_active():
             # If in sign-only mode, figure out which sig-type
             if self.g_sigmode.get_active() == 0:
@@ -1154,7 +1144,7 @@ class Pyrite:
             passwd = self.g_pass.get_text()
             if not passwd:
                 if self.engine in 'OpenSSL':
-                    self.infobar("<b>Passphrase?</b>", (1,2), 3)
+                    self.infobar('x_missing_passphrase')
                     return
                 passwd = None  # If passwd was '' , set to None, which will trigger gpg-agent if necessary
         
@@ -1304,36 +1294,24 @@ class Pyrite:
                 elif action in 'verify':
                     action = action.title()
                     
-                self.infobar("<b>{} operation canceled.</b>\n<small>To choose different input or "
-                             "output filenames, select <i>Cancel</i>\nfrom the blue bar below.</small>"
-                             .format(action), (1,3), 6)
+                self.infobar('x_canceled_filemode', customtext=action)
             
             elif self.x.childprocess.returncode == 0:  # File Success!
 
                 if self.engine in 'OpenSSL' and action in 'enc':
-                    self.infobar("<b>OpenSSL encrypted input file with {} cipher;\nsaved output to file:\n"
-                                 "<i><tt><small>{}</small></tt></i></b>\n"
-                                 "<small>In order to decrypt that file in the future, you will need to \n"
-                                 "remember which cipher you used .. or guess until you figure it out.</small>"
-                                 .format(cipher, self.x.io['outfile']), (1,0), 10)
+                    self.infobar('x_opensslenc_success_filemode', self.x.io['outfile'], cipher)
 
                 elif action in {'enc', 'dec'}:
-                    self.infobar("<b>Saved {}rypted copy of input to file:\n"
-                                 "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(action, self.x.io['outfile']), (1,0))
+                    self.infobar('x_crypt_success_filemode', self.x.io['outfile'], action)
                 
                 elif action in {'embedsign', 'clearsign'}:
-                    self.infobar("<b>Saved signed copy of input to file:\n"
-                                 "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(self.x.io['outfile']), (1,0))
+                    self.infobar('x_sign_success_filemode', self.x.io['outfile'])
                 
                 elif action in 'detachsign':
-                    self.infobar("<b>Saved detached signature of input to file:\n"
-                                 "<i><tt><small>{}</small></tt></i></b>"
-                                 .format(self.x.io['outfile']), (1,0))
+                    self.infobar('x_detachsign_success_filemode', self.x.io['outfile'])
                 
                 elif action in 'verify':
-                    self.infobar("<b>Signature verified. Data integrity intact.</b>", (1,0), 4)
+                    self.infobar('x_verify_success')
                 
                 self.cleanup_filemode()
             
@@ -1341,23 +1319,16 @@ class Pyrite:
                 
                 self.ib_filemode.show()
                 if action in 'verify':
-                    self.infobar("<b>Signature or data integrity could not be verified.</b>\n<small>See<i> Task "
-                                 "Status </i> for details.</small>", (3,4), 7)
+                    self.infobar('x_verify_failed')
                     return
                 elif action in 'enc' and asymmetric and not recip and not enctoself:
-                    self.infobar("<b>For whom do you want to encrypt your message?</b>\n<small>If you don't "
-                                 "want to enter recipients and you don't want to select\n<i> Enc. To "
-                                 "Self</i>, you must add one of the directives\n"
-                                 "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
-                                 "to your <i><tt>gpg.conf</tt></i> file.</small>", (3,2), 0)
+                    self.infobar('x_missing_recip')
                     return
                 elif action in {'enc', 'dec'}:
-                    action = action + 'rypt'
+                    action += 'rypt'
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
-                self.infobar("<b>Problem {}ing file.</b>\n<small>See<i> Task Status </i> for "
-                             "details. Try a different passphrase or <i>Cancel</i>.</small>"
-                             .format(action), (3,4), 8)
+                self.infobar('x_generic_failed_filemode', customtext=action)
         
         # TEXT INPUT MODE CLEANUP
         else:
@@ -1375,42 +1346,32 @@ class Pyrite:
                 elif action in 'verify':
                     action = action.title()
                     
-                self.infobar("<b>{} operation canceled.</b>".format(action), (1,3), 5)
+                self.infobar('x_canceled_textmode', customtext=action)
             
             elif self.x.childprocess.returncode == 0:  # Text Success!
                 
                 if action in 'verify':
-                    self.infobar("<b>Signature verified. Data integrity intact.</b>", (1,0), 4)
+                    self.infobar('x_verify_success')
                 else:
                     # Set TextBuffer to gpg stdout
                     self.buff.set_text(self.x.io['stdout'])
                     self.x.io['stdout'] = 0
                     if self.engine in 'OpenSSL' and action in 'enc':
-                        self.infobar("<b>OpenSSL encrypted input using {} cipher.</b>\n"
-                                     "<small>In order to decrypt the output in the future, you will need to \n"
-                                     "remember which cipher you used .. or guess until you figure it out.</small>"
-                                     .format(cipher), (1,0), 9)
+                        self.infobar('x_opensslenc_success_textmode', customtext=cipher)
             
             else:  # Text Fail!
                 
                 if action in 'verify':
-                    self.infobar("<b>Signature or data integrity could not be verified.</b>\n<small>See<i> "
-                                 "Task Status </i> for details.</small>", (3,4), 7)
+                    self.infobar('x_verify_failed')
                     return
                 elif action in 'enc' and asymmetric and not recip and not enctoself:
-                    self.infobar("<b>For whom do you want to encrypt your message?</b>\n<small>If you don't "
-                                 "want to enter recipients and you don't want to select\n<i> Enc. To "
-                                 "Self</i>, you must add one of the directives\n"
-                                 "\t<b><tt>default-recipient-self\n\tdefault-recipient <i>name</i></tt></b>\n"
-                                 "to your <i><tt>gpg.conf</tt></i> file.</small>",
-                                 (3,2), 0)
+                    self.infobar('x_missing_recip')
                     return
                 elif action in {'enc', 'dec'}:
                     action = action + 'rypt'
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = 'sign'
-                self.infobar("<b>Problem {}ing input.</b>\n<small>See<i> Task Status </i>"
-                             "for details.</small>".format(action), (3,4))
+                self.infobar('x_generic_failed_textmode', customtext=action)
     
     
     #------------------------------------------ HELPERS FOR MAIN XFACE FUNCTION

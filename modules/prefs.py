@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/19
+# Last file mod: 2012/02/29
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -30,12 +30,28 @@ import glib
 import cPickle as pickle
 from sys import stderr
 from os import access, R_OK, getenv
+# Custom Modules:
+from messages import PREFS_MESSAGE_DICT as MESSAGE_DICT
 
 
 # Important variables
-assetdir                = ''
-userpref_file           = getenv('HOME') + '/.pyrite'
-userpref_format_info    = {'version':'Must6fa'}
+ASSETDIR                = ''
+USERPREF_FILE           = getenv('HOME') + '/.pyrite'
+USERPREF_FORMAT_INFO    = {'version':'Must6fa'}
+
+# List of possible Infobar message types
+MSGTYPES = [0,
+            gtk.MESSAGE_INFO,      # 1
+            gtk.MESSAGE_QUESTION,  # 2
+            gtk.MESSAGE_WARNING,   # 3
+            gtk.MESSAGE_ERROR]     # 4
+
+# List of possible images to show in Infobar
+IMGTYPES = [gtk.STOCK_APPLY,            # 0
+            gtk.STOCK_DIALOG_INFO,      # 1
+            gtk.STOCK_DIALOG_QUESTION,  # 2
+            gtk.STOCK_DIALOG_WARNING,   # 3
+            gtk.STOCK_DIALOG_ERROR]     # 4
 
 
 
@@ -43,20 +59,22 @@ class Preferences:
     """Preferences system.
     
     Try to read preferences from user preferences file; failing that, initialize
-    good defaults. This class also includes the Preferences setting window.
+    good defaults. This class also includes the Preferences-setting window.
     """
     
     
     def __init__(self, reset_defaults=False):
+        
         try:
             if reset_defaults:
                 raise Exception
-            with open(userpref_file, 'rb') as f:
+            with open(USERPREF_FILE, 'rb') as f:
                 v = pickle.load(f)
-                if v['version'] != userpref_format_info['version']:
+                if v['version'] != USERPREF_FORMAT_INFO['version']:
                     raise Exception
                 self.p = dict(pickle.load(f))
-            stderr.write("Pyrite loaded preferences from file {!r}\n".format(userpref_file))
+            stderr.write("Pyrite loaded preferences from file {!r}\n".format(USERPREF_FILE))
+        
         except:
             stderr.write("Pyrite loaded default preferences\n")
             # Default preferences
@@ -93,8 +111,8 @@ class Preferences:
                 color_bg='#ffffffffffff')
     
     
-    def infobar(self, msg=None, config=(1,1), timeout=8):
-        """Instantiate a new auto-hiding InfoBar with a Label of msg."""
+    def infobar(self, id, filename=None, customtext=None):
+        """Popup a new auto-hiding InfoBar."""
         
         # CB for destroy timeout
         def destroy_ibar():
@@ -107,43 +125,38 @@ class Preferences:
             glib.source_remove(self.ibar_timeout)
             destroy_ibar()
         
-        # Unpack message type, image type
-        msgtype, imgtype = config
+        # Find the needed dictionary inside our message dict, by id
+        MSG = MESSAGE_DICT[id]
+        # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
+        msgtype = MSGTYPES[ MSG['type'] ]
+        imgtype = IMGTYPES[ MSG['icon'] ]
+        # Replace variables in message text & change text color
+        message = ("<span foreground='#2E2E2E'>" +
+                   MSG['text'].format(filename=filename, customtext=customtext) +
+                   "</span>")
         
-        # Figure out what type of infobar was called
-        if   msgtype == 1:  msgtype = gtk.MESSAGE_INFO
-        elif msgtype == 2:  msgtype = gtk.MESSAGE_QUESTION
-        elif msgtype == 3:  msgtype = gtk.MESSAGE_WARNING
-        elif msgtype == 4:  msgtype = gtk.MESSAGE_ERROR
-        
-        # Figure out what kind of icon to show on the left of ibar
-        if   imgtype == 0:  imgtype = gtk.STOCK_APPLY
-        elif imgtype == 1:  imgtype = gtk.STOCK_DIALOG_INFO
-        elif imgtype == 2:  imgtype = gtk.STOCK_DIALOG_QUESTION
-        elif imgtype == 3:  imgtype = gtk.STOCK_DIALOG_WARNING
-        elif imgtype == 4:  imgtype = gtk.STOCK_DIALOG_ERROR
-        
-        self.ibar                   = gtk.InfoBar()
-        self.ibar.set_message_type  (msgtype)
+        # Now that we have all the data we need, START creating!     
+        self.ibar               = gtk.InfoBar()
+        self.ibar.set_message_type(msgtype)
         self.vbox_ib.pack_end   (self.ibar, False, False)
         img                     = gtk.Image()
         img.set_from_stock      (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
         label                   = gtk.Label()
-        label.set_markup        ("<span foreground='#2E2E2E'>{}</span>".format(msg))
+        label.set_markup        (message)
         content                 = self.ibar.get_content_area()
         content.pack_start      (img, False, False)
         content.pack_start      (label, False, False)
         img.show                ()
         label.show              ()
         self.ibar.show          ()
-        self.ibar_timeout       = glib.timeout_add_seconds(timeout, destroy_ibar)
+        self.ibar_timeout       = glib.timeout_add_seconds(MSG['timeout'], destroy_ibar)
     
     
     def open_preferences_window(self, parentwindow):
         """Show the preferences window. Duh."""
         self.ibar_timeout = 0
         builder = gtk.Builder()
-        builder.add_from_file(assetdir + 'ui/preferences.glade')
+        builder.add_from_file(ASSETDIR + 'ui/preferences.glade')
         # Main window
         self.window         = builder.get_object('window1')
         self.btn_save       = builder.get_object('btn_save')
@@ -183,7 +196,7 @@ class Preferences:
         #self.tg_args_gpg_e  = builder.get_object('tg_args_gpg_e')
         #self.en_args_gpg_e  = builder.get_object('en_args_gpg_e')
         self.window.set_transient_for(parentwindow)
-        if access(userpref_file, R_OK):
+        if access(USERPREF_FILE, R_OK):
             btn_revert = builder.get_object('btn_revert')
             btn_revert.set_sensitive(True)
         self.populate_pref_window_prefs()
@@ -265,14 +278,12 @@ class Preferences:
     def save_prefs(self):
         """Attempt to save user prefs to homedir prefs file."""
         try:
-            with open(userpref_file, 'wb') as f:
-                pickle.dump(userpref_format_info, f, protocol=2)
+            with open(USERPREF_FILE, 'wb') as f:
+                pickle.dump(USERPREF_FORMAT_INFO, f, protocol=2)
                 pickle.dump(self.capture_current_prefs(), f, protocol=2)
-                stderr.write("Pyrite saved preferences to file {!r}\n".format(userpref_file))
+                stderr.write("Pyrite saved preferences to file {!r}\n".format(USERPREF_FILE))
         except:
-            self.infobar("<b>Saving preferences failed.</b>\nUnable to open config file "
-                         "<i><tt><small>{} </small></tt></i> for writing."
-                         .format(userpref_file), (4,3), 20)
+            self.infobar('prefs_save_failed', USERPREF_FILE)
             return False
         return True
     
@@ -288,7 +299,7 @@ class Preferences:
         """Reset state of widgets in prefs window via external preferences file, if avail."""
         self.__init__()
         self.populate_pref_window_prefs()
-        self.infobar("<b>Reverted to user-saved preferences.</b>", (1,0), 3)
+        self.infobar('prefs_reverted')
     
     
     # Called by Defaults button
@@ -296,28 +307,23 @@ class Preferences:
         """Reset state of widgets in prefs window to predefined defaults."""
         self.__init__(reset_defaults=True)
         self.populate_pref_window_prefs()
-        self.infobar("<b>Preferences reset to defaults. You still need to <i>Save</i> or "
-                     "<i>Apply</i>.</b>", (1,0), 3)
+        self.infobar('prefs_reset_to_defaults')
     
     
     def action_tg_enctoself(self, w):
         """Show some info when user enables enctoself toggle."""
         if w.get_active():
-            self.infobar("<b>If you want <i>Encrypt to Self</i> on in Symmetric mode, "
-                         "you must set\n<i>Encryption Type</i> to 'Both'.</b>")
+            self.infobar('prefs_notice_enctoself')
     
     
     def action_tg_addsig(self, w):
         """Show some info when user enables addsig toggle."""
         if w.get_active():
-            self.infobar("<b>If you want <i>Add Signature</i> on in Symmetric mode, "
-                         "you must also enable\n<i>Advanced</i></b>.")
+            self.infobar('prefs_notice_addsig')
     
     
     def action_cb_enctype(self, w):
         """Show some info when user chooses 'Both' in  enctype combobox."""
         if w.get_active() == 2:
-            self.infobar("<b>In order for both encryption types to be on by default, "
-                         "<i>Advanced</i> will also be\nturned on, whether or not you "
-                         "select it now.</b>")
+            self.infobar('prefs_notice_enc_both')
 
