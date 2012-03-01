@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/29
+# Last file mod: 2012/03/01
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -23,7 +23,6 @@
 #
 #------------------------------------------------------------------------------
 
-
 # StdLib:
 import gtk
 gtk.gdk.threads_init()
@@ -39,29 +38,13 @@ from shlex import split
 from subprocess import check_output
 from time import sleep
 # Custom Modules:
+import cfg
 import prefs
 from messages import MESSAGE_DICT
 
-
 # Important variables
-VERSION                 = 'v1.0.0_dev15'
-ASSETDIR                = ''
 SIGSTOP, SIGCONT        = 19, 18
 TARGET_TYPE_URI_LIST    = 80
-
-# List of possible Infobar message types
-MSGTYPES = [0,
-            gtk.MESSAGE_INFO,      # 1
-            gtk.MESSAGE_QUESTION,  # 2
-            gtk.MESSAGE_WARNING,   # 3
-            gtk.MESSAGE_ERROR]     # 4
-
-# List of possible images to show in Infobar
-IMGTYPES = [gtk.STOCK_APPLY,            # 0
-            gtk.STOCK_DIALOG_INFO,      # 1
-            gtk.STOCK_DIALOG_QUESTION,  # 2
-            gtk.STOCK_DIALOG_WARNING,   # 3
-            gtk.STOCK_DIALOG_ERROR]     # 4
 
 
 
@@ -83,7 +66,7 @@ class Pyrite:
         
         # Use GtkBuilder to build our GUI from the XML file 
         builder = gtk.Builder()
-        try: builder.add_from_file(ASSETDIR + 'ui/main.glade') 
+        try: builder.add_from_file(cfg.ASSETDIR + 'ui/main.glade') 
         except:
             self.show_errmsg(
                 "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
@@ -250,8 +233,8 @@ class Pyrite:
         # Find the needed dictionary inside our message dict, by id
         MSG = MESSAGE_DICT[id]
         # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
-        msgtype = MSGTYPES[ MSG['type'] ]
-        imgtype = IMGTYPES[ MSG['icon'] ]
+        msgtype = cfg.MSGTYPES[ MSG['type'] ]
+        imgtype = cfg.IMGTYPES[ MSG['icon'] ]
         # Replace variables in message text & change text color
         message = ("<span foreground='#2E2E2E'>" +
                    MSG['text'].format(filename=filename, customtext=customtext) +
@@ -707,11 +690,11 @@ class Pyrite:
     def action_about(self, w):
         """Launch About dialog."""
         builder = gtk.Builder()
-        builder.add_from_file(ASSETDIR + 'ui/about.glade') 
+        builder.add_from_file(cfg.ASSETDIR + 'ui/about.glade') 
         about = builder.get_object('aboutdialog')
         about.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
         about.set_transient_for(self.g_window)
-        about.set_version(VERSION)
+        about.set_version(cfg.VERSION)
         about.connect('response', lambda *args: about.destroy())
         about.show()
     
@@ -729,7 +712,7 @@ class Pyrite:
             if self.preferences.save_prefs():
                 # If success: destroy pref window, show infobar
                 self.preferences.window.destroy()
-                self.infobar('preferences_save_success', prefs.USERPREF_FILE)
+                self.infobar('preferences_save_success', cfg.USERPREF_FILE)
         
         # CB for pref window's apply button
         def applypref(*args):
@@ -740,7 +723,7 @@ class Pyrite:
                 self.p = self.preferences.p
                 if self.x.io['infile']:  self.cleanup_filemode()
                 self.instantiate_xface(startup=True)
-                self.infobar('preferences_apply_success', prefs.USERPREF_FILE)
+                self.infobar('preferences_apply_success', cfg.USERPREF_FILE)
         
         # Connect signals
         self.preferences.btn_save.connect  ('clicked', savepref)

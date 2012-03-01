@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/29
+# Last file mod: 2012/03/01
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -31,10 +31,11 @@ WARNING         = 3
 ERROR           = 4
 
 
-#============================================= INFOBAR MESSAGES FOR MAIN WINDOW
+#------------------------------------------------------------------------------
+                                             # INFOBAR MESSAGES FOR MAIN WINDOW
 MESSAGE_DICT = dict(
     
-    #----------------------------------------------------------- Backend Engine
+    #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - Backend Engine
     
     engine_openssl_missing = dict(
         text="<b>Shockingly, your system does not appear to have OpenSSL.</b>",
@@ -72,7 +73,7 @@ MESSAGE_DICT = dict(
         ),
     
     
-    #----------------------------------------- Textview Message Area Operations
+    #- - - - - - - - - - - - - - - - - - - - - Textview Message Area Operations
     
     txtview_empty = dict(
         text="<b>{customtext}</b>",
@@ -121,7 +122,7 @@ MESSAGE_DICT = dict(
         ),
     
     
-    #------------------------------------------------------ Filemode Operations
+    #- - - - - - - - - - - - - - - - - - - - - - - - - - -  Filemode Operations
     
     filemode_fileopen_error = dict(
         text=("<b>Error. Could not open file:\n"
@@ -134,7 +135,7 @@ MESSAGE_DICT = dict(
     
     filemode_blue_banner = dict(
         text=("<b><i>Encrypt</i>, <i>Decrypt</i>, <i>Sign</i>, or <i>Verify</i>?</b>\n"
-              "<small>Ready to operate on file:\n"
+              "<small>Choose an action to perform on file:\n"
               "<i><tt>{filename}</tt></i>\n"
               "You will be prompted for an output filename if necessary.</small>"),
         type=QUESTION,
@@ -143,7 +144,7 @@ MESSAGE_DICT = dict(
         ),
     
     
-    #------------------------------ Main xface (Enc/Dec/Sign/Verify) Operations
+    #- - - - - - - - - - - - - - -  Main xface (Enc/Dec/Sign/Verify) Operations
     
     x_missing_passphrase= dict(
         text="<b>Passphrase?</b>",
@@ -256,7 +257,7 @@ MESSAGE_DICT = dict(
         ),
     
     
-    #-------------------------------------------------- OpenSSL Cipher Warnings
+    #- - - - - - - - - - - - - - - - - - - - - - - - -  OpenSSL Cipher Warnings
     
     cipher_openssl_no_default = dict(
         text=("<b>OpenSSL has no default cipher.</b>\n"
@@ -282,7 +283,7 @@ MESSAGE_DICT = dict(
         ),
     
     
-    #------------------------------------------------------ Preferences Actions
+    #- - - - - - - - - - - - - - - - - - - - - - - - - - -  Preferences Actions
     
     preferences_save_success = dict(
         text=("<b>Saved preferences to <i><tt><small>{filename}</small></tt></i>\n"
@@ -304,7 +305,8 @@ MESSAGE_DICT = dict(
 
 
 
-#====================================== INFOBAR MESSAGES FOR PREFERENCES DIALOG
+#------------------------------------------------------------------------------
+                                      # INFOBAR MESSAGES FOR PREFERENCES DIALOG
 PREFS_MESSAGE_DICT = dict(
     
     prefs_save_failed = dict(

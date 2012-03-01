@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/29
+# Last file mod: 2012/03/01
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -23,35 +23,15 @@
 #
 #------------------------------------------------------------------------------
 
-
 # StdLib:
 import gtk
 import glib
 import cPickle as pickle
 from sys import stderr
-from os import access, R_OK, getenv
+from os import access, R_OK
 # Custom Modules:
+import cfg
 from messages import PREFS_MESSAGE_DICT as MESSAGE_DICT
-
-
-# Important variables
-ASSETDIR                = ''
-USERPREF_FILE           = getenv('HOME') + '/.pyrite'
-USERPREF_FORMAT_INFO    = {'version':'Must6fa'}
-
-# List of possible Infobar message types
-MSGTYPES = [0,
-            gtk.MESSAGE_INFO,      # 1
-            gtk.MESSAGE_QUESTION,  # 2
-            gtk.MESSAGE_WARNING,   # 3
-            gtk.MESSAGE_ERROR]     # 4
-
-# List of possible images to show in Infobar
-IMGTYPES = [gtk.STOCK_APPLY,            # 0
-            gtk.STOCK_DIALOG_INFO,      # 1
-            gtk.STOCK_DIALOG_QUESTION,  # 2
-            gtk.STOCK_DIALOG_WARNING,   # 3
-            gtk.STOCK_DIALOG_ERROR]     # 4
 
 
 
@@ -68,12 +48,12 @@ class Preferences:
         try:
             if reset_defaults:
                 raise Exception
-            with open(USERPREF_FILE, 'rb') as f:
+            with open(cfg.USERPREF_FILE, 'rb') as f:
                 v = pickle.load(f)
-                if v['version'] != USERPREF_FORMAT_INFO['version']:
+                if v['version'] != cfg.USERPREF_FORMAT_INFO['version']:
                     raise Exception
                 self.p = dict(pickle.load(f))
-            stderr.write("Pyrite loaded preferences from file {!r}\n".format(USERPREF_FILE))
+            stderr.write("Pyrite loaded preferences from file {!r}\n".format(cfg.USERPREF_FILE))
         
         except:
             stderr.write("Pyrite loaded default preferences\n")
@@ -128,8 +108,8 @@ class Preferences:
         # Find the needed dictionary inside our message dict, by id
         MSG = MESSAGE_DICT[id]
         # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
-        msgtype = MSGTYPES[ MSG['type'] ]
-        imgtype = IMGTYPES[ MSG['icon'] ]
+        msgtype = cfg.MSGTYPES[ MSG['type'] ]
+        imgtype = cfg.IMGTYPES[ MSG['icon'] ]
         # Replace variables in message text & change text color
         message = ("<span foreground='#2E2E2E'>" +
                    MSG['text'].format(filename=filename, customtext=customtext) +
@@ -156,7 +136,7 @@ class Preferences:
         """Show the preferences window. Duh."""
         self.ibar_timeout = 0
         builder = gtk.Builder()
-        builder.add_from_file(ASSETDIR + 'ui/preferences.glade')
+        builder.add_from_file(cfg.ASSETDIR + 'ui/preferences.glade')
         # Main window
         self.window         = builder.get_object('window1')
         self.btn_save       = builder.get_object('btn_save')
@@ -196,7 +176,7 @@ class Preferences:
         #self.tg_args_gpg_e  = builder.get_object('tg_args_gpg_e')
         #self.en_args_gpg_e  = builder.get_object('en_args_gpg_e')
         self.window.set_transient_for(parentwindow)
-        if access(USERPREF_FILE, R_OK):
+        if access(cfg.USERPREF_FILE, R_OK):
             btn_revert = builder.get_object('btn_revert')
             btn_revert.set_sensitive(True)
         self.populate_pref_window_prefs()
@@ -278,12 +258,12 @@ class Preferences:
     def save_prefs(self):
         """Attempt to save user prefs to homedir prefs file."""
         try:
-            with open(USERPREF_FILE, 'wb') as f:
-                pickle.dump(USERPREF_FORMAT_INFO, f, protocol=2)
+            with open(cfg.USERPREF_FILE, 'wb') as f:
+                pickle.dump(cfg.USERPREF_FORMAT_INFO, f, protocol=2)
                 pickle.dump(self.capture_current_prefs(), f, protocol=2)
-                stderr.write("Pyrite saved preferences to file {!r}\n".format(USERPREF_FILE))
+                stderr.write("Pyrite saved preferences to file {!r}\n".format(cfg.USERPREF_FILE))
         except:
-            self.infobar('prefs_save_failed', USERPREF_FILE)
+            self.infobar('prefs_save_failed', cfg.USERPREF_FILE)
             return False
         return True
     
