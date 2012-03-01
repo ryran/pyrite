@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/02/14
+# Last file mod: 2012/03/02
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -30,7 +30,16 @@ from subprocess import Popen, PIPE, check_output
 from time import sleep
 
 
-class Xface():
+
+def flatten_list_to_stderr(list):
+    stderr.write("------------------------------------------------------------------------------\n")
+    for item in list:
+        stderr.write(item + " ")
+    stderr.write("\n\n")
+
+
+
+class Gpg():
     """GPG/GPG2 interface for encryption/decryption/signing/verifying.
     
     First thing: use subprocess module to call a gpg or gpg2 process, ensuring
@@ -52,11 +61,11 @@ class Xface():
         
         def gpg1():
             self.vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
-            self.GPG = 'gpg'
+            self.GPG_BINARY = 'gpg'
         
         def gpg2():
             self.vers = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
-            self.GPG = 'gpg2'
+            self.GPG_BINARY = 'gpg2'
         
         if firstchoice == 'gpg':
             try: gpg1()
@@ -147,7 +156,7 @@ class Xface():
         fd_pwd_R    = None
         fd_pwd_W    = None
         useagent    = True
-        cmd         = [self.GPG]
+        cmd         = [self.GPG_BINARY]
         
         if self.io['gstatus']:
             # Status to file descriptor option
@@ -194,11 +203,12 @@ class Xface():
                     cmd.append(r)
         
         # Decrypt opts
-        elif action in 'dec':   cmd.append('--decrypt')
+        elif action in 'dec':
+            cmd.append('--decrypt')
         
         # Sign opts
         elif action in {'embedsign', 'clearsign', 'detachsign'}:
-            if action in 'embedsign':       cmd.append('--sign')
+            if   action in 'embedsign':     cmd.append('--sign')
             elif action in 'clearsign':     cmd.append('--clearsign')
             elif action in 'detachsign':    cmd.append('--detach-sign')
             if digest:
@@ -206,7 +216,8 @@ class Xface():
                 cmd.append(digest)
         
         # Verify opts
-        elif action in 'verify':        cmd.append('--verify')
+        elif action in 'verify':
+            cmd.append('--verify')
         
         # Wouldn't hurt to use armor for all, but it only works with these 3
         if action in {'enc', 'embedsign', 'detachsign'}:
@@ -215,10 +226,13 @@ class Xface():
         
         # Action-independent opts
         if useagent:
-            if self.GPG in 'gpg':   cmd.append('--use-agent')
+            if self.GPG_BINARY in 'gpg':
+                cmd.append('--use-agent')
         else:
-            if self.GPG in 'gpg':   cmd.append('--no-use-agent')
-            else:                   cmd.append('--batch')
+            if self.GPG_BINARY in 'gpg':
+                cmd.append('--no-use-agent')
+            else:
+                cmd.append('--batch')
         if localuser:
             cmd.append('--local-user')
             cmd.append(localuser)
@@ -236,7 +250,8 @@ class Xface():
         if self.io['infile']:
             cmd.append(self.io['infile'])
         
-        stderr.write("{}\n\n".format(cmd))
+        # Print a separator + the command-arguments to stderr
+        flatten_list_to_stderr(cmd)
         
         # If working direct with files, setup our Popen instance with no stdin
         if self.io['infile']:
@@ -257,13 +272,141 @@ class Xface():
         close(self.io['stderr'][1])
         if self.io['gstatus']:
             close(self.io['gstatus'][1])
-        stderr.write("\n---------------------\n\n")
     
     
     def get_gpgdefaultkey(self):
         """Return key id of first secret key in gpg keyring.""" 
         return check_output(split(
             "{} --list-secret-keys --with-colons --fast-list-mode"
-            .format(self.GPG))).split(':', 5)[4]
+            .format(self.GPG_BINARY))).split(':', 5)[4]
+
+
+
+class Openssl():
+    """OpenSSL interface for encryption/decryption.
+    
+    First thing: use subprocess module to call an openssl process, ensuring it
+    is available on the system; if not, of course we have to quit (raise
+    exception). Either way, that's all for __init__.
+    
+    See the docstring for the main method -- openssl() -- for next steps.
+    
+    Security: Xface.openssl() can take a passphrase for symmetric enc/dec as
+    an argument, but it never stores that passphrase on disk; the passphrase is
+    passed to openssl via an os file descriptor.
+    
+    """
+    
+    def __init__(self, show_version=True):
+        """Confirm we can run openssl."""
+        
+        try:
+            vers = Popen(['openssl', 'version'], stdout=PIPE).communicate()[0]
+        except:
+            stderr.write("OpenSSL not found on your system.\n\n")
+            raise
+        
+        # To show or not to show version info
+        if show_version:
+            stderr.write("{}\n".format(vers))
+        
+        # I/O dictionary obj
+        self.io = dict(
+            stdin='',   # Stores input text for subprocess
+            stdout='',  # Stores stdout stream from subprocess
+            stderr=0,   # Stores tuple of r/w file descriptors for stderr stream
+            infile=0,   # Input filename for subprocess
+            outfile=0)  # Output filename for subprocess
+        
+        self.childprocess = None
+    
+    
+    # Main openssl interface method
+    def openssl(
+        self,
+        action,         # One of: enc, dec
+        passwd,         # Passphrase for symmetric
+        base64=True,    # Add '-a' when encrypting/decrypting?
+        cipher=None,    # Cipher in gpg-format; None = use aes256
+        ):
+        """Build an openssl cmdline and then launch it, saving output appropriately.
+
+        This method inspects the contents of class attr 'io' -- a dict object that should
+        contain all of the following keys, at least initialized to 0 or '':
+            stdin       # Input text for subprocess
+            infile      # Input filename for subprocess, in place of stdin
+            outfile     # Output filename -- required if infile was given
+        io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
+        must contain the input data.
+        
+        Whether reading input from infile or stdin, each openssl command's stdout &
+        stderr streams are saved to io['stdout'] and io['stderr'].
+        
+        Nothing is returned -- it is expected that this method is being run as a separate
+        thread and therefore the responsibility to determine success or failure falls on
+        the caller (i.e., by examining the Popen instance's returncode attribute).
+        
+        """
+        
+        if self.io['infile'] and self.io['infile'] == self.io['outfile']:
+            stderr.write("Same file for both input and output, eh? Is it going "
+                         "to work? ... NOPE. Chuck Testa.\n")
+            raise Exception("infile, outfile must be different")
+        
+        if cipher:  cipher = cipher.lower()
+        if   cipher == None:            cipher = 'aes-256-cbc'
+        elif cipher == '3des':          cipher = 'des-ede3-cbc'
+        elif cipher == 'cast5':         cipher = 'cast5-cbc'
+        elif cipher == 'blowfish':      cipher = 'bf-cbc'
+        elif cipher == 'aes':           cipher = 'aes-128-cbc'
+        elif cipher == 'aes192':        cipher = 'aes-192-cbc'
+        elif cipher == 'aes256':        cipher = 'aes-256-cbc'
+        elif cipher == 'camellia128':   cipher = 'camellia-128-cbc'
+        elif cipher == 'camellia192':   cipher = 'camellia-192-cbc'
+        elif cipher == 'camellia256':   cipher = 'camellia-256-cbc'
+        #else:                           cipher = 'aes-256-cbc'
+        
+        fd_pwd_R    = None
+        fd_pwd_W    = None
+        cmd         = ['openssl', cipher, '-pass']
+        
+        # Setup passphrase file descriptors
+        fd_pwd_R, fd_pwd_W = pipe()
+        write(fd_pwd_W, passwd)
+        close(fd_pwd_W)
+        cmd.append('fd:{}'.format(fd_pwd_R))
+        
+        if base64:
+            cmd.append('-a')
+        if action in 'enc':
+            cmd.append('-salt')
+        elif action in 'dec':
+            cmd.append('-d')
+        if self.io['infile']:
+            cmd.append('-in')
+            cmd.append(self.io['infile'])
+            cmd.append('-out')
+            cmd.append(self.io['outfile'])
+        
+        # Print a separator + the command-arguments to stderr
+        flatten_list_to_stderr(cmd)
+        
+        # If working direct with files, setup our Popen instance with no stdin
+        if self.io['infile']:
+            self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
+        # Otherwise, only difference for Popen is we need the stdin pipe
+        else:
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
+        
+        # Time to communicate! Save output for later
+        self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
+        
+        # Clear stdin from our dictionary asap, in case it's huge
+        self.io['stdin'] = ''
+        
+        # Close os file descriptors
+        close(fd_pwd_R)
+        sleep(0.1)  # Sleep a bit to ensure everything gets read
+        close(self.io['stderr'][1])
     
     

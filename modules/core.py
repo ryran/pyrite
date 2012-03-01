@@ -40,6 +40,7 @@ from time import sleep
 # Custom Modules:
 import cfg
 import prefs
+import crypt_interface
 from messages import MESSAGE_DICT
 
 # Important variables
@@ -191,7 +192,7 @@ class Pyrite:
         else:
             backend = None
         
-        self.instantiate_xface(xface=backend, startup=True)
+        self.instantiate_xface(preferred=backend, startup=True)
         
         #------------------------------------------------ DRAG AND DROP FUNNESS
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
@@ -271,7 +272,7 @@ class Pyrite:
     
     
     #----------------------------------------------------- BRING UP GPG/OPENSSL
-    def instantiate_xface(self, xface=None, startup=False):
+    def instantiate_xface(self, preferred=None, startup=False):
         """Instantiate Gpg or Openssl interface."""        
         
         b = ['gpg2', 'gpg', 'openssl']
@@ -279,23 +280,21 @@ class Pyrite:
         # Desired: convert the number setting to the human-readable name and store as b
         b = b[self.p['backend']]
         
-        # If we weren't passed xface argument, set desired interface to backend preference
-        if not xface:  xface = b
+        # If we weren't passed preferred argument, set desired interface to backend pref
+        if not preferred:  preferred = b
         
         # Loading gpg
         def gpg(backend_pref=b, fallback=False):
-            import xgpg
-            self.x = xgpg.Xface(firstchoice=backend_pref)
-            self.engine = self.x.GPG.upper()
-            self.g_mengine.set_label        ("Use OpenSSL as Engine")
+            self.x = crypt_interface.Gpg(firstchoice=backend_pref)
+            self.engine = self.x.GPG_BINARY.upper()
+            self.g_mengine.set_label("Use OpenSSL as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
                 self.infobar('engine_openssl_missing')
         
         # Loading openssl
         def openssl(fallback=False):
-            import xopenssl
-            self.x = xopenssl.Xface()
+            self.x = crypt_interface.Openssl()
             self.engine = 'OpenSSL'
             self.g_mengine.set_label("Use GnuPG as Engine")
             if fallback:
@@ -314,7 +313,7 @@ class Pyrite:
             self.x.io = dict(stdin='', stdout='', gstatus=0, infile=0, outfile=0)
         
         # Get it done!
-        if xface in 'openssl':
+        if preferred in 'openssl':
             # If loading openssl, try that first, then fallback to gpg
             try:
                 openssl()
@@ -1240,7 +1239,7 @@ class Pyrite:
                 glib.io_add_watch(
                     self.x.io['gstatus'][0],
                     glib.IO_IN | glib.IO_HUP,
-                    self.update_task_status, 'terminal')
+                    self.update_task_status, 'term')
             # ATTEMPT EN-/DECRYPTION w/GPG
             Thread(
                 target=self.x.gpg,
@@ -1375,6 +1374,8 @@ class Pyrite:
         
         # If other end of pipe hangs up, close our fd and destroy the watcher
         elif condition == glib.IO_HUP:
+            if output in 'term':
+                stderr.write("\n")
             close(fd)
             return False
     
