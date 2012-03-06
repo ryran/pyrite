@@ -3,21 +3,29 @@ Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python fronten
 
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
 
-DEPENDENCIES
+
+LINUX INSTALLATION
 ------------
-(Note: Designed for linux)
+In March I will prepare deb and rpm packages to make installation easy. For now...
 
-Python2.7; GTK+ v2.24 & pygtk; gpg or gpg2 or openssl
-
-
-INSTALLATION
-------------
 1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](/ryran/pyrite/zipball/master).
 
-2) Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
+2) Ensure you have the following on your linux system:  
+
+> *Debian-based package names*  
+> gtk2 > v2.24: `libgtk2.0-bin`  
+> pygtk: `python-gtk2`  
+> gpg: `gnupg` and `gnupg-agent` (or just `gnupg2`)
+> 
+> *RHT-/Fedora-based pkg names*  
+> gtk2 > v2.24: `gtk2`  
+> pygtk: `pygtk2`  
+> gpg: `gnupg` or `gnupg2`
+
+3) Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
 
 
-MORE SCREENSHOTS (v1.0.0_dev8):
+MORE SCREENSHOTS (v1.0.0_dev):
 -------------------------------
 ![](http://b19.org/linux/pyrite/2clearsign_txt.png)
 ![](http://b19.org/linux/pyrite/3enc_prog.png)

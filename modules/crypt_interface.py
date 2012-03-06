@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/03/02
+# Last file mod: 2012/03/05
 # Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012 Ryan Sawhill <ryan@b19.org>
 #
@@ -32,7 +32,7 @@ from time import sleep
 
 
 def flatten_list_to_stderr(list):
-    stderr.write("------------------------------------------------------------------------------\n")
+    stderr.write("-" * 79 + "\n")
     for item in list:
         stderr.write(item + " ")
     stderr.write("\n\n")
