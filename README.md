@@ -13,14 +13,14 @@ In March I will prepare deb and rpm packages to make installation easy. For now.
 2) Ensure you have the following on your linux system:  
 
 > *Debian-based package names*  
-> gtk2 > v2.24: `libgtk2.0-bin`  
-> python2 > v2.7: `python`  
+> gtk2 >= v2.24: `libgtk2.0-bin`  
+> python2 >= v2.7: `python`  
 > pygtk: `python-gtk2`  
 > gpg: `gnupg` and `gnupg-agent` (or just `gnupg2`)
 > 
 > *RHT-/Fedora-based pkg names*  
-> gtk2 > v2.24: `gtk2`  
-> python2 > v2.7: `python`  
+> gtk2 >= v2.24: `gtk2`  
+> python2 >= v2.7: `python`  
 > pygtk: `pygtk2`  
 > gpg: `gnupg` or `gnupg2`
 
