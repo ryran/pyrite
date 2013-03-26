@@ -65,7 +65,7 @@ cp -v --preserve=mode,timestamps pyrite.desktop "$shortcut_dir"
 echo -e "\nCreating shortcut $bin_dir/pyrite: "
 cat >$bin_dir/pyrite <<EOF
 #!/bin/bash
-cd $install_dir; exec ./pyrite.py
+cd $install_dir; exec ./pyrite.py "\$@"
 EOF
 chmod -v +x $bin_dir/pyrite
 echo OK
