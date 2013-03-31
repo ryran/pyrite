@@ -6,7 +6,7 @@ Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python fronten
 
 LINUX INSTALLATION
 ------------
-In March I will prepare deb and rpm packages to make installation easy. For now...
+I still need to prepare deb and rpm packages to make installation easy. For now...
 
 1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](/ryran/pyrite/zipball/master).
 
@@ -34,6 +34,35 @@ MORE SCREENSHOTS (v1.0.0_dev):
 ![](http://b19.org/linux/pyrite/4dec_txt.png)
 ![](http://b19.org/linux/pyrite/5openssl_txt.png)
 ![](http://b19.org/linux/pyrite/6prefs.png)
+
+**`pyrite` command-line options:**
+
+```
+[rsaw:~]$ pyrite --help
+usage: pyrite [-h] [-d | -t] [-e | -s] [-c] [-r RECIP] [-k KEYUID]
+              [-b {gpg,openssl}]
+              [INPUT]
+
+GnuPG/OpenSSL GUI to encrypt, decrypt, sign, or verify files/ASCII text input.
+
+positional arguments:
+  INPUT                 ascii input file to populate Message area with (NOTE:
+                        treatment of INPUT is modified by '-t' & '-d')
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d, --direct-file     flag INPUT as a file path to open in direct-mode
+  -t, --text-input      flag INPUT as text instead of a file path
+  -e, --encdec          enable encrypt/decrypt mode
+  -s, --signverify      enable sign/verify mode
+  -c, --symmetric       enable symmetric encryption mode
+  -r RECIP, --recipients RECIP
+                        recipients for asymmetric mode (semicolon-separated)
+  -k KEYUID, --defaultkey KEYUID
+                        override default gpg private key
+  -b {gpg,openssl}, --backend {gpg,openssl}
+                        backend program to use as encryption engine
+```
 
 
 FEATURES
