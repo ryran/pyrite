@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2012/03/01
+# Last file mod: 2013/07/16
 # Latest version at <http://github.com/ryran/pyrite>
-# Copyright 2012 Ryan Sawhill <ryan@b19.org>
+# Copyright 2012, 2013 Ryan Sawhill <ryan@b19.org>
 #
 # License:
 #
@@ -1160,7 +1160,7 @@ class Pyrite:
         verbose = self.g_taskverbose.get_active()
         # alwaystrust (setting True would allow encrypting to untrusted keys,
         #   which is how the nautilus-encrypt tool from seahorse-plugins works)
-        alwaystrust = False
+        alwaystrust = True
         # localuser
         if self.g_chk_defkey.get_active():
             localuser = self.g_defaultkey.get_text()

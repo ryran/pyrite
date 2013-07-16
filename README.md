@@ -8,7 +8,7 @@ LINUX INSTALLATION
 ------------
 I still need to prepare deb and rpm packages to make installation easy. For now...
 
-1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](/ryran/pyrite/zipball/master).
+1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
 
 2) Ensure you have the following on your linux system:  
 
@@ -119,7 +119,7 @@ The project could really use a little assistance from an artist -- it doesn't ha
 LICENSE
 -------
 
-Copyright (C) 2012 [Ryan Sawhill](http://b19.org) aka [ryran](/ryran)
+Copyright (C) 2012, 2013 [Ryan Sawhill](http://b19.org) aka [ryran](/ryran)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
