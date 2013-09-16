@@ -1,8 +1,8 @@
 #!/bin/bash
 
 echo -e "\nWill install Pyrite application files to /usr/share/pyrite/"
-echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/.local/share/pyrite/"
-read -p ": " install_dir
+echo "Enter to accept; otherwise enter a different dir, e.g., /home/$USER/.local/share/pyrite/"
+read -p "[/usr/share/pyrite]: " install_dir
 [[ -z $install_dir ]] && install_dir=/usr/share/pyrite || install_dir=${install_dir%/}
 if [[ -d $install_dir ]]; then
     echo "Directory '$install_dir' already exists."
@@ -24,7 +24,7 @@ echo OK
 
 echo -e "\nWill install a shortcut ('pyrite') to /usr/bin/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/bin/"
-read -p ": " bin_dir
+read -p "[/usr/bin/]: " bin_dir
 [[ -z $bin_dir ]] && bin_dir=/usr/bin
 if [[ ! -w $bin_dir ]]; then
     echo "Need write permission to create shortcut in '$bin_dir'"
@@ -36,7 +36,7 @@ echo OK
 
 echo -e "\nWill install a desktop shortcut ('pyrite.desktop') to /usr/share/applications/"
 echo "Press Enter to accept; otherwise enter a different dir, e.g., /home/$USER/.local/share/applications/"
-read -p ": " shortcut_dir
+read -p "[/usr/share/applications/]: " shortcut_dir
 [[ -z $shortcut_dir ]] && shortcut_dir=/usr/share/applications
 if [[ ! -w $shortcut_dir ]]; then
     echo "Need write permission to create desktop shortcut in '$shortcut_dir'"
@@ -53,19 +53,19 @@ read -p ": "
 rm -r "$install_dir"/* 2>/dev/null
 
 # Copy files to install dir
-cp -rv --preserve=mode,timestamps modules ui pyrite.py "$install_dir"
+cp -rv --preserve=mode,timestamps modules ui pyrite.py  "$install_dir"
 
 # Modify assetdir variable in cfg.py to point to the proper install dir
-sed -i "/^assetdir.*=/s,'','$install_dir/'," "$install_dir/modules/cfg.py"
+sed -i "/^ASSETDIR/s,'.*','$install_dir/',"  "$install_dir/modules/cfg.py"
 
 # Copy desktop shortcut
-cp -v --preserve=mode,timestamps pyrite.desktop "$shortcut_dir"
+cp -v --preserve=mode,timestamps pyrite.desktop  "$shortcut_dir"
 
 # Setup cmdline shortcut
 echo -e "\nCreating shortcut $bin_dir/pyrite: "
 cat >$bin_dir/pyrite <<EOF
 #!/bin/bash
-cd $install_dir; exec ./pyrite.py "\$@"
+exec python $install_dir/pyrite.py "$@"
 EOF
 chmod -v +x $bin_dir/pyrite
 echo OK

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
-# Last file mod: 2013/07/16
+# Last file mod: 2013/09/15
 # Latest version at <http://github.com/ryran/pyrite>
-# Copyright 2012, 2013 Ryan Sawhill <ryan@b19.org>
+# Copyright 2012, 2013 Ryan Sawhill Aroha <rsaw@redhat.com>
 #
 # License:
 #
@@ -70,18 +70,8 @@ class Pyrite:
         try: builder.add_from_file(cfg.ASSETDIR + 'ui/main.glade') 
         except:
             self.show_errmsg(
-                "Problem loading GtkBuilder UI definition! Cannot continue.\n\n"
-                "Possible causes:\n\n1) You haven't downloaded the whole Pyrite "
-                "package (pyrite.py needs the .glade files in the ui subdirectory).\n\n"
-                "2) You didn't use the INSTALL script to install Pyrite. This is OK as "
-                "long as you execute 'pyrite' from the pyrite directory.\n\n3) You "
-                "moved the pyrite dir after installing it.\n\nIn all cases, this could "
-                "be solved by simply downloading the package again from "
-                "github.com/ryran/pyrite and running INSTALL, following the directions."
-                "\n\nHowever, if you just want to try out Pyrite and you're sure you "
-                "downloaded the whole package, you can avoid this error (as #2 says) "
-                "by making sure you're in the pyrite directory when you execute it, "
-                "i.e.,\n'cd pyrite ; ./pyrite'")
+                "Problem loading GtkBuilder UI definition file at:\n    " +
+                cfg.ASSETDIR + "ui/main.glade\nCannot continue.")
             raise
         
         #--------------------------------------------------------- GET WIDGETS!

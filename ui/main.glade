@@ -1428,7 +1428,7 @@ Drag/drop of text files also supported</property>
                       <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;i&gt;_Message Input/Output&lt;/i&gt;</property>
+                        <property name="label" translatable="yes">&lt;i&gt;Message _Input/Output&lt;/i&gt;</property>
                         <property name="use_markup">True</property>
                         <property name="use_underline">True</property>
                         <property name="mnemonic_widget">textview1</property>

@@ -1,33 +1,44 @@
-Pyrite - GnuPG encrypting, decrypting, signing, & verifying [GTK+/Python frontend for gpg, gpg2, openssl]
-===============================================================
+Pyrite - Python/GTK+ encryption/signing frontend for GnuPG and OpenSSL
+======================================================================
 
 ![](http://b19.org/linux/pyrite/1enc_txt.png)
 
 
-LINUX INSTALLATION
-------------
-I still need to prepare deb and rpm packages to make installation easy. For now...
+FEDORA/RHEL7 INSTALLATION
+-------------------------
+There's an RPM (and yum repository) @ [people.redhat.com/rsawhill/rpms](http://people.redhat.com/rsawhill/rpms/). To configure it and install Pyrite, simply run the following as root:
 
-1) Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
+  ```
+  yum install http://people.redhat.com/rsawhill/rpms/latest-rsawaroha-release.rpm
+  yum install pyrite
+  ```
 
-2) Ensure you have the following on your linux system:  
+*Note that Pyrite is not compatible with RHEL6.*
+Requirements and package names:
 
-> *Debian-based package names*  
-> gtk2 >= v2.24: `libgtk2.0-bin`  
-> python2 >= v2.7: `python`  
-> pygtk: `python-gtk2`  
-> gpg: `gnupg` and `gnupg-agent` (or just `gnupg2`)
-> 
-> *RHT-/Fedora-based pkg names*  
-> gtk2 >= v2.24: `gtk2`  
-> python2 >= v2.7: `python`  
-> pygtk: `pygtk2`  
-> gpg: `gnupg` or `gnupg2`
-
-3) Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder (it's the file that's executable).
+- gtk2 >= v2.24: `gtk2`  
+- python2 >= v2.7: `python`  
+- pygtk: `pygtk2`  
+- gpg/openssl: `gnupg` or `gnupg2` or `openssl`
 
 
-MORE SCREENSHOTS (v1.0.0_dev):
+DEBIAN/UBUNTU/OTHER LINUX INSTALLATION
+--------------------------------------
+There is a simple shell installer.
+
+1. Ensure you have the following on your Linux system (Debian-based package names):
+
+    - gtk2 >= v2.24: `libgtk2.0-bin`  
+    - python2 >= v2.7: `python`  
+    - pygtk: `python-gtk2`  
+    - gpg/openssl: `gnupg` and `gnupg-agent` (or just `gnupg2`) 
+
+2. Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
+
+3. Execute the interactive `INSTALL` script OR if you just want to try it out, you can simply run `pyrite.py` from the root source folder.
+
+
+MORE SCREENSHOTS (v1.0.1):
 -------------------------------
 ![](http://b19.org/linux/pyrite/2clearsign_txt.png)
 ![](http://b19.org/linux/pyrite/3enc_prog.png)
@@ -108,8 +119,7 @@ PLEASE contact me (or [post a new issue on the tracker](/ryran/pyrite/issues)) w
 AUTHORS
 -------
 
-For now, just me.
-[ryran](/ryran)
+As far as direct contributions go, so far it's just me, [ryran](/ryran), aka rsaw, aka [Ryan Sawhill Aroha](http://b19.org).
 
 Feel free to contribute!
 The project could really use a little assistance from an artist -- it doesn't have an application icon. (!) Also, it could use icons for the encrypt, decrypt, sign, and verify buttons.
@@ -119,7 +129,7 @@ The project could really use a little assistance from an artist -- it doesn't ha
 LICENSE
 -------
 
-Copyright (C) 2012, 2013 [Ryan Sawhill](http://b19.org) aka [ryran](/ryran)
+Copyright (C) 2012, 2013 [Ryan Sawhill Aroha](http://b19.org)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
