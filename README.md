@@ -25,18 +25,16 @@ Requirements and package names:
 
 DEBIAN/UBUNTU/OTHER LINUX INSTALLATION
 --------------------------------------
-There is a simple interactive shell installer. Steps:
-
-Ensure you have the following on your Linux system (Ubuntu package names):
+There is a simple interactive shell installer. Before using it, ensure you have the following on your Linux system (Ubuntu package names):
 
 - gtk2 >= v2.24: `libgtk2.0-bin`  
 - python2 >= v2.7: `python`  
 - pygtk: `python-gtk2`  
 - gpg/openssl: `gnupg2` or (`gnupg` and `gnupg-agent`) or `openssl`
 
-Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
+If requirements are met, clone the Pyrite repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
 
-Execute the interactive `INSTALL` script OR if you just want to try it out, simply run `pyrite.py` from the root source folder.
+From the root source folder execute the interactive `INSTALL` script.
 
 
 MORE SCREENSHOTS (v1.0.1):
