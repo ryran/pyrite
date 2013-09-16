@@ -8,12 +8,11 @@ FEDORA/RHEL7 INSTALLATION
 -------------------------
 There's an RPM (and yum repository) @ [people.redhat.com/rsawhill/rpms](http://people.redhat.com/rsawhill/rpms/). To configure it and install Pyrite, simply run the following as root:
 
-  ```
-  yum install http://people.redhat.com/rsawhill/rpms/latest-rsawaroha-release.rpm
-  yum install pyrite
-  ```
+```
+yum install http://people.redhat.com/rsawhill/rpms/latest-rsawaroha-release.rpm
+yum install pyrite
+```
 
-*Note that Pyrite is not compatible with RHEL6.*
 Requirements and package names:
 
 - gtk2 >= v2.24: `gtk2`  
@@ -21,17 +20,19 @@ Requirements and package names:
 - pygtk: `pygtk2`  
 - gpg/openssl: `gnupg` or `gnupg2` or `openssl`
 
+*As per above, Pyrite is not compatible with RHEL6.*
+
 
 DEBIAN/UBUNTU/OTHER LINUX INSTALLATION
 --------------------------------------
-There is a simple shell installer.
+There is a simple interactive shell installer. Steps:
 
 1. Ensure you have the following on your Linux system (Debian-based package names):
 
-    - gtk2 >= v2.24: `libgtk2.0-bin`  
-    - python2 >= v2.7: `python`  
-    - pygtk: `python-gtk2`  
-    - gpg/openssl: `gnupg` and `gnupg-agent` (or just `gnupg2`) 
+  - gtk2 >= v2.24: `libgtk2.0-bin`  
+  - python2 >= v2.7: `python`  
+  - pygtk: `python-gtk2`  
+  - gpg/openssl: `gnupg` and `gnupg-agent` (or just `gnupg2`) 
 
 2. Clone the repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
 
