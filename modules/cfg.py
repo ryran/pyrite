@@ -27,7 +27,7 @@ import gtk
 from os import getenv
 
 # Important variables
-VERSION                 = 'v1.0.1'
+VERSION                 = 'v1.0.2'
 ASSETDIR                = '/usr/share/pyrite/'
 USERPREF_FILE           = getenv('HOME') + '/.pyrite'
 USERPREF_FORMAT_INFO    = {'version':'Must6fa'}
@@ -45,4 +45,3 @@ IMGTYPES = [gtk.STOCK_APPLY,            # 0
             gtk.STOCK_DIALOG_QUESTION,  # 2
             gtk.STOCK_DIALOG_WARNING,   # 3
             gtk.STOCK_DIALOG_ERROR]     # 4
-
