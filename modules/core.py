@@ -37,6 +37,8 @@ from urllib import url2pathname
 from shlex import split
 from subprocess import check_output
 from time import sleep
+import gobject
+import re
 # Custom Modules:
 import cfg
 import prefs
@@ -632,7 +634,43 @@ class Pyrite:
             
     
     #--------------------------------------------------- HERE BE GTK SIGNAL CBs
-    
+
+    # Separate function for loading the e-mails and putting them to
+    # the recepient menu completion
+    # Despite calling launchxface, it does not
+    # show the status etc, because it used to hang for some reason
+    # that I was not able to determine (something with threads
+    # and processes, I guess)
+    def loadmails(self):
+
+        def loadmails_string_list():
+             if self.engine == 'OpenSSL':
+                #I don't know how to do this in OpenSSL at all => empty list
+                return list()
+             else:
+                keys_string = self.launchxface('list-keys')
+                keys_all=keys_string.split('\n')
+                mails = list()
+                for line in keys_all:
+                    line_fields = line.split(':')
+                    if line_fields[0] == 'uid':
+                        longer=line_fields[9]
+                        match = re.search(r'<([^>]*)>$', longer)
+                        if match is not None:
+                            mails.append(match.group(1))
+                return mails
+
+        mails = gtk.ListStore(gobject.TYPE_STRING)
+        for mail in loadmails_string_list() :
+            mails.append([mail])
+
+        completion = gtk.EntryCompletion()
+        completion.set_model(mails)
+        completion.set_text_column(0)
+        completion.set_minimum_key_length(0)
+
+        self.g_recip.set_completion(completion)
+
     # Called by window destroy / Quit menu item
     def action_quit(self, w):
         """Shutdown application and any child process."""
@@ -916,6 +954,7 @@ class Pyrite:
         asymm_widgets = [self.g_reciplabel, self.g_recip, self.g_enctoself]
         
         if w.get_active():
+            self.loadmails()
             # If entering toggled state, allow recip entry, enctoself
             for widget in asymm_widgets:
                 widget.set_sensitive            (True)
@@ -1121,7 +1160,7 @@ class Pyrite:
                 passwd = None  # If passwd was '' , set to None, which will trigger gpg-agent if necessary
         
         # INTERLUDE: If operating in textinput mode, check for input text
-        if not self.x.io['infile']:
+        if (not self.x.io['infile']) and (action != 'list-keys'):
             # Make sure textview has a proper message in it
             if self.test_msgbuff_isempty("Input your message text first."):
                 return False
@@ -1208,11 +1247,13 @@ class Pyrite:
         self.buff2.set_text('')
         
         # Setup stderr file descriptors & update task status while processing
-        self.x.io['stderr'] = pipe()
-        glib.io_add_watch(
-            self.x.io['stderr'][0],
-            glib.IO_IN | glib.IO_HUP,
-            self.update_task_status)
+        if not (action=='list-keys'):
+            #for some reason, list-keys just hangs if I don't put this here
+            self.x.io['stderr'] = pipe()
+            glib.io_add_watch(
+                self.x.io['stderr'][0],
+                glib.IO_IN | glib.IO_HUP,
+                self.update_task_status)
         
         if self.engine in 'OpenSSL':
             # ATTEMPT EN-/DECRYPTION w/OPENSSL
@@ -1324,6 +1365,10 @@ class Pyrite:
                 
                 if action in 'verify':
                     self.infobar('x_verify_success')
+                elif action in 'list-keys':
+                    keys = self.x.io['stdout']
+                    self.x.io['stdout'] = 0
+                    return keys
                 else:
                     # Set TextBuffer to gpg stdout
                     self.buff.set_text(self.x.io['stdout'])

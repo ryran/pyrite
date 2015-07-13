@@ -101,7 +101,7 @@ class Gpg():
     # Main gpg interface method
     def gpg(
         self,
-        action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify
+        action=     None,   # One of: enc, dec, embedsign, clearsign, detachsign, verify, list-keys
         encsign=    False,  # Add '--sign' when encrypting?
         digest=     None,   # One of: sha256, sha1, etc; None == use gpg defaults
         localuser=  None,   # Value passed to --local-user to set default key for signing, etc
@@ -163,6 +163,11 @@ class Gpg():
             cmd.append('--status-fd')
             cmd.append(str(self.io['gstatus'][1]))
         
+        # Listkeys - just list all the keys (duh)
+        if action == 'list-keys':
+            cmd.append('--list-public-keys')
+            cmd.append('--with-colons')
+
         # Setup passphrase file descriptor for symmetric enc/dec
         if (action in 'enc' and symmetric and passwd and not encsign) or (
             action in 'dec' and symmetric and passwd):
@@ -258,7 +263,12 @@ class Gpg():
             self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
+            if (action == "list-keys") :
+                #hack so list-keys does not hang
+                #I am not sure why
+                self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE)
+            else:
+                self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
         
         # Time to communicate! Save output for later
         self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
@@ -269,7 +279,8 @@ class Gpg():
         # Close os file descriptors
         if fd_pwd_R:  close(fd_pwd_R)
         sleep(0.1)  # Sleep a bit to ensure everything gets read
-        close(self.io['stderr'][1])
+        if not (action == "list-keys") :
+            close(self.io['stderr'][1])
         if self.io['gstatus']:
             close(self.io['gstatus'][1])
     
