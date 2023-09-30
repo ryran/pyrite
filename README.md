@@ -154,3 +154,5 @@ Well, I'll let my friend River--who came up with the name--explain it to you:
 
 *"It should be 'Pyrite', because people think they are getting your data, but really it's just gibberish to them. Fool's gold."*
 
+## See also
+* [List of cryptography GUI tools](https://gist.github.com/stokito/eea7ee50d51e1db30122e2e33a62723e)
