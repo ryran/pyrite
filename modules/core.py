@@ -58,8 +58,11 @@ class Pyrite:
     def show_errmsg(self, msg, dialog=Gtk.MessageType.ERROR, parent=None):
         """Display msg with GtkMessageDialog."""
         d = Gtk.MessageDialog(
-            parent, Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT, dialog,
-            Gtk.BUTTONS_OK, msg)
+            flags=0,
+            message_type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.OK,
+            text=msg
+        )
         d.run()
         d.destroy()
     
