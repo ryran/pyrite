@@ -148,7 +148,7 @@ class Pyrite:
         self.g_activityspin = builder.get_object('spinner1')
         
         # Set app icon to something halfway-decent
-        Gtk.window_set_default_icon_name(Gtk.STOCK_DIALOG_AUTHENTICATION)
+        Gtk.Window.set_default_icon_name("dialog-password")
         
         # Connect signals
         builder.connect_signals(self)
@@ -1409,12 +1409,11 @@ class Pyrite:
     
     #---------------------------------------------- RUN MAIN APPLICATION WINDOW
     def main(self):
-        """Show main window, tweak some GTK+ settings and start GTK+ main loop."""
+        """Show main window, and start GTK+ main loop."""
         self.g_window.show()
-        settings = Gtk.settings_get_default()
-        settings.props.gtk_button_images = True
-        with Gtk.gdk.lock:
-            Gtk.main()
+        self.g_window.connect("destroy", Gtk.main_quit)
+        self.g_window.show_all()
+        Gtk.main()
 
 
 
