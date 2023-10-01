@@ -33,15 +33,15 @@ from sys import stderr
 from pango import FontDescription
 from os import access, R_OK, read, close, pipe
 from os.path import isfile
-from urllib import url2pathname
+from urllib.request import url2pathname
 from shlex import split
 from subprocess import check_output
 from time import sleep
 # Custom Modules:
-import cfg
-import prefs
-import crypt_interface
-from messages import MESSAGE_DICT
+from . import cfg
+from . import prefs
+from . import crypt_interface
+from .messages import MESSAGE_DICT
 
 # Important variables
 SIGSTOP, SIGCONT        = 19, 18
@@ -748,7 +748,7 @@ class Pyrite:
     # Called when direct-file-mode FileChooserButton gets a new file set,
     #   either because of dnd or manual selection
     def action_chooserbtn_file_set(self, w):
-        print "[on_file-set] FileChooserButton.get_filename() output:\n{!r}\n".format(w.get_filename())
+        print("[on_file-set] FileChooserButton.get_filename() output:\n{!r}\n".format(w.get_filename()))
         self.initiate_filemode()
     
     

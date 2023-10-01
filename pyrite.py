@@ -86,6 +86,6 @@ if __name__ == "__main__":
     try:
         FeS2.main()
     except KeyboardInterrupt:
-        print
+        print()
         exit()
 

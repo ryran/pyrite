@@ -26,12 +26,12 @@
 # StdLib:
 import gtk
 import glib
-import cPickle as pickle
+import pickle as pickle
 from sys import stderr
 from os import access, R_OK
 # Custom Modules:
-import cfg
-from messages import PREFS_MESSAGE_DICT as MESSAGE_DICT
+from . import cfg
+from .messages import PREFS_MESSAGE_DICT as MESSAGE_DICT
 
 
 
