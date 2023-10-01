@@ -191,9 +191,9 @@ class Pyrite:
         
         #------------------------------------------------ DRAG AND DROP FUNNESS
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
-        self.g_msgtxtview.drag_dest_set(
-            Gtk.DEST_DEFAULT_MOTION | Gtk.DEST_DEFAULT_HIGHLIGHT,
-            dnd_list, Gtk.gdk.ACTION_COPY)
+        # self.g_msgtxtview.drag_dest_set(
+        #     Gtk.DEST_DEFAULT_MOTION | Gtk.DEST_DEFAULT_HIGHLIGHT,
+        #     dnd_list, Gtk.gdk.ACTION_COPY)
         
         #---------------------------------------------------- CMDLINE ARGUMENTS
         if cmdlineargs:
@@ -376,14 +376,14 @@ class Pyrite:
             self.g_wrap.set_active          (self.p['wrap'])
             
             # Set TextView fonts, sizes, and colors
-            self.g_msgtxtview.modify_font(
-                FontDescription("monospace {}".format(self.p['msgfntsize'])))
-            self.g_errtxtview.modify_font(
-                FontDescription("normal {}".format(self.p['errfntsize'])))
-            self.g_msgtxtview.modify_base(
-                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_bg']))
-            self.g_msgtxtview.modify_text(
-                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
+            # self.g_msgtxtview.modify_font(
+            #     FontDescription("monospace {}".format(self.p['msgfntsize'])))
+            # self.g_errtxtview.modify_font(
+            #     FontDescription("normal {}".format(self.p['errfntsize'])))
+            # self.g_msgtxtview.modify_base(
+            #     Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_bg']))
+            # self.g_msgtxtview.modify_text(
+            #     Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
             
             if self.p['opc_slider']:
                 self.g_slider.set_range         (0, 100)
