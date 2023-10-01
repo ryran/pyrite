@@ -25,9 +25,13 @@
 
 # StdLib:
 import gi
-gi.require_version("Gtk", "3.0")
+gi.require_version('GLib', '2.0')
+gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
+from gi.repository import GLib
 from gi.repository import Gtk
-import glib
+from gi.repository import Gdk
+from gi.repository import GObject
 import pickle as pickle
 from sys import stderr
 from os import access, R_OK
@@ -104,7 +108,7 @@ class Preferences:
         
         # If infobar already active: delete old timeout, destroy old ibar
         if self.ibar_timeout > 0:
-            glib.source_remove(self.ibar_timeout)
+            GObject.source_remove(self.ibar_timeout)
             destroy_ibar()
         
         # Find the needed dictionary inside our message dict, by id
@@ -120,18 +124,18 @@ class Preferences:
         # Now that we have all the data we need, START creating!     
         self.ibar               = Gtk.InfoBar()
         self.ibar.set_message_type(msgtype)
-        self.vbox_ib.pack_end   (self.ibar, False, False)
+        self.vbox_ib.pack_end   (self.ibar, False, False, 0)
         img                     = Gtk.Image()
-        img.set_from_stock      (imgtype, Gtk.ICON_SIZE_LARGE_TOOLBAR)
+        img.set_from_stock      (imgtype, Gtk.IconSize.LARGE_TOOLBAR)
         label                   = Gtk.Label()
         label.set_markup        (message)
         content                 = self.ibar.get_content_area()
-        content.pack_start      (img, False, False)
-        content.pack_start      (label, False, False)
+        content.pack_start      (img, False, False, 0)
+        content.pack_start      (label, False, False, 0)
         img.show                ()
         label.show              ()
         self.ibar.show          ()
-        self.ibar_timeout       = glib.timeout_add_seconds(MSG['timeout'], destroy_ibar)
+        self.ibar_timeout       = GLib.timeout_add_seconds(MSG['timeout'], destroy_ibar)
     
     
     def open_preferences_window(self, parentwindow):
@@ -177,7 +181,7 @@ class Preferences:
         # TODO: Advanced tab
         #self.tg_args_gpg_e  = builder.get_object('tg_args_gpg_e')
         #self.en_args_gpg_e  = builder.get_object('en_args_gpg_e')
-        self.window.set_transient_for(parentwindow)
+        self.set_transient_for(parentwindow)
         if access(cfg.USERPREF_FILE, R_OK):
             btn_revert = builder.get_object('btn_revert')
             btn_revert.set_sensitive(True)
@@ -216,8 +220,15 @@ class Preferences:
         self.sp_opacity.set_value       (self.p['opacity'])
         self.sp_msgfntsize.set_value    (self.p['msgfntsize'])
         self.sp_errfntsize.set_value    (self.p['errfntsize'])
-        self.btn_color_fg.set_color     (Gtk.gdk.color_parse(self.p['color_fg']))
-        self.btn_color_bg.set_color     (Gtk.gdk.color_parse(self.p['color_bg']))
+
+        fg_color = Gdk.Color(0, 0, 0)
+        fg_color.parse(self.p['color_fg'])
+
+        bg_color = Gdk.Color(0, 0, 0)
+        bg_color.parse(self.p['color_bg'])
+
+        self.btn_color_fg.set_color     (fg_color)
+        self.btn_color_bg.set_color     (bg_color)
     
     
     def capture_current_prefs(self):

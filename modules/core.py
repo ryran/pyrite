@@ -25,7 +25,11 @@
 
 # StdLib:
 import gi
-gi.require_version("Gtk", "3.0")
+gi.require_version('GLib', '2.0')
+gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
+from gi.repository import GLib
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 # gtk.gdk.threads_init()
@@ -192,8 +196,8 @@ class Pyrite:
         #------------------------------------------------ DRAG AND DROP FUNNESS
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
         # self.g_msgtxtview.drag_dest_set(
-        #     Gtk.DEST_DEFAULT_MOTION | Gtk.DEST_DEFAULT_HIGHLIGHT,
-        #     dnd_list, Gtk.gdk.ACTION_COPY)
+        #     Gtk.DestDefaults.MOTION | Gtk.DestDefaults.HIGHLIGHT,
+        #     dnd_list, Gdk.DragAction.COPY)
         
         #---------------------------------------------------- CMDLINE ARGUMENTS
         if cmdlineargs:
@@ -241,28 +245,28 @@ class Pyrite:
         ibar.set_message_type(msgtype)
         if vbox:
             # If specific vbox requested: assume ibar for filemode, add cancel button
-            ibar.add_button (Gtk.STOCK_CANCEL, Gtk.RESPONSE_CANCEL)
+            ibar.add_button (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
             ibar.connect    ('response', self.cleanup_filemode)
         else:
             # If no specific vbox requested: do normal ibar at the top of message area
             vbox            = self.vbox_ibar
-            ibar.add_button (Gtk.STOCK_OK, Gtk.RESPONSE_OK)
+            ibar.add_button (Gtk.STOCK_OK, Gtk.ResponseType.OK)
             ibar.connect    ('response', lambda *args: ibar.destroy())
-        vbox.pack_end       (ibar, False, False)
+        vbox.pack_end       (ibar, False, False, 0)
         content             = ibar.get_content_area()
         img                 = Gtk.Image()
-        img.set_from_stock  (imgtype, Gtk.ICON_SIZE_LARGE_TOOLBAR)
-        content.pack_start  (img, False, False)
+        img.set_from_stock  (imgtype, Gtk.IconSize.LARGE_TOOLBAR)
+        content.pack_start  (img, False, False, 0)
         img.show            ()
         label               = Gtk.Label()
         label.set_markup    (message)
-        content.pack_start  (label, False, False)
+        content.pack_start  (label, False, False, 0)
         label.show          ()
         # FIXME: Why doesn't Esc trigger this close signal?
         ibar.connect        ('close', lambda *args: ibar.destroy())
         ibar.show()
         if MSG['timeout'] > 0:
-            glib.timeout_add_seconds(MSG['timeout'], ibar.destroy)
+            GLib.timeout_add_seconds(MSG['timeout'], ibar.destroy)
         return ibar
     
     
@@ -380,10 +384,15 @@ class Pyrite:
             #     FontDescription("monospace {}".format(self.p['msgfntsize'])))
             # self.g_errtxtview.modify_font(
             #     FontDescription("normal {}".format(self.p['errfntsize'])))
-            # self.g_msgtxtview.modify_base(
-            #     Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_bg']))
-            # self.g_msgtxtview.modify_text(
-            #     Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
+
+            bg_color = Gdk.Color(0, 0, 0)
+            bg_color.parse(self.p['color_bg'])
+            fg_color = Gdk.Color(0, 0, 0)
+            fg_color.parse(self.p['color_fg'])
+            self.g_msgtxtview.modify_base(
+                Gtk.StateType.NORMAL, bg_color)
+            self.g_msgtxtview.modify_text(
+                Gtk.StateType.NORMAL, fg_color)
             
             if self.p['opc_slider']:
                 self.g_slider.set_range         (0, 100)
@@ -425,11 +434,15 @@ class Pyrite:
     def fix_msgtxtviewcolor(self, sensitive):
         """Change Message area text to black when TextView insensitive."""
         if sensitive:
+            fg_color = Gdk.Color(0, 0, 0)
+            fg_color.parse(self.p['color_fg'])
             self.g_msgtxtview.modify_text(
-                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
+                Gtk.StateType.NORMAL, fg_color)
         else:
+            fg_color = Gdk.Color(0, 0, 0)
+            fg_color.parse('black')
             self.g_msgtxtview.modify_text(
-                Gtk.STATE_NORMAL, Gtk.gdk.color_parse('black'))
+                Gtk.StateType.NORMAL, fg_color)
     
     
     def get_file_path_from_dnd_dropped_uri(self, uri):
@@ -511,8 +524,8 @@ class Pyrite:
         filename = None
         if mode in 'open':   title = "Choose text file to open as input..."
         elif mode in 'save': title = "Choose output filename..."
-        cmd = ("Gtk.FileChooserDialog('{0}', None, Gtk.FILE_CHOOSER_ACTION_{1}, "
-               "(Gtk.STOCK_CANCEL, Gtk.RESPONSE_CANCEL, Gtk.STOCK_OPEN, Gtk.RESPONSE_OK))"
+        cmd = ("Gtk.FileChooserDialog('{0}', None, Gtk.FileChooserAction.{1}, "
+               "(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))"
                .format(title, mode.upper()))
         chooser = eval(cmd)
         
@@ -528,7 +541,7 @@ class Pyrite:
             chooser.connect('confirm-overwrite', self.confirm_overwrite_callback)
             if save_suggestion:  chooser.set_current_name(save_suggestion)
         
-        if chooser.run() == Gtk.RESPONSE_OK:
+        if chooser.run() == Gtk.ResponseType.OK:
             filename = chooser.get_filename()
         chooser.destroy()
         return filename
@@ -597,7 +610,8 @@ class Pyrite:
         else:
             # Otherwise, save TextView buffer for later and then blow it away
             self.filemode_saved_buff = self.buff.get_text(self.buff.get_start_iter(),
-                                                          self.buff.get_end_iter())
+                                                          self.buff.get_end_iter(),
+                                                          False)
             self.buff.set_text('')
             self.filemode_enablewidgets(False)
         
@@ -777,7 +791,8 @@ class Pyrite:
         
         # Grab text from buffer
         buffertext = self.buff.get_text(self.buff.get_start_iter(),
-                                        self.buff.get_end_iter())
+                                        self.buff.get_end_iter(),
+                                        False)
         try:
             # If can open file for writing, show success infobar
             with open(filename, 'w') as f:  f.write(buffertext)
@@ -1053,10 +1068,10 @@ class Pyrite:
         """Toggle word wrapping for main message TextView."""
         if w.get_active():
             # If entering toggled state, enable word wrapping
-            self.g_msgtxtview.set_wrap_mode(Gtk.WRAP_WORD)
+            self.g_msgtxtview.set_wrap_mode(Gtk.WrapMode.WORD)
         else:
             # If leaving toggled state, disable word wrapping
-            self.g_msgtxtview.set_wrap_mode(Gtk.WRAP_NONE)
+            self.g_msgtxtview.set_wrap_mode(Gtk.WrapMode.NONE)
     
     
     # Called by [processing progbar] Cancel button
@@ -1090,7 +1105,7 @@ class Pyrite:
             # Already paused, so, time to unpause
             stderr.write            ("<Unpausing>\n")
             self.paused             = False
-            btn.set_relief          (Gtk.RELIEF_NONE)
+            btn.set_relief          (Gtk.ReliefStyle.NONE)
             self.g_progbar.set_text ("{} working...".format(self.engine))
             self.g_activityspin.start()
             self.x.childprocess.send_signal(SIGCONT)
@@ -1098,7 +1113,7 @@ class Pyrite:
             # Time to pause
             stderr.write            ("<Pausing>\n")
             self.paused             = True            
-            btn.set_relief          (Gtk.RELIEF_NORMAL)
+            btn.set_relief          (Gtk.ReliefStyle.NORMAL)
             self.g_progbar.set_text ("Operation PAUSED")
             self.g_activityspin.stop()
             self.x.childprocess.send_signal(SIGSTOP)
@@ -1205,7 +1220,8 @@ class Pyrite:
             
             # Save textview buffer to Xface stdin
             self.x.io['stdin'] = self.buff.get_text(self.buff.get_start_iter(),
-                                                    self.buff.get_end_iter())
+                                                    self.buff.get_end_iter(),
+                                                    False)
         
         # Set working status + spinner + progress bar
         self.show_working_progress(True, action)
@@ -1214,9 +1230,9 @@ class Pyrite:
         
         # Setup stderr file descriptors & update task status while processing
         self.x.io['stderr'] = pipe()
-        glib.io_add_watch(
+        GLib.io_add_watch(
             self.x.io['stderr'][0],
-            glib.IO_IN | glib.IO_HUP,
+            GLib.IO_IN | GLib.IO_HUP,
             self.update_task_status)
         
         if self.engine in 'OpenSSL':
@@ -1231,9 +1247,9 @@ class Pyrite:
             if verbose:
                 # Setup gpg-status file descriptors & update terminal while processing
                 self.x.io['gstatus'] = pipe()
-                glib.io_add_watch(
+                GLib.io_add_watch(
                     self.x.io['gstatus'][0],
-                    glib.IO_IN | glib.IO_HUP,
+                    GLib.IO_IN | GLib.IO_HUP,
                     self.update_task_status, 'term')
             # ATTEMPT EN-/DECRYPTION w/GPG
             Thread(
@@ -1353,12 +1369,12 @@ class Pyrite:
     
     #------------------------------------------ HELPERS FOR MAIN XFACE FUNCTION
     
-    # CB for glib.io_add_watch()
+    # CB for GLib.io_add_watch()
     def update_task_status(self, fd, condition, output='task'):
         """Read data waiting in file descriptor; close fd if other end hangs up."""
         
         # If there's data to be read, let's read it
-        if condition == glib.IO_IN:
+        if condition == GLib.IO_IN:
             if output in 'task':
                 # Output to Task Status
                 self.buff2.insert(self.buff2.get_end_iter(), read(fd, 1024))
@@ -1368,7 +1384,7 @@ class Pyrite:
             return True
         
         # If other end of pipe hangs up, close our fd and destroy the watcher
-        elif condition == glib.IO_HUP:
+        elif condition == GLib.IO_HUP:
             if output in 'term':
                 stderr.write("\n")
             close(fd)
@@ -1401,7 +1417,7 @@ class Pyrite:
             # If finished processing: ensure progbar buttons are normal, reset status, stop spinner
             for w in self.g_cancel, self.g_pause:
                 w.set_sensitive(True)
-                w.set_relief(Gtk.RELIEF_NONE)
+                w.set_relief(Gtk.ReliefStyle.NONE)
             self.g_activityspin.stop()
             self.g_activityspin.set_visible(False)
             self.g_statusbar.pop(self.status)
