@@ -24,7 +24,9 @@
 #------------------------------------------------------------------------------
 
 # StdLib:
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 import glib
 import pickle as pickle
 from sys import stderr
@@ -107,7 +109,7 @@ class Preferences:
         
         # Find the needed dictionary inside our message dict, by id
         MSG = MESSAGE_DICT[id]
-        # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
+        # Use value from MSG type & icon to lookup Gtk constant, e.g. Gtk.MessageType.INFO
         msgtype = cfg.MSGTYPES[ MSG['type'] ]
         imgtype = cfg.IMGTYPES[ MSG['icon'] ]
         # Replace variables in message text & change text color
@@ -116,12 +118,12 @@ class Preferences:
                    "</span>")
         
         # Now that we have all the data we need, START creating!     
-        self.ibar               = gtk.InfoBar()
+        self.ibar               = Gtk.InfoBar()
         self.ibar.set_message_type(msgtype)
         self.vbox_ib.pack_end   (self.ibar, False, False)
-        img                     = gtk.Image()
-        img.set_from_stock      (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
-        label                   = gtk.Label()
+        img                     = Gtk.Image()
+        img.set_from_stock      (imgtype, Gtk.ICON_SIZE_LARGE_TOOLBAR)
+        label                   = Gtk.Label()
         label.set_markup        (message)
         content                 = self.ibar.get_content_area()
         content.pack_start      (img, False, False)
@@ -135,7 +137,7 @@ class Preferences:
     def open_preferences_window(self, parentwindow):
         """Show the preferences window. Duh."""
         self.ibar_timeout = 0
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(cfg.ASSETDIR + 'ui/preferences.glade')
         # Main window
         self.window         = builder.get_object('window1')
@@ -214,8 +216,8 @@ class Preferences:
         self.sp_opacity.set_value       (self.p['opacity'])
         self.sp_msgfntsize.set_value    (self.p['msgfntsize'])
         self.sp_errfntsize.set_value    (self.p['errfntsize'])
-        self.btn_color_fg.set_color     (gtk.gdk.color_parse(self.p['color_fg']))
-        self.btn_color_bg.set_color     (gtk.gdk.color_parse(self.p['color_bg']))
+        self.btn_color_fg.set_color     (Gtk.gdk.color_parse(self.p['color_fg']))
+        self.btn_color_bg.set_color     (Gtk.gdk.color_parse(self.p['color_bg']))
     
     
     def capture_current_prefs(self):

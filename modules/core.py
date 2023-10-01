@@ -24,13 +24,15 @@
 #------------------------------------------------------------------------------
 
 # StdLib:
-import gtk
-gtk.gdk.threads_init()
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
+# gtk.gdk.threads_init()
 import glib
-glib.threads_init()
+# glib.threads_init()
 from threading import Thread
 from sys import stderr
-from pango import FontDescription
 from os import access, R_OK, read, close, pipe
 from os.path import isfile
 from urllib.request import url2pathname
@@ -53,11 +55,11 @@ class Pyrite:
     """Display GTK+ window to interact with gpg or openssl via Xface object."""
     
     
-    def show_errmsg(self, msg, dialog=gtk.MESSAGE_ERROR, parent=None):
+    def show_errmsg(self, msg, dialog=Gtk.MessageType.ERROR, parent=None):
         """Display msg with GtkMessageDialog."""
-        d = gtk.MessageDialog(
-            parent, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, dialog,
-            gtk.BUTTONS_OK, msg)
+        d = Gtk.MessageDialog(
+            parent, Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT, dialog,
+            Gtk.BUTTONS_OK, msg)
         d.run()
         d.destroy()
     
@@ -66,7 +68,7 @@ class Pyrite:
         """Build GUI interface from XML, etc."""        
         
         # Use GtkBuilder to build our GUI from the XML file 
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         try: builder.add_from_file(cfg.ASSETDIR + 'ui/main.glade') 
         except:
             self.show_errmsg(
@@ -143,7 +145,7 @@ class Pyrite:
         self.g_activityspin = builder.get_object('spinner1')
         
         # Set app icon to something halfway-decent
-        gtk.window_set_default_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
+        Gtk.window_set_default_icon_name(Gtk.STOCK_DIALOG_AUTHENTICATION)
         
         # Connect signals
         builder.connect_signals(self)
@@ -187,8 +189,8 @@ class Pyrite:
         #------------------------------------------------ DRAG AND DROP FUNNESS
         dnd_list = [ ( 'text/uri-list', 0, TARGET_TYPE_URI_LIST ) ]
         self.g_msgtxtview.drag_dest_set(
-            gtk.DEST_DEFAULT_MOTION | gtk.DEST_DEFAULT_HIGHLIGHT,
-            dnd_list, gtk.gdk.ACTION_COPY)
+            Gtk.DEST_DEFAULT_MOTION | Gtk.DEST_DEFAULT_HIGHLIGHT,
+            dnd_list, Gtk.gdk.ACTION_COPY)
         
         #---------------------------------------------------- CMDLINE ARGUMENTS
         if cmdlineargs:
@@ -223,7 +225,7 @@ class Pyrite:
         
         # Find the needed dictionary inside our message dict, by id
         MSG = MESSAGE_DICT[id]
-        # Use value from MSG type & icon to lookup Gtk constant, e.g. gtk.MESSAGE_INFO
+        # Use value from MSG type & icon to lookup Gtk constant, e.g. Gtk.MessageType.INFO
         msgtype = cfg.MSGTYPES[ MSG['type'] ]
         imgtype = cfg.IMGTYPES[ MSG['icon'] ]
         # Replace variables in message text & change text color
@@ -232,24 +234,24 @@ class Pyrite:
                    "</span>")
         
         # Now that we have all the data we need, START creating!
-        ibar = gtk.InfoBar()
+        ibar = Gtk.InfoBar()
         ibar.set_message_type(msgtype)
         if vbox:
             # If specific vbox requested: assume ibar for filemode, add cancel button
-            ibar.add_button (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+            ibar.add_button (Gtk.STOCK_CANCEL, Gtk.RESPONSE_CANCEL)
             ibar.connect    ('response', self.cleanup_filemode)
         else:
             # If no specific vbox requested: do normal ibar at the top of message area
             vbox            = self.vbox_ibar
-            ibar.add_button (gtk.STOCK_OK, gtk.RESPONSE_OK)
+            ibar.add_button (Gtk.STOCK_OK, Gtk.RESPONSE_OK)
             ibar.connect    ('response', lambda *args: ibar.destroy())
         vbox.pack_end       (ibar, False, False)
         content             = ibar.get_content_area()
-        img                 = gtk.Image()
-        img.set_from_stock  (imgtype, gtk.ICON_SIZE_LARGE_TOOLBAR)
+        img                 = Gtk.Image()
+        img.set_from_stock  (imgtype, Gtk.ICON_SIZE_LARGE_TOOLBAR)
         content.pack_start  (img, False, False)
         img.show            ()
-        label               = gtk.Label()
+        label               = Gtk.Label()
         label.set_markup    (message)
         content.pack_start  (label, False, False)
         label.show          ()
@@ -376,9 +378,9 @@ class Pyrite:
             self.g_errtxtview.modify_font(
                 FontDescription("normal {}".format(self.p['errfntsize'])))
             self.g_msgtxtview.modify_base(
-                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_bg']))
+                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_bg']))
             self.g_msgtxtview.modify_text(
-                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_fg']))
+                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
             
             if self.p['opc_slider']:
                 self.g_slider.set_range         (0, 100)
@@ -421,10 +423,10 @@ class Pyrite:
         """Change Message area text to black when TextView insensitive."""
         if sensitive:
             self.g_msgtxtview.modify_text(
-                gtk.STATE_NORMAL, gtk.gdk.color_parse(self.p['color_fg']))
+                Gtk.STATE_NORMAL, Gtk.gdk.color_parse(self.p['color_fg']))
         else:
             self.g_msgtxtview.modify_text(
-                gtk.STATE_NORMAL, gtk.gdk.color_parse('black'))
+                Gtk.STATE_NORMAL, Gtk.gdk.color_parse('black'))
     
     
     def get_file_path_from_dnd_dropped_uri(self, uri):
@@ -494,9 +496,9 @@ class Pyrite:
             self.show_errmsg(
                 "Simultaneously reading from & writing to a file is a baaad idea. "
                 "Choose a different output filename.", parent=chooser)
-            return gtk.FILE_CHOOSER_CONFIRMATION_SELECT_AGAIN
+            return Gtk.FILE_CHOOSER_CONFIRMATION_SELECT_AGAIN
         else:
-            return gtk.FILE_CHOOSER_CONFIRMATION_CONFIRM
+            return Gtk.FILE_CHOOSER_CONFIRMATION_CONFIRM
     
     
     # Generic file chooser for opening or saving
@@ -506,15 +508,15 @@ class Pyrite:
         filename = None
         if mode in 'open':   title = "Choose text file to open as input..."
         elif mode in 'save': title = "Choose output filename..."
-        cmd = ("gtk.FileChooserDialog('{0}', None, gtk.FILE_CHOOSER_ACTION_{1}, "
-               "(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))"
+        cmd = ("Gtk.FileChooserDialog('{0}', None, Gtk.FILE_CHOOSER_ACTION_{1}, "
+               "(Gtk.STOCK_CANCEL, Gtk.RESPONSE_CANCEL, Gtk.STOCK_OPEN, Gtk.RESPONSE_OK))"
                .format(title, mode.upper()))
         chooser = eval(cmd)
         
         if mode in 'open':
             # Setup file filters
-            t = gtk.FileFilter() ; t.set_name("Text Files") ; t.add_mime_type("text/*")
-            a = gtk.FileFilter() ; a.set_name("All Files") ; a.add_pattern("*")
+            t = Gtk.FileFilter() ; t.set_name("Text Files") ; t.add_mime_type("text/*")
+            a = Gtk.FileFilter() ; a.set_name("All Files") ; a.add_pattern("*")
             chooser.add_filter(t)
             chooser.add_filter(a)
         elif mode in 'save':
@@ -523,7 +525,7 @@ class Pyrite:
             chooser.connect('confirm-overwrite', self.confirm_overwrite_callback)
             if save_suggestion:  chooser.set_current_name(save_suggestion)
         
-        if chooser.run() == gtk.RESPONSE_OK:
+        if chooser.run() == Gtk.RESPONSE_OK:
             filename = chooser.get_filename()
         chooser.destroy()
         return filename
@@ -621,8 +623,8 @@ class Pyrite:
             self.g_sigmode.set_active       (0)
         # Set statusbar
         self.set_stdstatus()
-        #while gtk.events_pending():
-        gtk.main_iteration()
+        #while Gtk.events_pending():
+        Gtk.main_iteration()
         # Reset filenames
         self.x.io['infile'] = 0
         self.x.io['outfile'] = 0
@@ -643,7 +645,7 @@ class Pyrite:
             self.x.childprocess.terminate()
             stderr.write("<Quiting>\n")
             #sleep(0.2)
-        gtk.main_quit()
+        Gtk.main_quit()
     
     
     # Called when dnd occurs on Message TextView
@@ -678,10 +680,10 @@ class Pyrite:
     # Called by About menu item
     def action_about(self, w):
         """Launch About dialog."""
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(cfg.ASSETDIR + 'ui/about.glade') 
         about = builder.get_object('aboutdialog')
-        about.set_logo_icon_name(gtk.STOCK_DIALOG_AUTHENTICATION)
+        about.set_logo_icon_name(Gtk.STOCK_DIALOG_AUTHENTICATION)
         about.set_transient_for(self.g_window)
         about.set_version(cfg.VERSION)
         about.connect('response', lambda *args: about.destroy())
@@ -767,8 +769,8 @@ class Pyrite:
         
         # Set saving status
         self.g_statusbar.push(self.status, "Saving {}".format(filename))
-        #while gtk.events_pending(): 
-        gtk.main_iteration()
+        #while Gtk.events_pending(): 
+        Gtk.main_iteration()
         
         # Grab text from buffer
         buffertext = self.buff.get_text(self.buff.get_start_iter(),
@@ -796,19 +798,19 @@ class Pyrite:
     # Called by Cut toolbar btn or menu item
     def action_cut(self, w):
         """Cut msg TextBuffer selection."""
-        self.buff.cut_clipboard(gtk.clipboard_get(), True)
+        self.buff.cut_clipboard(Gtk.clipboard_get(), True)
     
     
     # Called by Copy toolbar btn or menu item
     def action_copy(self, w):
         """Copy msg TextBuffer selection."""
-        self.buff.copy_clipboard(gtk.clipboard_get())
+        self.buff.copy_clipboard(Gtk.clipboard_get())
     
     
     # Called by Paste toolbar btn or menu item
     def action_paste(self, w):
         """Paste clipboard into msg TextBuffer at selection."""
-        self.buff.paste_clipboard(gtk.clipboard_get(), None, True)
+        self.buff.paste_clipboard(Gtk.clipboard_get(), None, True)
     
     
     # Called by Copyall toolbar btn
@@ -818,7 +820,7 @@ class Pyrite:
             return
         self.buff.select_range(self.buff.get_start_iter(),
                                self.buff.get_end_iter())
-        self.buff.copy_clipboard(gtk.clipboard_get())
+        self.buff.copy_clipboard(Gtk.clipboard_get())
         self.infobar('txtview_copyall_success')
     
     
@@ -859,7 +861,7 @@ class Pyrite:
         # DEBUG
         #self.g_chooserbtn.select_filename('/etc/passwd')
         #self.g_expander.set_expanded(True)
-        #gtk.main_iteration()
+        #Gtk.main_iteration()
         #return
         if self.g_signverify.get_active():
             # If in sign-only mode, figure out which sig-type
@@ -1048,10 +1050,10 @@ class Pyrite:
         """Toggle word wrapping for main message TextView."""
         if w.get_active():
             # If entering toggled state, enable word wrapping
-            self.g_msgtxtview.set_wrap_mode(gtk.WRAP_WORD)
+            self.g_msgtxtview.set_wrap_mode(Gtk.WRAP_WORD)
         else:
             # If leaving toggled state, disable word wrapping
-            self.g_msgtxtview.set_wrap_mode(gtk.WRAP_NONE)
+            self.g_msgtxtview.set_wrap_mode(Gtk.WRAP_NONE)
     
     
     # Called by [processing progbar] Cancel button
@@ -1064,9 +1066,9 @@ class Pyrite:
             w.set_sensitive     (False)
         self.g_progbar.set_text ("Canceling Operation...")
         self.g_activityspin.stop()
-        gtk.main_iteration()
+        Gtk.main_iteration()
         while not self.x.childprocess:
-            gtk.main_iteration()
+            Gtk.main_iteration()
         if self.paused:
             self.x.childprocess.send_signal(SIGCONT)
         self.x.childprocess.terminate()
@@ -1079,13 +1081,13 @@ class Pyrite:
         
         # We can't pause childprocess until it actually starts
         while not self.x.childprocess:
-            gtk.main_iteration()
+            Gtk.main_iteration()
         
         if self.paused:
             # Already paused, so, time to unpause
             stderr.write            ("<Unpausing>\n")
             self.paused             = False
-            btn.set_relief          (gtk.RELIEF_NONE)
+            btn.set_relief          (Gtk.RELIEF_NONE)
             self.g_progbar.set_text ("{} working...".format(self.engine))
             self.g_activityspin.start()
             self.x.childprocess.send_signal(SIGCONT)
@@ -1093,7 +1095,7 @@ class Pyrite:
             # Time to pause
             stderr.write            ("<Pausing>\n")
             self.paused             = True            
-            btn.set_relief          (gtk.RELIEF_NORMAL)
+            btn.set_relief          (Gtk.RELIEF_NORMAL)
             self.g_progbar.set_text ("Operation PAUSED")
             self.g_activityspin.stop()
             self.x.childprocess.send_signal(SIGSTOP)
@@ -1243,7 +1245,7 @@ class Pyrite:
             if self.canceled:  break
             if c % 15 == 0 and not self.paused:
                 self.g_progbar.pulse()
-            gtk.main_iteration()
+            Gtk.main_iteration()
             c += 1
         if self.quiting:
             # If application is shutting down
@@ -1390,13 +1392,13 @@ class Pyrite:
             self.g_statusbar.push(self.status, status)
             self.g_activityspin.set_visible(True)
             self.g_activityspin.start()
-            gtk.main_iteration()
+            Gtk.main_iteration()
         
         else:
             # If finished processing: ensure progbar buttons are normal, reset status, stop spinner
             for w in self.g_cancel, self.g_pause:
                 w.set_sensitive(True)
-                w.set_relief(gtk.RELIEF_NONE)
+                w.set_relief(Gtk.RELIEF_NONE)
             self.g_activityspin.stop()
             self.g_activityspin.set_visible(False)
             self.g_statusbar.pop(self.status)
@@ -1406,10 +1408,10 @@ class Pyrite:
     def main(self):
         """Show main window, tweak some GTK+ settings and start GTK+ main loop."""
         self.g_window.show()
-        settings = gtk.settings_get_default()
+        settings = Gtk.settings_get_default()
         settings.props.gtk_button_images = True
-        with gtk.gdk.lock:
-            gtk.main()
+        with Gtk.gdk.lock:
+            Gtk.main()
 
 
 

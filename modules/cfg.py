@@ -23,7 +23,9 @@
 #
 #------------------------------------------------------------------------------
 
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 from os import getenv
 
 # Important variables
@@ -34,14 +36,14 @@ USERPREF_FORMAT_INFO    = {'version':'Must6fa'}
 
 # List of possible Infobar message types
 MSGTYPES = [0,
-            gtk.MESSAGE_INFO,      # 1
-            gtk.MESSAGE_QUESTION,  # 2
-            gtk.MESSAGE_WARNING,   # 3
-            gtk.MESSAGE_ERROR]     # 4
+            Gtk.MessageType.INFO,      # 1
+            Gtk.MessageType.QUESTION,  # 2
+            Gtk.MessageType.WARNING,   # 3
+            Gtk.MessageType.ERROR]     # 4
 
 # List of possible images to show in Infobar
-IMGTYPES = [gtk.STOCK_APPLY,            # 0
-            gtk.STOCK_DIALOG_INFO,      # 1
-            gtk.STOCK_DIALOG_QUESTION,  # 2
-            gtk.STOCK_DIALOG_WARNING,   # 3
-            gtk.STOCK_DIALOG_ERROR]     # 4
+IMGTYPES = [Gtk.STOCK_APPLY,            # 0
+            Gtk.STOCK_DIALOG_INFO,      # 1
+            Gtk.STOCK_DIALOG_QUESTION,  # 2
+            Gtk.STOCK_DIALOG_WARNING,   # 3
+            Gtk.STOCK_DIALOG_ERROR]     # 4

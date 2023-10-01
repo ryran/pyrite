@@ -178,7 +178,7 @@
                         <property name="image">image6</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="l" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="l" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_clear" swapped="no"/>
                       </object>
                     </child>
@@ -194,7 +194,7 @@
                         <property name="image">img_open</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="o" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_open" swapped="no"/>
                       </object>
                     </child>
@@ -209,7 +209,7 @@
                         <property name="image">img_saveas</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="s" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_save" swapped="no"/>
                       </object>
                     </child>
@@ -232,7 +232,7 @@
                         <property name="image">image9</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="g" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="g" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_switch_engine" swapped="no"/>
                       </object>
                     </child>
@@ -252,7 +252,7 @@
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="q" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_quit" swapped="no"/>
                       </object>
                     </child>
@@ -357,7 +357,7 @@
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="p" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_preferences" swapped="no"/>
                       </object>
                     </child>
@@ -431,7 +431,7 @@ This will not add newline characters to Message</property>
                         <property name="image">image7</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="plus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="plus" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_zoom" swapped="no"/>
                       </object>
                     </child>
@@ -445,7 +445,7 @@ This will not add newline characters to Message</property>
                         <property name="image">image8</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <accelerator key="minus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <accelerator key="minus" signal="activate" modifiers="GDK_KEY_CONTROL_MASK"/>
                         <signal name="activate" handler="action_zoom" swapped="no"/>
                       </object>
                     </child>
@@ -522,7 +522,7 @@ This will not add newline characters to Message</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
                     <property name="focus_on_click">False</property>
-                    <accelerator key="e" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                    <accelerator key="e" signal="clicked" modifiers="GDK_KEY_CONTROL_MASK"/>
                     <signal name="clicked" handler="action_encrypt" swapped="no"/>
                   </object>
                   <packing>
@@ -544,7 +544,7 @@ This will not add newline characters to Message</property>
                     <property name="relief">none</property>
                     <property name="use_underline">True</property>
                     <property name="focus_on_click">False</property>
-                    <accelerator key="d" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                    <accelerator key="d" signal="clicked" modifiers="GDK_KEY_CONTROL_MASK"/>
                     <signal name="clicked" handler="action_decrypt" swapped="no"/>
                   </object>
                   <packing>
