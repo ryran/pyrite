@@ -702,7 +702,7 @@ class Pyrite:
         builder.add_from_file(cfg.ASSETDIR + 'ui/about.glade') 
         about = builder.get_object('aboutdialog')
         about.set_logo_icon_name(Gtk.STOCK_DIALOG_AUTHENTICATION)
-        about.set_transient_for(self.g_window)
+        # about.set_transient_for(self.g_window)
         about.set_version(cfg.VERSION)
         about.connect('response', lambda *args: about.destroy())
         about.show()

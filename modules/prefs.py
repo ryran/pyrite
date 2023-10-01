@@ -181,7 +181,7 @@ class Preferences:
         # TODO: Advanced tab
         #self.tg_args_gpg_e  = builder.get_object('tg_args_gpg_e')
         #self.en_args_gpg_e  = builder.get_object('en_args_gpg_e')
-        self.set_transient_for(parentwindow)
+        # self.set_transient_for(parentwindow)
         if access(cfg.USERPREF_FILE, R_OK):
             btn_revert = builder.get_object('btn_revert')
             btn_revert.set_sensitive(True)
