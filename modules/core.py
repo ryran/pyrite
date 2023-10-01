@@ -31,6 +31,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import GLib
 from gi.repository import Gdk
 from gi.repository import Gtk
+from gi.repository import Pango
 
 # gtk.gdk.threads_init()
 import glib
@@ -380,10 +381,10 @@ class Pyrite:
             self.g_wrap.set_active          (self.p['wrap'])
             
             # Set TextView fonts, sizes, and colors
-            # self.g_msgtxtview.modify_font(
-            #     FontDescription("monospace {}".format(self.p['msgfntsize'])))
-            # self.g_errtxtview.modify_font(
-            #     FontDescription("normal {}".format(self.p['errfntsize'])))
+            self.g_msgtxtview.modify_font(
+                Pango.FontDescription("monospace {}".format(self.p['msgfntsize'])))
+            self.g_errtxtview.modify_font(
+                Pango.FontDescription("normal {}".format(self.p['errfntsize'])))
 
             bg_color = Gdk.Color(0, 0, 0)
             bg_color.parse(self.p['color_bg'])
@@ -853,9 +854,9 @@ class Pyrite:
             self.p['msgfntsize'] -= 1
             self.p['errfntsize'] -= 1
         self.g_msgtxtview.modify_font(
-            FontDescription("monospace {}".format(self.p['msgfntsize'])))
+            Pango.FontDescription("monospace {}".format(self.p['msgfntsize'])))
         self.g_errtxtview.modify_font(
-            FontDescription("normal {}".format(self.p['errfntsize'])))
+            Pango.FontDescription("normal {}".format(self.p['errfntsize'])))
     
     
     # Called when Cipher combobox selection is changed
