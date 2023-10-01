@@ -258,10 +258,12 @@ class Gpg():
             self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
         else:
-            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
+            b = self.io['stderr']
+            self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=b[1])
         
         # Time to communicate! Save output for later
-        self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
+        b = self.io['stdin'].encode('utf-8')
+        self.io['stdout'] = self.childprocess.communicate(input=b)[0]
         
         # Clear stdin from our dictionary asap, in case it's huge
         self.io['stdin'] = ''
@@ -399,7 +401,8 @@ class Openssl():
             self.childprocess = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=self.io['stderr'][1])
         
         # Time to communicate! Save output for later
-        self.io['stdout'] = self.childprocess.communicate(input=self.io['stdin'])[0]
+        b = self.io['stdin'].encode('utf-8')
+        self.io['stdout'] = self.childprocess.communicate(input=b)[0]
         
         # Clear stdin from our dictionary asap, in case it's huge
         self.io['stdin'] = ''

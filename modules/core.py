@@ -1347,7 +1347,7 @@ class Pyrite:
                     self.infobar('x_verify_success')
                 else:
                     # Set TextBuffer to gpg stdout
-                    self.buff.set_text(self.x.io['stdout'])
+                    self.buff.set_text(self.x.io['stdout'].decode('utf-8'))
                     self.x.io['stdout'] = 0
                     if self.engine in 'OpenSSL' and action in 'enc':
                         self.infobar('x_opensslenc_success_textmode', customtext=cipher)
@@ -1377,10 +1377,12 @@ class Pyrite:
         if condition == GLib.IO_IN:
             if output in 'task':
                 # Output to Task Status
-                self.buff2.insert(self.buff2.get_end_iter(), read(fd, 1024))
+                b = read(fd, 1024).decode('utf-8')
+                self.buff2.insert(self.buff2.get_end_iter(), b)
             else:
                 # Output to stderr (will show if run from terminal)
-                stderr.write(read(fd, 1024))
+                b = read(fd, 1024).decode('utf-8')
+                stderr.write(b)
             return True
         
         # If other end of pipe hangs up, close our fd and destroy the watcher
