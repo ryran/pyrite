@@ -6,33 +6,26 @@ Pyrite - Python/GTK+ encryption/signing frontend for GnuPG and OpenSSL
 
 FEDORA/RHEL7 INSTALLATION
 -------------------------
-There's an RPM (and yum repository) @ [people.redhat.com/rsawhill/rpms](http://people.redhat.com/rsawhill/rpms/). To configure it and install Pyrite, simply run the following as root:
+There's an RPM (and yum repository) @ [people.redhat.com/rsawhill/rpms](https://people.redhat.com/rsawhill/rpms/). To configure it and install Pyrite, simply run the following as root:
 
 ```
-yum install http://people.redhat.com/rsawhill/rpms/latest-rsawaroha-release.rpm
+yum install https://people.redhat.com/rsawhill/rpms/latest-rsawaroha-release.rpm
 yum install pyrite
 ```
 
 Requirements and package names:
 
-- gtk2 >= v2.24: `gtk2`  
-- python2 >= v2.7: `python`  
-- pygtk: `pygtk2`  
-- gpg/openssl: `gnupg2` or `gnupg` or `openssl`
-
-*As per above, Pyrite is not compatible with RHEL6.*
+- GTK3: `gtk3`
+- Python3: `python3`
+- `python3-gi`, `python3-gi-cairo`
+- PGP `gnupg2` or OpenSSL `openssl`
 
 
 DEBIAN/UBUNTU/OTHER LINUX INSTALLATION
 --------------------------------------
-There is a simple interactive shell installer. Before using it, ensure you have the following on your Linux system (Ubuntu package names):
+There is a simple interactive shell installer.
 
-- gtk2 >= v2.24: `libgtk2.0-bin`  
-- python2 >= v2.7: `python`  
-- pygtk: `python-gtk2`  
-- gpg/openssl: `gnupg2` or (`gnupg` and `gnupg-agent`) or `openssl`
-
-If requirements are met, clone the Pyrite repo with `git clone git://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
+If requirements are met, clone the Pyrite repo with `git clone https://github.com/ryran/pyrite.git` **OR** [download a zip of the source](https://github.com/ryran/pyrite/archive/master.zip).
 
 From the root source folder execute the interactive `INSTALL` script.
 
@@ -98,7 +91,7 @@ If you find yourself wondering about a particular feature, just hover your mouse
 
 BUGS
 ----------
-1) After launching Pyrite, the **first** drag/drop of a file onto the *Input File For Direct Operation* GtkFileChooserButton fails. After that the button works properly. I've been seeking out expertise on this weird bug but I haven't gotten anywhere. If you have any hints, hit me up, or check out [my post about it on stackoverflow](http://stackoverflow.com/questions/9047844/pygtk-troubles-with-drag-and-drop-file-to-gtkfilechooserbutton).
+1) After launching Pyrite, the **first** drag/drop of a file onto the *Input File For Direct Operation* GtkFileChooserButton fails. After that the button works properly. I've been seeking out expertise on this weird bug but I haven't gotten anywhere. If you have any hints, hit me up, or check out [my post about it on stackoverflow](https://stackoverflow.com/questions/9047844/pygtk-troubles-with-drag-and-drop-file-to-gtkfilechooserbutton).
 
 2) No undo. It wasn't a top priority at the beginning, but I think it's pretty essential for an application that basically contains a text editor to have an undo/redo stack. I'll do it eventually.
 
@@ -138,7 +131,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-General Public License @[gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.html>) for more details.
+General Public License @[gnu.org/licenses/gpl.html](https://gnu.org/licenses/gpl.html>) for more details.
 
 
 
@@ -148,7 +141,7 @@ General Public License @[gnu.org/licenses/gpl.html](http://gnu.org/licenses/gpl.
 
 Hmmmm. You're still here?
 
-Oh. You must be wondering why the name [*Pyrite*](http://en.wikipedia.org/wiki/Pyrite), eh?
+Oh. You must be wondering why the name [*Pyrite*](https://en.wikipedia.org/wiki/Pyrite), eh?
 
 Well, I'll let my friend River--who came up with the name--explain it to you:
 
