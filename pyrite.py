@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
 # Last file mod: 2013/09/15
@@ -21,19 +20,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Pyrite.  If not, see <http://gnu.org/licenses/gpl.html>.
 #
-#------------------------------------------------------------------------------
-#
 # TODO:
 #   * Icons for for encrypt, decrypt, sign, verify buttons, application
 #   * Undo stack. Blech. Kill me.
 #   * Update notifications
 #   * BUG: First drag/drop onto FileChooserButton fails; 2nd, 3rd, etc succeed.
 #       It's a GTK+ issue. Reported. bugzilla.gnome.org/show_bug.cgi?id=669718
-#
-#------------------------------------------------------------------------------
 
 import argparse
 from sys import argv
+
 import modules.core
 
 # Parse command-line arguments
@@ -79,13 +75,11 @@ args = parser.parse_args()
 # If no cmdline options specified, let's save some cycles later
 if len(argv) == 1:  args = None
 
-
 if __name__ == "__main__":
-    
+
     FeS2 = modules.core.Pyrite(args)
     try:
         FeS2.main()
     except KeyboardInterrupt:
         print()
         exit()
-

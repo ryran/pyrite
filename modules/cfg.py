@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # This file is part of Pyrite.
 # Last file mod: 2013/09/15
@@ -20,30 +19,33 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Pyrite.  If not, see <http://gnu.org/licenses/gpl.html>.
-#
-#------------------------------------------------------------------------------
 
 import gi
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from os import getenv
 
 # Important variables
-VERSION                 = 'v1.0.2'
-ASSETDIR                = './'
-USERPREF_FILE           = getenv('HOME') + '/.pyrite'
-USERPREF_FORMAT_INFO    = {'version':'Must6fa'}
+VERSION = 'v1.0.2'
+ASSETDIR = './'
+USERPREF_FILE = getenv('HOME') + '/.pyrite'
+USERPREF_FORMAT_INFO = {'version': 'Must6fa'}
 
 # List of possible Infobar message types
-MSGTYPES = [0,
-            Gtk.MessageType.INFO,      # 1
-            Gtk.MessageType.QUESTION,  # 2
-            Gtk.MessageType.WARNING,   # 3
-            Gtk.MessageType.ERROR]     # 4
+MSGTYPES = [
+    0,
+    Gtk.MessageType.INFO,  # 1
+    Gtk.MessageType.QUESTION,  # 2
+    Gtk.MessageType.WARNING,  # 3
+    Gtk.MessageType.ERROR  # 4
+]
 
 # List of possible images to show in Infobar
-IMGTYPES = [Gtk.STOCK_APPLY,            # 0
-            Gtk.STOCK_DIALOG_INFO,      # 1
-            Gtk.STOCK_DIALOG_QUESTION,  # 2
-            Gtk.STOCK_DIALOG_WARNING,   # 3
-            Gtk.STOCK_DIALOG_ERROR]     # 4
+IMGTYPES = [
+    Gtk.STOCK_APPLY,  # 0
+    Gtk.STOCK_DIALOG_INFO,  # 1
+    Gtk.STOCK_DIALOG_QUESTION,  # 2
+    Gtk.STOCK_DIALOG_WARNING,  # 3
+    Gtk.STOCK_DIALOG_ERROR  # 4
+]
