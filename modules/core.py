@@ -504,9 +504,9 @@ class Pyrite:
             self.show_errmsg(
                 "Simultaneously reading from & writing to a file is a baaad idea. "
                 "Choose a different output filename.", parent=chooser)
-            return Gtk.FILE_CHOOSER_CONFIRMATION_SELECT_AGAIN
+            return Gtk.FileChooserConfirmation.SELECT_AGAIN
         else:
-            return Gtk.FILE_CHOOSER_CONFIRMATION_CONFIRM
+            return Gtk.FileChooserConfirmation.CONFIRM
 
     # Generic file chooser for opening or saving
     def chooser_grab_filename(self, mode, save_suggestion=None):
