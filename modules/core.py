@@ -272,13 +272,12 @@ class Pyrite:
     def instantiate_xface(self, preferred=None, startup=False):
         """Instantiate Gpg or Openssl interface."""
 
-        b = ['gpg', 'openssl']
-        # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
-        # Desired: convert the number setting to the human-readable name and store as b
-        b = b[self.p['backend']]
-
         # If we weren't passed preferred argument, set desired interface to backend pref
         if not preferred:
+            b = ['gpg', 'openssl']
+            # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
+            # Desired: convert the number setting to the human-readable name and store as b
+            b = b[self.p['backend']]
             preferred = b
 
         # Loading gpg
