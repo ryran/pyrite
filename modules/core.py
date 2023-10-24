@@ -1194,7 +1194,7 @@ class Pyrite:
         self.x.io['stderr'] = pipe()
         GLib.io_add_watch(
             self.x.io['stderr'][0],
-            GLib.IO_IN | GLib.IO_HUP,
+            GLib.IOCondition.IN | GLib.IOCondition.HUP,
             self.update_task_status)
 
         if self.engine in 'OpenSSL':
@@ -1211,7 +1211,7 @@ class Pyrite:
                 self.x.io['gstatus'] = pipe()
                 GLib.io_add_watch(
                     self.x.io['gstatus'][0],
-                    GLib.IO_IN | GLib.IO_HUP,
+                    GLib.IOCondition.IN | GLib.IOCondition.HUP,
                     self.update_task_status, 'term')
             # ATTEMPT EN-/DECRYPTION w/GPG
             Thread(
@@ -1335,7 +1335,7 @@ class Pyrite:
         """Read data waiting in file descriptor; close fd if other end hangs up."""
 
         # If there's data to be read, let's read it
-        if condition == GLib.IO_IN:
+        if condition == GLib.IOCondition.IN:
             if output in 'task':
                 # Output to Task Status
                 b = read(fd, 1024).decode('utf-8')
@@ -1347,7 +1347,7 @@ class Pyrite:
             return True
 
         # If other end of pipe hangs up, close our fd and destroy the watcher
-        elif condition == GLib.IO_HUP:
+        elif condition == GLib.IOCondition.HUP:
             if output in 'term':
                 stderr.write("\n")
             close(fd)
