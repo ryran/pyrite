@@ -127,13 +127,10 @@
     </columns>
     <data>
       <row>
-        <col id="0" translatable="yes">gpg2</col>
+        <col id="0" translatable="no">gpg</col>
       </row>
       <row>
-        <col id="0" translatable="yes">gpg</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">openssl</col>
+        <col id="0" translatable="no">openssl</col>
       </row>
     </data>
   </object>

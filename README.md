@@ -72,7 +72,7 @@ FEATURES
 ----------
 Pyrite acts as a frontend for GnuPG, doing symmetric or asymmetric encrypting/decrypting, as well as signing and verifying. Additionally, it can use OpenSSL for simple symmetric encryption/decryption.
 
-Pyrite can operate on text input or can take input and output filenames (text or binary) to pass directly to the backend program (i.e., gpg/gpg2 or openssl).
+Pyrite can operate on text input or can take input and output filenames (text or binary) to pass directly to the backend program (i.e., gpg or openssl).
 
 As you can see from the screenshots, Pyrite can utilize virtually all of the encrypting features of GnuPG -- you can mix and match passphrase & public-key encryption & signing with one file, just like gpg, which will require interacting with your gpg-agent. Or you can keep it simple and just use a passphrase as a shared key, in which case gpg-agent is bypassed and you only have to type the passphrase once.
 

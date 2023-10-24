@@ -35,10 +35,10 @@ def flatten_list_to_stderr(list):
 
 
 class Gpg():
-    """GPG/GPG2 interface for encryption/decryption/signing/verifying.
+    """GPG interface for encryption/decryption/signing/verifying.
     
-    First thing: use subprocess module to call a gpg or gpg2 process, ensuring
-    that one of them is available on the system; if not, of course we have to
+    First thing: use subprocess module to call a gpg process, ensuring
+    that it is available on the system; if not, of course we have to
     quit (raise exception). Either way, that's all for __init__.
     
     See the docstring for the main method -- gpg() -- for next steps.
@@ -46,39 +46,19 @@ class Gpg():
     Security: Xface.gpg() can take a passphrase for symmetric enc/dec as
     an argument, but it never stores that passphrase on disk; the passphrase is
     passed to gpg via an os file descriptor. If any access to your secret key is
-    required, gpg() invokes gpg/gpg2 with gpg-agent enabled.
+    required, gpg() invokes gpg with gpg-agent enabled.
     
     """
 
-    def __init__(self, show_version=True, firstchoice='gpg2'):
-        """Confirm we can run gpg or gpg2."""
+    def __init__(self, show_version=True):
+        """Confirm we can run gpg."""
 
-        def gpg1():
+        try:
             self.vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
             self.GPG_BINARY = 'gpg'
-
-        def gpg2():
-            self.vers = Popen(['gpg2', '--version'], stdout=PIPE).communicate()[0]
-            self.GPG_BINARY = 'gpg2'
-
-        if firstchoice == 'gpg':
-            try:
-                gpg1()
-            except:
-                try:
-                    gpg2()
-                except:
-                    stderr.write("gpg, gpg2 not found on your system.\n\n")
-                    raise
-        else:
-            try:
-                gpg2()
-            except:
-                try:
-                    gpg1()
-                except:
-                    stderr.write("gpg, gpg2 not found on your system.\n\n")
-                    raise
+        except:
+            stderr.write("gpg not found on your system.\n\n")
+            raise
 
         # To show or not to show version info
         if show_version:
@@ -113,7 +93,7 @@ class Gpg():
             alwaystrust=False,  # Add '--trust-model always'?
             yes=True  # Add '--yes'? (will overwrite files)
     ):
-        """Build a gpg cmdline and then launch gpg/gpg2, saving output appropriately.
+        """Build a gpg cmdline and then launch gpg, saving output appropriately.
         
         This method inspects the contents of class attr 'io' -- a dict object that should
         contain all of the following keys, at least initialized to 0 or '':

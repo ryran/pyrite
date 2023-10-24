@@ -272,17 +272,18 @@ class Pyrite:
     def instantiate_xface(self, preferred=None, startup=False):
         """Instantiate Gpg or Openssl interface."""
 
-        b = ['gpg2', 'gpg', 'openssl']
+        b = ['gpg', 'openssl']
         # self.p['backend'] contains 0, 1, or 2, corresponding to the above items in b
         # Desired: convert the number setting to the human-readable name and store as b
         b = b[self.p['backend']]
 
         # If we weren't passed preferred argument, set desired interface to backend pref
-        if not preferred:  preferred = b
+        if not preferred:
+            preferred = b
 
         # Loading gpg
-        def gpg(backend_pref=b, fallback=False):
-            self.x = crypt_interface.Gpg(firstchoice=backend_pref)
+        def gpg(fallback=False):
+            self.x = crypt_interface.Gpg()
             self.engine = self.x.GPG_BINARY.upper()
             self.g_mengine.set_label("Use OpenSSL as Engine")
             if fallback:
@@ -293,7 +294,7 @@ class Pyrite:
         def openssl(fallback=False):
             self.x = crypt_interface.Openssl()
             self.engine = 'OpenSSL'
-            self.g_mengine.set_label("Use GnuPG as Engine")
+            self.g_mengine.set_label("Use GnuPG2 as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
                 self.infobar('engine_gpg_missing')

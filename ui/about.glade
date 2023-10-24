@@ -9,7 +9,7 @@
     <property name="skip-taskbar-hint">True</property>
     <property name="program-name">Pyrite</property>
     <property name="copyright" translatable="yes">Copyright © 2012, 2013 Ryan Sawhill Aroha</property>
-    <property name="comments" translatable="yes">GnuPG (gpg/gpg2) encrypting, decrypting, signing, and verifying</property>
+    <property name="comments" translatable="yes">GnuPG (gpg) encrypting, decrypting, signing, and verifying</property>
     <property name="website">http://github.com/ryran/pyrite</property>
     <property name="license" translatable="yes">This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

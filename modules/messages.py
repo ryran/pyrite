@@ -37,20 +37,20 @@ MESSAGE_DICT = dict(
 
     # Backend Engine
     engine_openssl_missing=msg(
-        ("<b>Shockingly, your system does not appear to have OpenSSL.</b>"),
+        ("<b>Your system does not appear to have OpenSSL.</b>"),
         INFO, WARNING),
 
     engine_gpg_missing=msg(
         ("<b>GnuPG not found. Operating in OpenSSL fallback-mode.</b>\n"
-         "<small>To make full use of this program you need either <tt>gpg</tt> or <tt>gpg2</tt> installed.\n"
-         "Without one of them, you won't have access key-based functions like\n"
+         "<small>To make full use of this program you need <tt>gpg</tt> installed.\n"
+         "Without it, you won't have access key-based functions like\n"
          "asymmetric encryption or singing.</small>"),
         INFO, WARNING, 20),
 
     engine_all_missing=msg(
-        ("<b>This program requires one of: <tt>gpg</tt>, <tt>gpg2</tt>, or <tt>openssl</tt></b>\n"
+        ("<b>This program requires one of: <tt>gpg</tt> or <tt>openssl</tt></b>\n"
          "<small>None of these were found on your system. You can look around\n"
-         "the interface, but to have real fun you'll need to install <tt>gpg</tt> or <tt>gpg2</tt>\n"
+         "the interface, but to have real fun you'll need to install <tt>gpg</tt>\n"
          "from your linux distribution's software repository.</small>"),
         ERROR, WARNING, 0),
 
