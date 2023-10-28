@@ -27,14 +27,14 @@ from sys import stderr
 from time import sleep
 
 
-def flatten_list_to_stderr(list):
+def flatten_list_to_stderr(lines):
     stderr.write("-" * 79 + "\n")
-    for item in list:
+    for item in lines:
         stderr.write(item + " ")
     stderr.write("\n\n")
 
 
-class Gpg():
+class Gpg:
     """GPG interface for encryption/decryption/signing/verifying.
     
     First thing: use subprocess module to call a gpg process, ensuring
@@ -96,11 +96,11 @@ class Gpg():
         """Build a gpg cmdline and then launch gpg, saving output appropriately.
         
         This method inspects the contents of class attr 'io' -- a dict object that should
-        contain all of the following keys, at least initialized to 0 or '':
+        contain all the following keys, at least initialized to 0 or '':
             stdin       # Input text for subprocess
             infile      # Input filename for subprocess, in place of stdin
             outfile     # Output filename if infile was given
-        io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
+        io['infile'] should contain a filename OR be set to 0, in which case io['stdin']
         must contain the input data. If using infile, outfile is not necessarily required,
         but it's probably a good idea unless you're doing sign-only.
         
@@ -170,7 +170,7 @@ class Gpg():
                 if localuser:
                     cmd.append(localuser)
                 else:
-                    cmd.append(self.get_gpgdefaultkey())
+                    cmd.append(self.get_gpg_default_key())
             if recip:
                 while recip[-1] == ' ' or recip[-1] == ';':
                     recip = recip.strip()
@@ -233,7 +233,7 @@ class Gpg():
         # Print a separator + the command-arguments to stderr
         flatten_list_to_stderr(cmd)
 
-        # If working direct with files, setup our Popen instance with no stdin
+        # If working direct with files, set up our Popen instance with no stdin
         if self.io['infile']:
             self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
@@ -249,20 +249,20 @@ class Gpg():
         self.io['stdin'] = ''
 
         # Close os file descriptors
-        if fd_pwd_R:  close(fd_pwd_R)
+        if fd_pwd_R:
+            close(fd_pwd_R)
         sleep(0.1)  # Sleep a bit to ensure everything gets read
         close(self.io['stderr'][1])
         if self.io['gstatus']:
             close(self.io['gstatus'][1])
 
-    def get_gpgdefaultkey(self):
+    def get_gpg_default_key(self):
         """Return key id of first secret key in gpg keyring."""
-        return check_output(split(
-            "{} --list-secret-keys --with-colons --fast-list-mode"
-            .format(self.GPG_BINARY))).split(':', 5)[4]
+        cmd = split("{} --list-secret-keys --with-colons --fast-list-mode".format(self.GPG_BINARY))
+        return check_output(cmd).split(':', 5)[4]
 
 
-class Openssl():
+class Openssl:
     """OpenSSL interface for encryption/decryption.
     
     First thing: use subprocess module to call an openssl process, ensuring it
@@ -311,11 +311,11 @@ class Openssl():
         """Build an openssl cmdline and then launch it, saving output appropriately.
 
         This method inspects the contents of class attr 'io' -- a dict object that should
-        contain all of the following keys, at least initialized to 0 or '':
+        contain all the following keys, at least initialized to 0 or '':
             stdin       # Input text for subprocess
             infile      # Input filename for subprocess, in place of stdin
             outfile     # Output filename -- required if infile was given
-        io['infile'] should contain a filename OR be set to 0, in which case io'[stdin']
+        io['infile'] should contain a filename OR be set to 0, in which case io['stdin']
         must contain the input data.
         
         Whether reading input from infile or stdin, each openssl command's stdout &
@@ -332,8 +332,9 @@ class Openssl():
                          "to work? ... NOPE. Chuck Testa.\n")
             raise Exception("infile, outfile must be different")
 
-        if cipher:  cipher = cipher.lower()
-        if cipher == None:
+        if cipher:
+            cipher = cipher.lower()
+        if cipher is None:
             cipher = 'aes-256-cbc'
         elif cipher == '3des':
             cipher = 'des-ede3-cbc'
@@ -380,7 +381,7 @@ class Openssl():
         # Print a separator + the command-arguments to stderr
         flatten_list_to_stderr(cmd)
 
-        # If working direct with files, setup our Popen instance with no stdin
+        # If working direct with files, set up our Popen instance with no stdin
         if self.io['infile']:
             self.childprocess = Popen(cmd, stdout=PIPE, stderr=self.io['stderr'][1])
         # Otherwise, only difference for Popen is we need the stdin pipe
