@@ -1,55 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.24"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-zoom-in</property>
   </object>
   <object class="GtkImage" id="image8">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-zoom-out</property>
   </object>
   <object class="GtkImage" id="image9">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-execute</property>
   </object>
   <object class="GtkImage" id="img_clear">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
   <object class="GtkImage" id="img_decrypt">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-revert-to-saved</property>
   </object>
   <object class="GtkImage" id="img_encrypt">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-apply</property>
   </object>
   <object class="GtkImage" id="img_open">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-open</property>
   </object>
   <object class="GtkImage" id="img_save">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-save</property>
   </object>
   <object class="GtkImage" id="img_saveas">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="stock">gtk-save-as</property>
   </object>
   <object class="GtkListStore" id="liststore_ciphers">
@@ -143,117 +142,117 @@
     </data>
   </object>
   <object class="GtkWindow" id="window1">
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="title" translatable="yes">Pyrite</property>
-    <property name="window_position">center</property>
+    <property name="window-position">center</property>
     <signal name="destroy" handler="action_quit" swapped="no"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuItem" id="menuitem1">
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">_File</property>
-                <property name="use_underline">True</property>
+                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="filemenu">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_clear">
                         <property name="label">C_lear</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Clear all text/file buffers</property>
+                        <property name="use-underline">True</property>
                         <property name="image">image6</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="l" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_clear" swapped="no"/>
+                        <accelerator key="l" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_open">
                         <property name="label" translatable="yes">_Open Text File as Message</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Open text file in Message area</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Open text file in Message area</property>
+                        <property name="use-underline">True</property>
                         <property name="image">img_open</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_open" swapped="no"/>
+                        <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_save">
                         <property name="label" translatable="yes">_Save Copy of Message</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Save Message to text file</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Save Message to text file</property>
+                        <property name="use-underline">True</property>
                         <property name="image">img_saveas</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_save" swapped="no"/>
+                        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="menuitem5">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_switchengine">
                         <property name="label" translatable="yes">Use OpenSSL as Engine</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Switch between using OpenSSL or GnuPG as the backend</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Switch between using OpenSSL or GnuPG as the backend</property>
+                        <property name="use-underline">True</property>
                         <property name="image">image9</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="g" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_switch_engine" swapped="no"/>
+                        <accelerator key="g" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="mnu_sep1a">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_quit">
                         <property name="label">gtk-quit</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_quit" swapped="no"/>
+                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                   </object>
@@ -262,103 +261,103 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem2">
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Edit</property>
-                <property name="use_underline">True</property>
+                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="editmenu">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_undo">
                         <property name="label">gtk-undo</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_undo" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_redo">
                         <property name="label">gtk-redo</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_redo" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="mnu_sep2a">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_cut">
                         <property name="label">gtk-cut</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_cut" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_copy">
                         <property name="label">gtk-copy</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_copy" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_paste">
                         <property name="label">gtk-paste</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_paste" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="mnu_sep2b">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_preferences">
                         <property name="label">gtk-preferences</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_preferences" swapped="no"/>
+                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                   </object>
@@ -367,86 +366,86 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem3">
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
+                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="viewmenu">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkCheckMenuItem" id="toggle_wordwrap">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Toggles line-wrapping in Message area
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Toggles line-wrapping in Message area
 This will not add newline characters to Message</property>
                         <property name="label" translatable="yes">Text _Wrapping</property>
-                        <property name="use_underline">True</property>
+                        <property name="use-underline">True</property>
                         <property name="active">True</property>
                         <signal name="toggled" handler="action_toggle_wordwrap" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkCheckMenuItem" id="toggle_taskstatus">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show/hide side pane containing gpg/openssl cmd stderr (success/failure messages)</property>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Show/hide side pane containing gpg/openssl cmd stderr (success/failure messages)</property>
                         <property name="label" translatable="yes">_Task Status Side Panel</property>
-                        <property name="use_underline">True</property>
+                        <property name="use-underline">True</property>
                         <property name="active">True</property>
                         <signal name="toggled" handler="action_toggle_taskstatus" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkCheckMenuItem" id="toggle_gpgverbose">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel)</property>
+                        <property name="can-focus">False</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Enable/disable verbose status output from gpg (displayed in side panel)</property>
                         <property name="label" translatable="yes">_Verbose Output in Task Status</property>
-                        <property name="use_underline">True</property>
+                        <property name="use-underline">True</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="mnu_sep3a">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_zoomin">
                         <property name="label" translatable="yes">Increase Font Size</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
                         <property name="image">image7</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="plus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_zoom" swapped="no"/>
+                        <accelerator key="plus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_zoomout">
                         <property name="label" translatable="yes">Decrease Font Size</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
                         <property name="image">image8</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                        <accelerator key="minus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <property name="use-stock">False</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_zoom" swapped="no"/>
+                        <accelerator key="minus" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                   </object>
@@ -455,24 +454,24 @@ This will not add newline characters to Message</property>
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem4">
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Help</property>
-                <property name="use_underline">True</property>
+                <property name="use-underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="helpmenu">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="mnu_about">
                         <property name="label">gtk-about</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="always_show_image">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="use-stock">True</property>
+                        <property name="always-show-image">True</property>
                         <signal name="activate" handler="action_about" swapped="no"/>
                       </object>
                     </child>
@@ -490,12 +489,12 @@ This will not add newline characters to Message</property>
         <child>
           <object class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="spacing">3</property>
             <child>
               <object class="GtkLabel" id="space1a">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -507,23 +506,22 @@ This will not add newline characters to Message</property>
             <child>
               <object class="GtkHButtonBox" id="hbuttonbox1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="layout_style">edge</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkButton" id="btn_encrypt">
                     <property name="label" translatable="yes">_Encrypt</property>
-                    <property name="use_action_appearance">False</property>
+                    <property name="use-action-appearance">False</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_markup">&lt;i&gt;Ctrl+E&lt;/i&gt;</property>
+                    <property name="can-focus">True</property>
+                    <property name="focus-on-click">False</property>
+                    <property name="receives-default">True</property>
+                    <property name="has-tooltip">True</property>
+                    <property name="tooltip-markup">&lt;i&gt;Ctrl+E&lt;/i&gt;</property>
                     <property name="image">img_encrypt</property>
                     <property name="relief">none</property>
-                    <property name="use_underline">True</property>
-                    <property name="focus_on_click">False</property>
-                    <accelerator key="e" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                    <property name="use-underline">True</property>
                     <signal name="clicked" handler="action_encrypt" swapped="no"/>
+                    <accelerator key="e" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -534,18 +532,18 @@ This will not add newline characters to Message</property>
                 <child>
                   <object class="GtkButton" id="btn_decrypt">
                     <property name="label" translatable="yes">_Decrypt</property>
-                    <property name="use_action_appearance">False</property>
+                    <property name="use-action-appearance">False</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip_markup">&lt;i&gt;Ctrl+D&lt;/i&gt;</property>
+                    <property name="can-focus">True</property>
+                    <property name="focus-on-click">False</property>
+                    <property name="receives-default">True</property>
+                    <property name="has-tooltip">True</property>
+                    <property name="tooltip-markup">&lt;i&gt;Ctrl+D&lt;/i&gt;</property>
                     <property name="image">img_decrypt</property>
                     <property name="relief">none</property>
-                    <property name="use_underline">True</property>
-                    <property name="focus_on_click">False</property>
-                    <accelerator key="d" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                    <property name="use-underline">True</property>
                     <signal name="clicked" handler="action_decrypt" swapped="no"/>
+                    <accelerator key="d" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -563,7 +561,7 @@ This will not add newline characters to Message</property>
             <child>
               <object class="GtkLabel" id="space1b">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
@@ -576,16 +574,16 @@ This will not add newline characters to Message</property>
             <child>
               <object class="GtkButton" id="btn_clear">
                 <property name="label" translatable="yes">C_lear</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Clear all text/file buffers</property>
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Clear all text/file buffers</property>
                 <property name="image">img_clear</property>
                 <property name="relief">none</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
+                <property name="use-underline">True</property>
                 <signal name="clicked" handler="action_clear" swapped="no"/>
               </object>
               <packing>
@@ -596,25 +594,25 @@ This will not add newline characters to Message</property>
             </child>
             <child>
               <object class="GtkHScale" id="opacity_slider">
-                <property name="width_request">70</property>
-                <property name="can_focus">True</property>
-                <property name="round_digits">0</property>
-                <property name="draw_value">False</property>
-                <property name="value_pos">left</property>
+                <property name="width-request">70</property>
+                <property name="can-focus">True</property>
+                <property name="round-digits">0</property>
+                <property name="draw-value">False</property>
+                <property name="value-pos">left</property>
                 <signal name="value-changed" handler="action_opacity_slider" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">6</property>
-                <property name="pack_type">end</property>
+                <property name="pack-type">end</property>
                 <property name="position">4</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="space1c">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
@@ -626,8 +624,8 @@ This will not add newline characters to Message</property>
             </child>
             <child>
               <object class="GtkProgressBar" id="progressbar">
-                <property name="can_focus">False</property>
-                <property name="pulse_step">0.02</property>
+                <property name="can-focus">False</property>
+                <property name="pulse-step">0.02</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -638,31 +636,31 @@ This will not add newline characters to Message</property>
             <child>
               <object class="GtkLabel" id="space1d">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="padding">2</property>
-                <property name="pack_type">end</property>
+                <property name="pack-type">end</property>
                 <property name="position">6</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="btn_pause">
-                <property name="use_action_appearance">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Pause processing</property>
+                <property name="use-action-appearance">False</property>
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Pause processing</property>
                 <property name="relief">none</property>
-                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="action_pause_child_process" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image10">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-media-pause</property>
                   </object>
                 </child>
@@ -670,24 +668,24 @@ This will not add newline characters to Message</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="pack_type">end</property>
+                <property name="pack-type">end</property>
                 <property name="position">7</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="btn_cancel">
-                <property name="use_action_appearance">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Cancel processing</property>
+                <property name="use-action-appearance">False</property>
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Cancel processing</property>
                 <property name="relief">none</property>
-                <property name="focus_on_click">False</property>
                 <signal name="clicked" handler="action_cancel_child_process" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image11">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="stock">gtk-cancel</property>
                   </object>
                 </child>
@@ -695,7 +693,7 @@ This will not add newline characters to Message</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="pack_type">end</property>
+                <property name="pack-type">end</property>
                 <property name="position">8</property>
               </packing>
             </child>
@@ -709,12 +707,12 @@ This will not add newline characters to Message</property>
         <child>
           <object class="GtkHBox" id="hbox2">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="spacing">1</property>
             <child>
               <object class="GtkLabel" id="space2a">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -726,17 +724,17 @@ This will not add newline characters to Message</property>
             <child>
               <object class="GtkRadioButton" id="toggle_mode_signverify">
                 <property name="label" translatable="yes">Sign/Verif_y Mode</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">Sign-only / verify-only mode
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Sign-only / verify-only mode
 
 For adding a signature to a message/file without encrypting it or for verifying a signed message/file that isn't encrypted</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
+                <property name="use-underline">True</property>
                 <property name="active">True</property>
-                <property name="draw_indicator">True</property>
+                <property name="draw-indicator">True</property>
                 <property name="group">toggle_mode_encdec</property>
                 <signal name="toggled" handler="action_toggle_mode_signverify" swapped="no"/>
               </object>
@@ -750,16 +748,16 @@ For adding a signature to a message/file without encrypting it or for verifying 
             <child>
               <object class="GtkCheckButton" id="toggle_sign_chooseoutput">
                 <property name="label" translatable="yes">Choose Output Filenames</property>
-                <property name="use_action_appearance">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">When signing external files, the output filenames are automatically chosen by gpg -- output is saved to the same directory as the input file and an extension is added based on the options used
+                <property name="use-action-appearance">False</property>
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">When signing external files, the output filenames are automatically chosen by gpg -- output is saved to the same directory as the input file and an extension is added based on the options used
 
 Check this if you wish to choose the output filename yourself (e.g., because the input file is in a directory you can't write to)</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -771,7 +769,7 @@ Check this if you wish to choose the output filename yourself (e.g., because the
             <child>
               <object class="GtkVSeparator" id="vseparator2a">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -783,16 +781,16 @@ Check this if you wish to choose the output filename yourself (e.g., because the
             <child>
               <object class="GtkRadioButton" id="toggle_mode_encdec">
                 <property name="label" translatable="yes">Enc/Dec _Mode</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Encrypt / decrypt / encrypt + sign mode</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Encrypt / decrypt / encrypt + sign mode</property>
+                <property name="use-underline">True</property>
                 <property name="active">True</property>
-                <property name="draw_indicator">True</property>
+                <property name="draw-indicator">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -804,17 +802,17 @@ Check this if you wish to choose the output filename yourself (e.g., because the
             <child>
               <object class="GtkCheckButton" id="toggle_mode_symmetric">
                 <property name="label" translatable="yes">_Symmetric</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Symmetric encryption/decryption
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Symmetric encryption/decryption
 
 Requires specifying a passphrase which is used as a shared key (for both encryption &amp; decryption)</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="action_toggle_symmetric" swapped="no"/>
               </object>
               <packing>
@@ -827,17 +825,17 @@ Requires specifying a passphrase which is used as a shared key (for both encrypt
             <child>
               <object class="GtkCheckButton" id="toggle_mode_asymmetric">
                 <property name="label" translatable="yes">_Asymmetric</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Asymmetric encryption/decryption
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Asymmetric encryption/decryption
 
 Requires specifying recipients whose public keys will be used for encryption; or for decryption, it requires access to your gpg secret key</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="action_toggle_asymmetric" swapped="no"/>
               </object>
               <packing>
@@ -850,17 +848,17 @@ Requires specifying recipients whose public keys will be used for encryption; or
             <child>
               <object class="GtkCheckButton" id="toggle_advanced">
                 <property name="label" translatable="yes">Adva_nced</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Allow mixing simple symmetric encryption with asymmetric encryption and/or signing
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Allow mixing simple symmetric encryption with asymmetric encryption and/or signing
 
 When creating a signed + symmetrically-encrypted message, anything in the passphrase entry box will be ignored -- gpg-agent will need to ask for both the symmetric encryption key (passphrase) and [potentially] the passphrase to your secret key</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="action_toggle_advanced" swapped="no"/>
               </object>
               <packing>
@@ -880,12 +878,12 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
         <child>
           <object class="GtkHBox" id="hbox3">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="spacing">1</property>
             <child>
               <object class="GtkLabel" id="space3a">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -898,11 +896,11 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
               <object class="GtkLabel" id="label_entry_pass">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">_Passphrase:</property>
-                <property name="use_markup">True</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">entry_pass</property>
+                <property name="use-markup">True</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">entry_pass</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -913,9 +911,9 @@ When creating a signed + symmetrically-encrypted message, anything in the passph
             <child>
               <object class="GtkEntry" id="entry_pass">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Symmetric encryption/decryption key
+                <property name="can-focus">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Symmetric encryption/decryption key
 
 Max length limited only by available memory
 
@@ -929,17 +927,13 @@ Example: You encrypt a message with your public key + symmetrically with a passp
 
 When you go to decrypt said message, you could leave the passphrase box empty (in which case gpg-agent will ask you for your private key passphrase); you could enter the symmetric passphrase you used, or you could enter your private key passphrase (both these options will bypass gpg-agent)</property>
                 <property name="visibility">False</property>
-                <property name="invisible_char">●</property>
-                <property name="width_chars">10</property>
-                <property name="truncate_multiline">True</property>
-                <property name="shadow_type">etched-in</property>
-                <property name="invisible_char_set">True</property>
-                <property name="primary_icon_stock">gtk-dialog-authentication</property>
-                <property name="primary_icon_activatable">True</property>
-                <property name="secondary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
-                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
+                <property name="invisible-char">●</property>
+                <property name="width-chars">10</property>
+                <property name="truncate-multiline">True</property>
+                <property name="shadow-type">etched-in</property>
+                <property name="primary-icon-stock">gtk-dialog-authentication</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="primary-icon-tooltip-text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -952,7 +946,7 @@ When you go to decrypt said message, you could leave the passphrase box empty (i
             <child>
               <object class="GtkLabel" id="space3b">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
@@ -966,11 +960,11 @@ When you go to decrypt said message, you could leave the passphrase box empty (i
               <object class="GtkLabel" id="label_entry_recip">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">_Recipients:</property>
-                <property name="use_markup">True</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">entry_recip</property>
+                <property name="use-markup">True</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">entry_recip</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -981,23 +975,19 @@ When you go to decrypt said message, you could leave the passphrase box empty (i
             <child>
               <object class="GtkEntry" id="entry_recip">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Keys to use for asymmetric encryption
+                <property name="can-focus">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Keys to use for asymmetric encryption
 
 Use a semicolon to separate recipients</property>
-                <property name="invisible_char">●</property>
-                <property name="width_chars">10</property>
-                <property name="truncate_multiline">True</property>
-                <property name="shadow_type">etched-in</property>
-                <property name="invisible_char_set">True</property>
-                <property name="caps_lock_warning">False</property>
-                <property name="primary_icon_stock">gtk-orientation-portrait</property>
-                <property name="primary_icon_activatable">True</property>
-                <property name="secondary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
-                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
+                <property name="invisible-char">●</property>
+                <property name="width-chars">10</property>
+                <property name="truncate-multiline">True</property>
+                <property name="shadow-type">etched-in</property>
+                <property name="caps-lock-warning">False</property>
+                <property name="primary-icon-stock">gtk-orientation-portrait</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="primary-icon-tooltip-text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -1010,20 +1000,20 @@ Use a semicolon to separate recipients</property>
             <child>
               <object class="GtkCheckButton" id="toggle_enctoself">
                 <property name="label" translatable="yes">Enc. To Se_lf</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Tells gpg to encrypt the message with the public key that corresponds to the first secret key in your keyring
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Tells gpg to encrypt the message with the public key that corresponds to the first secret key in your keyring
 
 This is done in addition to any other recipients, or if in Advanced mode and performing symmetric encryption with a passphrase, then in addition to that
 
 Note for power users: if "Change Default Key" in the signature options toolbar is enabled, the contents of its entry box are used as self, instead of the first secret key in your keyring</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1035,7 +1025,7 @@ Note for power users: if "Change Default Key" in the signature options toolbar i
             <child>
               <object class="GtkLabel" id="space3c">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">  </property>
               </object>
               <packing>
@@ -1048,10 +1038,10 @@ Note for power users: if "Change Default Key" in the signature options toolbar i
             <child>
               <object class="GtkLabel" id="label_combobox_cipher">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">_Cipher:</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">combobox_cipher</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">combobox_cipher</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1062,9 +1052,10 @@ Note for power users: if "Change Default Key" in the signature options toolbar i
             <child>
               <object class="GtkComboBox" id="combobox_cipher">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying in gpg mode]
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">[Not used when decrypting, verifying in gpg mode]
 
 Configures symmetric encryption cipher algorithm
 
@@ -1077,7 +1068,6 @@ This is used for both encryption and decryption in openssl-mode
 When decrypting, openssl needs to be told what cipher the input was encrypted with (unlike gpg)</property>
                 <property name="model">liststore_ciphers</property>
                 <property name="active">0</property>
-                <property name="focus_on_click">False</property>
                 <signal name="changed" handler="action_cipher_changed" swapped="no"/>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext4"/>
@@ -1103,21 +1093,21 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
         <child>
           <object class="GtkHPaned" id="hpaned1">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <property name="position">522</property>
-            <property name="position_set">True</property>
+            <property name="position-set">True</property>
             <child>
               <object class="GtkHBox" id="hbox6">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkVBox" id="vbox2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkLabel" id="space6a">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1127,19 +1117,19 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_open">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Open text file in Message area</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Open text file in Message area</property>
                         <property name="relief">none</property>
-                        <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_open" swapped="no"/>
                         <child>
                           <object class="GtkImage" id="image1">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="stock">gtk-open</property>
                           </object>
                         </child>
@@ -1152,19 +1142,19 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_save">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Save Message to text file</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Save Message to text file</property>
                         <property name="relief">none</property>
-                        <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_save" swapped="no"/>
                         <child>
                           <object class="GtkImage" id="image2">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="stock">gtk-save-as</property>
                           </object>
                         </child>
@@ -1177,19 +1167,19 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_copyall">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Copy Message to clipboard</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Copy Message to clipboard</property>
                         <property name="relief">none</property>
-                        <property name="focus_on_click">False</property>
                         <signal name="clicked" handler="action_copyall" swapped="no"/>
                         <child>
                           <object class="GtkImage" id="image3">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="stock">gtk-select-all</property>
                           </object>
                         </child>
@@ -1203,7 +1193,7 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     <child>
                       <object class="GtkHSeparator" id="hseparator6a">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1214,21 +1204,21 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_undo">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Undo the last action in Message area</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Undo the last action in Message area</property>
                         <property name="relief">none</property>
-                        <property name="focus_on_click">False</property>
-                        <property name="image_position">top</property>
+                        <property name="image-position">top</property>
                         <signal name="clicked" handler="action_undo" swapped="no"/>
                         <child>
                           <object class="GtkImage" id="image4">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="stock">gtk-undo</property>
                           </object>
                         </child>
@@ -1241,21 +1231,21 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_redo">
-                        <property name="use_action_appearance">False</property>
+                        <property name="use-action-appearance">False</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Redo the last undone action in Message area</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="has-tooltip">True</property>
+                        <property name="tooltip-text" translatable="yes">Redo the last undone action in Message area</property>
                         <property name="relief">none</property>
-                        <property name="focus_on_click">False</property>
-                        <property name="image_position">top</property>
+                        <property name="image-position">top</property>
                         <signal name="clicked" handler="action_redo" swapped="no"/>
                         <child>
                           <object class="GtkImage" id="image5">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="stock">gtk-redo</property>
                           </object>
                         </child>
@@ -1277,33 +1267,33 @@ When decrypting, openssl needs to be told what cipher the input was encrypted wi
                 <child>
                   <object class="GtkFrame" id="frame1">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="border_width">3</property>
-                    <property name="label_xalign">0</property>
+                    <property name="can-focus">False</property>
+                    <property name="border-width">3</property>
+                    <property name="label-xalign">0</property>
                     <child>
                       <object class="GtkVBox" id="vbox_ibar">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkExpander" id="expander_filemode">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can-focus">True</property>
                             <child>
                               <object class="GtkHBox" id="hbox7">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkFileChooserButton" id="btn_filechooser">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">Choose input file to pass directly to gpg/openssl instead of loading into Message area
+                                    <property name="can-focus">False</property>
+                                    <property name="focus-on-click">False</property>
+                                    <property name="has-tooltip">True</property>
+                                    <property name="tooltip-text" translatable="yes">Choose input file to pass directly to gpg/openssl instead of loading into Message area
 
 This is the way to go when dealing with binary or very large files
 
 Drag/drop of files onto this button is supported
 BUGALERT: The first drag/drop after opening Pyrite will not work! -- do it a 2nd time and all will be fine</property>
-                                    <property name="focus_on_click">False</property>
                                     <property name="title" translatable="yes">Choose gpg input file...</property>
                                     <signal name="file-set" handler="action_chooserbtn_file_set" swapped="no"/>
                                   </object>
@@ -1317,7 +1307,7 @@ BUGALERT: The first drag/drop after opening Pyrite will not work! -- do it a 2nd
                                 <child>
                                   <object class="GtkLabel" id="space4b1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes"> </property>
                                   </object>
                                   <packing>
@@ -1330,13 +1320,14 @@ BUGALERT: The first drag/drop after opening Pyrite will not work! -- do it a 2nd
                                 <child>
                                   <object class="GtkCheckButton" id="toggle_plaintext">
                                     <property name="label" translatable="yes">Generate _Text Output</property>
-                                    <property name="use_action_appearance">False</property>
+                                    <property name="use-action-appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying in gpg-mode]
+                                    <property name="can-focus">True</property>
+                                    <property name="focus-on-click">False</property>
+                                    <property name="receives-default">False</property>
+                                    <property name="has-tooltip">True</property>
+                                    <property name="tooltip-text" translatable="yes">[Not used when decrypting, verifying in gpg-mode]
 
 Tells gpg/openssl to output plaintext instead of binary data when encrypting and signing
 
@@ -1347,10 +1338,9 @@ When operating on files directly, this is set based on whether the file is detec
 OpenSSL Note:
 This is used for both encryption and decryption in openssl-mode
 When decrypting, openssl needs to know if the input is base64 or binary (unlike gpg), so when decrypting files in openssl mode, just let Pyrite auto-detect the input file type and auto-set this toggle appropriately</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="focus_on_click">False</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
-                                    <property name="draw_indicator">True</property>
+                                    <property name="draw-indicator">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1364,10 +1354,10 @@ When decrypting, openssl needs to know if the input is base64 or binary (unlike 
                             <child type="label">
                               <object class="GtkLabel" id="label_filemode">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">Inp_ut File For Direct Operation</property>
-                                <property name="use_underline">True</property>
-                                <property name="mnemonic_widget">expander_filemode</property>
+                                <property name="use-underline">True</property>
+                                <property name="mnemonic-widget">expander_filemode</property>
                                 <attributes>
                                   <attribute name="variant" value="small-caps"/>
                                 </attributes>
@@ -1377,14 +1367,14 @@ When decrypting, openssl needs to know if the input is base64 or binary (unlike 
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="pack_type">end</property>
+                            <property name="pack-type">end</property>
                             <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkVBox" id="vbox_ibar2">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -1392,25 +1382,23 @@ When decrypting, openssl needs to know if the input is base64 or binary (unlike 
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="pack_type">end</property>
+                            <property name="pack-type">end</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
+                            <property name="can-focus">True</property>
                             <child>
                               <object class="GtkTextView" id="textview1">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="has_focus">True</property>
-                                <property name="has_tooltip">True</property>
-                                <property name="tooltip_text" translatable="yes">Type or paste input text here
+                                <property name="can-focus">True</property>
+                                <property name="has-focus">True</property>
+                                <property name="has-tooltip">True</property>
+                                <property name="tooltip-text" translatable="yes">Type or paste input text here
 Drag/drop of text files also supported</property>
-                                <property name="wrap_mode">word</property>
+                                <property name="wrap-mode">word</property>
                                 <signal name="drag-data-received" handler="action_drag_data_received" swapped="no"/>
                               </object>
                             </child>
@@ -1418,7 +1406,7 @@ Drag/drop of text files also supported</property>
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="pack_type">end</property>
+                            <property name="pack-type">end</property>
                             <property name="position">2</property>
                           </packing>
                         </child>
@@ -1427,11 +1415,11 @@ Drag/drop of text files also supported</property>
                     <child type="label">
                       <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="label" translatable="yes">&lt;i&gt;Message _Input/Output&lt;/i&gt;</property>
-                        <property name="use_markup">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="mnemonic_widget">textview1</property>
+                        <property name="use-markup">True</property>
+                        <property name="use-underline">True</property>
+                        <property name="mnemonic-widget">textview1</property>
                       </object>
                     </child>
                   </object>
@@ -1450,22 +1438,20 @@ Drag/drop of text files also supported</property>
             <child>
               <object class="GtkFrame" id="frame2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="border_width">3</property>
-                <property name="label_xalign">0</property>
+                <property name="can-focus">False</property>
+                <property name="border-width">3</property>
+                <property name="label-xalign">0</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow2">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="can-focus">True</property>
                     <child>
                       <object class="GtkTextView" id="textview2">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="wrap_mode">word</property>
-                        <property name="cursor_visible">False</property>
+                        <property name="can-focus">True</property>
+                        <property name="wrap-mode">word</property>
+                        <property name="cursor-visible">False</property>
                       </object>
                     </child>
                   </object>
@@ -1473,10 +1459,10 @@ Drag/drop of text files also supported</property>
                 <child type="label">
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">&lt;i&gt;Task Status&lt;/i&gt;</property>
-                    <property name="use_markup">True</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-markup">True</property>
+                    <property name="use-underline">True</property>
                   </object>
                 </child>
               </object>
@@ -1495,12 +1481,12 @@ Drag/drop of text files also supported</property>
         <child>
           <object class="GtkHBox" id="hbox4">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="spacing">1</property>
             <child>
               <object class="GtkLabel" id="space4a">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1512,20 +1498,20 @@ Drag/drop of text files also supported</property>
             <child>
               <object class="GtkCheckButton" id="toggle_signature">
                 <property name="label" translatable="yes">Add Si_gnature:</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">[Not used when decrypting, verifying]
 
 Tells gpg to use your secret key to sign the input
 
 This will likely require you to interact with gpg-agent</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="action_toggle_signature" swapped="no"/>
               </object>
               <packing>
@@ -1537,9 +1523,10 @@ This will likely require you to interact with gpg-agent</property>
             <child>
               <object class="GtkComboBox" id="combobox_sigmode">
                 <property name="sensitive">False</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">[Not used when decrypting, verifying]
 
 This allows you to choose the signature type for signing in Sign/Verify mode
 
@@ -1553,7 +1540,6 @@ Detached:
 Creates a separate signature that does not contain the message -- in order to verify a message/file that has a detached signature, you will need to ensure the message and signature are both in files (with the same name, except for the extra extension of the sig file) in the same directory</property>
                 <property name="model">liststore_sigmodes</property>
                 <property name="active">0</property>
-                <property name="focus_on_click">False</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext3"/>
                   <attributes>
@@ -1571,7 +1557,7 @@ Creates a separate signature that does not contain the message -- in order to ve
             <child>
               <object class="GtkLabel" id="space4b">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
@@ -1583,10 +1569,10 @@ Creates a separate signature that does not contain the message -- in order to ve
             </child>
             <child>
               <object class="GtkLabel" id="label_combobox_digest">
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes">D_igest:</property>
-                <property name="use_underline">True</property>
-                <property name="mnemonic_widget">combobox_digest</property>
+                <property name="use-underline">True</property>
+                <property name="mnemonic-widget">combobox_digest</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1596,16 +1582,16 @@ Creates a separate signature that does not contain the message -- in order to ve
             </child>
             <child>
               <object class="GtkComboBox" id="combobox_digest">
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">[Not used when decrypting, verifying]
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">[Not used when decrypting, verifying]
 
 Configures message digest algorithm (used for hashing message, i.e., creating your signature)
 
 With "Default", gpg decides the algorithm based on local system settings, weighing them against the preferences of your secret key</property>
                 <property name="model">liststore_digest</property>
                 <property name="active">0</property>
-                <property name="focus_on_click">False</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                   <attributes>
@@ -1623,7 +1609,7 @@ With "Default", gpg decides the algorithm based on local system settings, weighi
             <child>
               <object class="GtkLabel" id="space4c">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> </property>
               </object>
               <packing>
@@ -1636,17 +1622,17 @@ With "Default", gpg decides the algorithm based on local system settings, weighi
             <child>
               <object class="GtkCheckButton" id="toggle_defaultkey">
                 <property name="label" translatable="yes">Change Default _Key:</property>
-                <property name="use_action_appearance">False</property>
+                <property name="use-action-appearance">False</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Tell gpg which secret key to use -- under common circumstances, this will only affect: (1) signing; (2) the calculation of "self" when using the "Enc. To Self" feature
+                <property name="can-focus">True</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Tell gpg which secret key to use -- under common circumstances, this will only affect: (1) signing; (2) the calculation of "self" when using the "Enc. To Self" feature
 
 This is only useful if you have multiple secret keys in your keyring</property>
-                <property name="use_underline">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="draw_indicator">True</property>
+                <property name="use-underline">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="action_toggle_defaultkey" swapped="no"/>
               </object>
               <packing>
@@ -1657,23 +1643,19 @@ This is only useful if you have multiple secret keys in your keyring</property>
             </child>
             <child>
               <object class="GtkEntry" id="entry_defaultkey">
-                <property name="can_focus">True</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Key identifier of the non-default key to use for signing
+                <property name="can-focus">True</property>
+                <property name="has-tooltip">True</property>
+                <property name="tooltip-text" translatable="yes">Key identifier of the non-default key to use for signing
 
 Input is passed to gpg "--local-user" option</property>
-                <property name="invisible_char">●</property>
-                <property name="width_chars">11</property>
-                <property name="truncate_multiline">True</property>
-                <property name="shadow_type">etched-in</property>
-                <property name="invisible_char_set">True</property>
-                <property name="caps_lock_warning">False</property>
-                <property name="primary_icon_stock">gtk-orientation-portrait</property>
-                <property name="primary_icon_activatable">True</property>
-                <property name="secondary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
-                <property name="primary_icon_tooltip_text" translatable="yes">Clear entry field</property>
+                <property name="invisible-char">●</property>
+                <property name="width-chars">11</property>
+                <property name="truncate-multiline">True</property>
+                <property name="shadow-type">etched-in</property>
+                <property name="caps-lock-warning">False</property>
+                <property name="primary-icon-stock">gtk-orientation-portrait</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="primary-icon-tooltip-text" translatable="yes">Clear entry field</property>
                 <signal name="icon-press" handler="action_clear_entry" swapped="no"/>
               </object>
               <packing>
@@ -1693,11 +1675,11 @@ Input is passed to gpg "--local-user" option</property>
         <child>
           <object class="GtkHBox" id="hbox5">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkSpinner" id="spinner1">
-                <property name="width_request">16</property>
-                <property name="can_focus">False</property>
+                <property name="width-request">16</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1709,7 +1691,7 @@ Input is passed to gpg "--local-user" option</property>
             <child>
               <object class="GtkStatusbar" id="statusbar">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">True</property>
