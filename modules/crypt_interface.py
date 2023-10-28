@@ -163,7 +163,7 @@ class Gpg:
             if enctoself:
                 cmd.append('--recipient')
                 if localuser:
-                    cmd.append(localuser)
+                    cmd.append("'" + localuser + "'")
                 else:
                     cmd.append(self.get_gpg_default_key())
             if recip:
@@ -172,7 +172,7 @@ class Gpg:
                     recip = recip.strip(';')
                 for r in recip.split(';'):
                     cmd.append('--recipient')
-                    cmd.append(r)
+                    cmd.append("'" + r + "'")
 
         # Decrypt opts
         elif action in 'dec':
