@@ -92,11 +92,11 @@ There's a preferences dialog that lets you play with all the settings, from twea
 If you find yourself wondering about a particular feature, just hover your mouse over its widget -- there are detailed tooltips for everything.
 
 
-## BUGS
+## BUGS and TODO
 
-1) After launching Pyrite, the **first** drag/drop of a file onto the *Input File For Direct Operation* GtkFileChooserButton fails. After that the button works properly. I've been seeking out expertise on this weird bug but I haven't gotten anywhere. If you have any hints, hit me up, or check out [my post about it on stackoverflow](https://stackoverflow.com/questions/9047844/pygtk-troubles-with-drag-and-drop-file-to-gtkfilechooserbutton).
-
-2) No undo. It wasn't a top priority at the beginning, but I think it's pretty essential for an application that basically contains a text editor to have an undo/redo stack. I'll do it eventually.
+- No undo. It wasn't a top priority at the beginning, but I think it's pretty essential for an application that basically contains a text editor to have an undo/redo stack. I'll do it eventually.
+- Icons for encrypt, decrypt, sign, verify buttons, application
+- Update notifications
 
 
 ## BACKGROUND

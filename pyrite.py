@@ -15,13 +15,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Pyrite.  If not, see <http://gnu.org/licenses/gpl.html>.
-#
-# TODO:
-#   * Icons for for encrypt, decrypt, sign, verify buttons, application
-#   * Undo stack. Blech. Kill me.
-#   * Update notifications
-#   * BUG: First drag/drop onto FileChooserButton fails; 2nd, 3rd, etc succeed.
-#       It's a GTK+ issue. Reported. bugzilla.gnome.org/show_bug.cgi?id=669718
 
 import argparse
 from sys import argv
