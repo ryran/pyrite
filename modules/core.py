@@ -176,7 +176,7 @@ class Pyrite:
         self.g_pass.set_sensitive(False)
         self.g_recip.set_sensitive(False)
 
-        # ------------------------------ LOAD PREFERENCES AND SET WIDGET STATES!
+        # LOAD PREFERENCES AND SET WIDGET STATES!
         self.preferences = prefs.Preferences()
 
         # Make a clone of preferences dictionary
@@ -1328,7 +1328,7 @@ class Pyrite:
                     action = 'sign'
                 self.infobar('x_generic_failed_textmode', customtext=action)
 
-    # ------------------------------------------ HELPERS FOR MAIN XFACE FUNCTION
+    # HELPERS FOR MAIN XFACE FUNCTION
 
     # CB for GLib.io_add_watch()
     def update_task_status(self, fd, condition, output='task'):
