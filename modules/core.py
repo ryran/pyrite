@@ -300,7 +300,7 @@ class Pyrite:
         def openssl(fallback=False):
             self.x = crypt_interface.Openssl()
             self.engine = 'OpenSSL'
-            self.g_mengine.set_label("Use GnuPG2 as Engine")
+            self.g_mengine.set_label("Use GnuPG as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
                 self.infobar('engine_gpg_missing')
