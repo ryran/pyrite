@@ -55,7 +55,6 @@ class Gpg:
 
         try:
             self.vers = Popen(['gpg', '--version'], stdout=PIPE).communicate()[0]
-            self.GPG_BINARY = 'gpg'
         except:
             stderr.write("gpg not found on your system.\n\n")
             raise
@@ -133,7 +132,7 @@ class Gpg:
         fd_pwd_R = None
         fd_pwd_W = None
         useagent = True
-        cmd = [self.GPG_BINARY]
+        cmd = ['gpg']
 
         if self.io['gstatus']:
             # Status to file descriptor option
@@ -206,13 +205,9 @@ class Gpg:
 
         # Action-independent opts
         if useagent:
-            if self.GPG_BINARY in 'gpg':
-                cmd.append('--use-agent')
+            cmd.append('--use-agent')
         else:
-            if self.GPG_BINARY in 'gpg':
-                cmd.append('--no-use-agent')
-            else:
-                cmd.append('--batch')
+            cmd.append('--no-use-agent')
         if localuser:
             cmd.append('--local-user')
             cmd.append(localuser)

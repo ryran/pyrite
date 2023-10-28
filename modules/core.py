@@ -290,7 +290,7 @@ class Pyrite:
         # Loading gpg
         def gpg(fallback=False):
             self.x = crypt_interface.Gpg()
-            self.engine = self.x.GPG_BINARY.upper()
+            self.engine = 'GPG'
             self.g_mengine.set_label("Use OpenSSL as Engine")
             if fallback:
                 self.g_mengine.set_sensitive(False)
@@ -346,7 +346,7 @@ class Pyrite:
                             "displayed here.\n\n"
                             "In the View menu you can change "
                             "the verbosity level, hide this pane, or simply change "
-                            "the font size.".format(self.engine.lower()))
+                            "the font size.".format(self.engine))
 
         self.set_defaults_from_prefs(startup)
 
