@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-#
-# This file is part of Pyrite.
-# Last file mod: 2013/09/15
-# Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012, 2013 Ryan Sawhill Aroha <rsaw@redhat.com>
 #
 # License:
@@ -73,7 +69,8 @@ parser.add_argument('-b', '--backend', choices=('gpg', 'openssl'),
 args = parser.parse_args()
 
 # If no cmdline options specified, let's save some cycles later
-if len(argv) == 1:  args = None
+if len(argv) == 1:
+    args = None
 
 if __name__ == "__main__":
 

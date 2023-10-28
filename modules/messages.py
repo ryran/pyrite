@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-#
-# This file is part of Pyrite.
-# Last file mod: 2013/09/15
-# Latest version at <http://github.com/ryran/pyrite>
 # Copyright 2012, 2013 Ryan Sawhill Aroha <rsaw@redhat.com>
 #
 # License:
