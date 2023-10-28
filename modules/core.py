@@ -911,7 +911,7 @@ class Pyrite:
             if not self.g_advanced.get_active():
                 # If not in advanced mode, disable Symmetric
                 self.g_symmetric.set_active(False)
-
+            self.load_recipients_autocmplete()
         else:
             # If leaving toggled state, hide recip entry, enctoself
             for widget in asymm_widgets:
@@ -1361,6 +1361,39 @@ class Pyrite:
             self.g_activityspin.stop()
             self.g_activityspin.set_visible(False)
             self.g_statusbar.pop(self.status)
+
+
+    def loadmails_string_list(self):
+        """Return emails from all known keys."""
+        mails = list()
+        if self.engine == 'OpenSSL':
+            return mails
+        cmd = split("gpg --list-public-keys --with-colons")
+        keys_string = check_output(cmd).decode('utf-8')
+        keys_all = keys_string.split('\n')
+        for line in keys_all:
+            line_fields = line.split(':')
+            if line_fields[0] == 'uid':
+                name_email = line_fields[9]
+                mails.append(name_email)
+        return mails
+
+    # Loading names and emails for the recipient menu completion
+    def load_recipients_autocmplete(self):
+        mails = Gtk.ListStore(str)
+        for mail in self.loadmails_string_list():
+            mails.append([mail])
+        completion = Gtk.EntryCompletion()
+        completion.set_model(mails)
+        completion.set_text_column(0)
+        completion.set_match_func(self.recipient_contains, None)
+        self.g_recip.set_completion(completion)
+
+    def recipient_contains(self, completion, key_string, iter, data):
+        model = completion.get_model()
+        # get the completion strings
+        modelstr = model[iter][0]
+        return key_string in modelstr
 
     # RUN MAIN APPLICATION WINDOW
     def main(self):
