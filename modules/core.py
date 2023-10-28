@@ -109,7 +109,6 @@ class Pyrite:
         self.g_progbar = builder.get_object('progressbar')
         self.g_cancel = builder.get_object('btn_cancel')
         self.g_pause = builder.get_object('btn_pause')
-        self.g_slider = builder.get_object('opacity_slider')
         # Mode-setting toolbar
         self.g_signverify = builder.get_object('toggle_mode_signverify')
         self.g_chk_outfile = builder.get_object('toggle_sign_chooseoutput')
@@ -399,13 +398,6 @@ class Pyrite:
             self.g_msgtxtview.modify_text(
                 Gtk.StateType.NORMAL, fg_color)
 
-            if self.p['opc_slider']:
-                self.g_slider.set_range(0, 100)
-                self.g_slider.set_value(self.p['opacity'])
-                self.g_slider.set_tooltip_text("Change window opacity (current:{}%)".format(self.p['opacity']))
-                self.g_slider.set_visible(True)
-            else:
-                self.g_window.set_opacity(self.p['opacity'] / 100.0)
 
         # These are all the widgets that can't be used in openssl mode
         def setsensitive_gpgwidgets(x=True):
@@ -667,13 +659,6 @@ class Pyrite:
             if isfile(path):
                 self.open_in_txtview(path)
 
-    # Called by changing opacity hscale
-    def action_opacity_slider(self, w):
-        """Actions to perform when opacity scale is changed."""
-        val = w.get_value()
-        self.g_window.set_opacity(val / 100.0)
-        w.set_tooltip_text(
-            "Change window opacity (current:{:.1f}%)".format(val))
 
     # Called by SwitchEngine menu item
     def action_switch_engine(self, w):

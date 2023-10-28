@@ -81,8 +81,6 @@ class Preferences:
                 taskstatus=True,
                 verbose=False,
                 wrap=True,
-                opc_slider=False,
-                opacity=100,
                 msgfntsize=9,
                 errfntsize=7,
                 color_fg='#000000000000',
@@ -162,8 +160,6 @@ class Preferences:
         self.tg_taskstatus = builder.get_object('tg_taskstatus')
         self.tg_verbose = builder.get_object('tg_verbose')
         self.tg_wrap = builder.get_object('tg_wrap')
-        self.tg_opc_slider = builder.get_object('tg_opc_slider')
-        self.sp_opacity = builder.get_object('sp_opacity')
         self.sp_msgfntsize = builder.get_object('sp_msgfntsize')
         self.sp_errfntsize = builder.get_object('sp_errfntsize')
         self.btn_color_fg = builder.get_object('btn_color_fg')
@@ -205,8 +201,6 @@ class Preferences:
         self.tg_taskstatus.set_active(self.p['taskstatus'])
         self.tg_verbose.set_active(self.p['verbose'])
         self.tg_wrap.set_active(self.p['wrap'])
-        self.tg_opc_slider.set_active(self.p['opc_slider'])
-        self.sp_opacity.set_value(self.p['opacity'])
         self.sp_msgfntsize.set_value(self.p['msgfntsize'])
         self.sp_errfntsize.set_value(self.p['errfntsize'])
 
@@ -246,8 +240,6 @@ class Preferences:
             'taskstatus': self.tg_taskstatus.get_active(),
             'verbose': self.tg_verbose.get_active(),
             'wrap': self.tg_wrap.get_active(),
-            'opc_slider': self.tg_opc_slider.get_active(),
-            'opacity': self.sp_opacity.get_value(),
             'msgfntsize': self.sp_msgfntsize.get_value(),
             'errfntsize': self.sp_errfntsize.get_value(),
             'color_fg': self.btn_color_fg.get_color().to_string(),

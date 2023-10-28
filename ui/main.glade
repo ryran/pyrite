@@ -567,23 +567,6 @@ This will not add newline characters to Message</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHScale" id="opacity_slider">
-                <property name="width-request">70</property>
-                <property name="can-focus">True</property>
-                <property name="round-digits">0</property>
-                <property name="draw-value">False</property>
-                <property name="value-pos">left</property>
-                <signal name="value-changed" handler="action_opacity_slider" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">6</property>
-                <property name="pack-type">end</property>
-                <property name="position">4</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkLabel" id="space1c">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
