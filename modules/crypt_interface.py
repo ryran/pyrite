@@ -258,8 +258,9 @@ class Gpg:
 
     def get_gpg_default_key(self):
         """Return key id of first secret key in gpg keyring."""
-        cmd = split("{} --list-secret-keys --with-colons --fast-list-mode".format(self.GPG_BINARY))
-        return check_output(cmd).split(':', 5)[4]
+        cmd = split("gpg --list-secret-keys --with-colons --fast-list-mode")
+        output = str(check_output(cmd))
+        return output.split(':', 5)[4]
 
 
 class Openssl:
