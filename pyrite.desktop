@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Pyrite
-Comment=OpenSSL & GnuPG (gpg/gpg2) encryption/signing front-end
+Comment=OpenSSL & GnuPG (gpg) encryption/signing front-end
 Exec=pyrite
 Terminal=false
 Type=Application
