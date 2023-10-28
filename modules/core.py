@@ -69,6 +69,12 @@ class Pyrite:
 
     def __init__(self, cmdlineargs):
         """Build GUI interface from XML, etc."""
+        self.x = None
+        self.filemode_saved_buff = None
+        self.encdec_sig_state_active = False
+        self.encdec_sig_state_sensitive = False
+        self.canceled = False
+        self.paused = False
 
         # Use GtkBuilder to build our GUI from the XML file 
         builder = Gtk.Builder()
@@ -215,7 +221,8 @@ class Pyrite:
                     self.g_recip.set_text(a.recipients)
                     self.g_asymmetric.set_active(True)
                 if a.symmetric:
-                    if a.recipients:  self.g_advanced.set_active(True)
+                    if a.recipients:
+                        self.g_advanced.set_active(True)
                     self.g_symmetric.set_active(True)
                 if a.defaultkey:
                     self.g_defaultkey.set_text(a.defaultkey)
@@ -304,9 +311,11 @@ class Pyrite:
         def err_allmissing():
             self.infobar('engine_all_missing')
             self.g_mengine.set_sensitive(False)
-            for w in self.g_encrypt, self.g_decrypt:  w.set_sensitive(False)
+            for w in self.g_encrypt, self.g_decrypt:
+                w.set_sensitive(False)
 
-            class dummy:  pass
+            class dummy:
+                pass
 
             self.x = dummy()
             self.x.io = dict(stdin='', stdout='', gstatus=0, infile=0, outfile=0)
@@ -334,7 +343,8 @@ class Pyrite:
         self.g_window.set_title("Pyrite [{}]".format(self.engine))
 
         self.buff2.set_text("Any output generated from calls to {} will be "
-                            "displayed here.\n\nIn the View menu you can change "
+                            "displayed here.\n\n"
+                            "In the View menu you can change "
                             "the verbosity level, hide this pane, or simply change "
                             "the font size.".format(self.engine.lower()))
 
@@ -455,7 +465,7 @@ class Pyrite:
         return path
 
     def set_stdstatus(self):
-        """Set a standard mode-depenedent status message."""
+        """Set a standard mode-dependent status message."""
         self.g_statusbar.pop(self.status)
         if self.g_signverify.get_active():
             s = "Enter message to sign or verify"
@@ -536,7 +546,8 @@ class Pyrite:
             # Setup overwrite-confirmation cb + current filename
             chooser.set_do_overwrite_confirmation(True)
             chooser.connect('confirm-overwrite', self.confirm_overwrite_callback)
-            if save_suggestion:  chooser.set_current_name(save_suggestion)
+            if save_suggestion:
+                chooser.set_current_name(save_suggestion)
 
         if chooser.run() == Gtk.ResponseType.OK:
             filename = chooser.get_filename()
@@ -565,7 +576,7 @@ class Pyrite:
             self.launchxface(mode)
 
     def initiate_filemode(self):
-        """Ensure read access of file set by chooserwidget and notify user of next steps."""
+        """Ensure read access of file set by chooser widget and notify user of next steps."""
 
         # Prompt for filename but err out if file can't be read
         infile = self.g_chooserbtn.get_filename()
@@ -648,7 +659,7 @@ class Pyrite:
     def action_quit(self, w):
         """Shutdown application and any child process."""
         self.quiting = True
-        if self.x.childprocess and self.x.childprocess.returncode == None:
+        if self.x.childprocess and self.x.childprocess.returncode is None:
             if self.paused:
                 self.x.childprocess.send_signal(SIGCONT)
             self.x.childprocess.terminate()
@@ -716,7 +727,8 @@ class Pyrite:
                 # If success, destroy pref window, import new prefs, show infobar
                 self.preferences.window.destroy()
                 self.p = self.preferences.p
-                if self.x.io['infile']:  self.cleanup_filemode()
+                if self.x.io['infile']:
+                    self.cleanup_filemode()
                 self.instantiate_xface(startup=True)
                 self.infobar('preferences_apply_success', cfg.USERPREF_FILE)
 
@@ -1084,11 +1096,12 @@ class Pyrite:
     # MAIN XFACE FUNCTION
     def launchxface(self, action):
         """Manage I/O between Gtk objects and our GpgXface or OpensslXface object."""
+        # User Canceled
         self.canceled = False
         self.paused = False
         self.x.childprocess = None
 
-        ### PREPARE Xface ARGS
+        # PREPARE Xface ARGS
         passwd = None
         recip = None
         localuser = None
@@ -1117,7 +1130,8 @@ class Pyrite:
         asymmetric = self.g_asymmetric.get_active()
         if asymmetric:
             recip = self.g_recip.get_text()
-            if not recip:  recip = None  # If recip was '' , set to None
+            if not recip:
+                recip = None  # If recip was '' , set to None
         # cipher, base64
         cipher = self.grab_activetext_combobox(self.g_cipher)
         base64 = self.g_plaintext.get_active()
@@ -1136,11 +1150,11 @@ class Pyrite:
         # localuser
         if self.g_chk_defkey.get_active():
             localuser = self.g_defaultkey.get_text()
-            if not localuser:  localuser = None
+            if not localuser:
+                localuser = None
 
         # INITIAL FILE INPUT MODE PREP
         if self.x.io['infile'] and not self.x.io['outfile']:
-
             if base64 or action in 'clearsign':
                 outfile = self.x.io['infile'] + '.asc'
             elif self.engine in 'OpenSSL':
@@ -1164,22 +1178,22 @@ class Pyrite:
                         return
 
             working_widgets = self.working_widgets_filemode
-            for w in working_widgets:  w.set_sensitive(False)
+            for w in working_widgets:
+                w.set_sensitive(False)
             self.ib_filemode.hide()
 
         # FILE INPUT MODE PREP WHEN ALREADY HAVE OUTPUT FILE
         elif self.x.io['infile'] and self.x.io['outfile']:
-
             working_widgets = self.working_widgets_filemode
-            for w in working_widgets:  w.set_sensitive(False)
+            for w in working_widgets:
+                w.set_sensitive(False)
             self.ib_filemode.hide()
 
         # TEXT INPUT MODE PREP
         else:
-
             working_widgets = self.working_widgets_textmode
-            for w in working_widgets:  w.set_sensitive(False)
-
+            for w in working_widgets:
+                w.set_sensitive(False)
             # Save textview buffer to Xface stdin
             self.x.io['stdin'] = self.buff.get_text(self.buff.get_start_iter(),
                                                     self.buff.get_end_iter(),
@@ -1222,8 +1236,9 @@ class Pyrite:
 
         # Wait for subprocess to finish or for Cancel button to be clicked
         c = 0
-        while not self.x.childprocess or self.x.childprocess.returncode == None:
-            if self.canceled:  break
+        while not self.x.childprocess or self.x.childprocess.returncode is None:
+            if self.canceled:
+                break
             if c % 15 == 0 and not self.paused:
                 self.g_progbar.pulse()
             Gtk.main_iteration()
@@ -1232,46 +1247,34 @@ class Pyrite:
             # If application is shutting down
             return
         # Restore widgets to normal states
-        for w in working_widgets:  w.set_sensitive(True)
+        for w in working_widgets:
+            w.set_sensitive(True)
         self.show_working_progress(False)
 
         # FILE INPUT MODE CLEANUP
         if self.x.io['infile']:
-
             if self.canceled:  # User Canceled!
-
                 self.ib_filemode.show()
-
                 if action in {'enc', 'dec'}:
                     action = "{}rypt".format(action.title())
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = "Sign"
                 elif action in 'verify':
                     action = action.title()
-
                 self.infobar('x_canceled_filemode', customtext=action)
-
             elif self.x.childprocess.returncode == 0:  # File Success!
-
                 if self.engine in 'OpenSSL' and action in 'enc':
                     self.infobar('x_opensslenc_success_filemode', self.x.io['outfile'], cipher)
-
                 elif action in {'enc', 'dec'}:
                     self.infobar('x_crypt_success_filemode', self.x.io['outfile'], action)
-
                 elif action in {'embedsign', 'clearsign'}:
                     self.infobar('x_sign_success_filemode', self.x.io['outfile'])
-
                 elif action in 'detachsign':
                     self.infobar('x_detachsign_success_filemode', self.x.io['outfile'])
-
                 elif action in 'verify':
                     self.infobar('x_verify_success')
-
                 self.cleanup_filemode()
-
             else:  # File Fail!
-
                 self.ib_filemode.show()
                 if action in 'verify':
                     self.infobar('x_verify_failed')
@@ -1287,24 +1290,18 @@ class Pyrite:
 
         # TEXT INPUT MODE CLEANUP
         else:
-
             self.set_stdstatus()
             self.g_msgtxtview.set_sensitive(True)
             self.fix_msgtxtviewcolor(True)
-
             if self.canceled:  # User Canceled!
-
                 if action in {'enc', 'dec'}:
                     action = "{}rypt".format(action.title())
                 elif action in {'embedsign', 'clearsign', 'detachsign'}:
                     action = "Sign"
                 elif action in 'verify':
                     action = action.title()
-
                 self.infobar('x_canceled_textmode', customtext=action)
-
             elif self.x.childprocess.returncode == 0:  # Text Success!
-
                 if action in 'verify':
                     self.infobar('x_verify_success')
                 else:
@@ -1313,9 +1310,7 @@ class Pyrite:
                     self.x.io['stdout'] = 0
                     if self.engine in 'OpenSSL' and action in 'enc':
                         self.infobar('x_opensslenc_success_textmode', customtext=cipher)
-
             else:  # Text Fail!
-
                 if action in 'verify':
                     self.infobar('x_verify_failed')
                     return
@@ -1374,7 +1369,6 @@ class Pyrite:
             self.g_activityspin.set_visible(True)
             self.g_activityspin.start()
             Gtk.main_iteration()
-
         else:
             # If finished processing: ensure progbar buttons are normal, reset status, stop spinner
             for w in self.g_cancel, self.g_pause:
