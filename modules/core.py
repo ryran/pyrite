@@ -473,12 +473,11 @@ class Pyrite:
             s = "Enter message to encrypt or decrypt"
         self.g_statusbar.push(self.status, s)
 
-    def test_file_isbinary(self, filename):
+    def test_file_is_plain_text(self, filename):
         """Utilize nix file cmd to determine if filename is binary or text."""
         cmd = split("file -b -e soft '{}'".format(filename))
-        if check_output(cmd)[:4] in {'ASCI', 'UTF-'}:
-            return False
-        return True
+        output = check_output(cmd)
+        return output[:4] in (b'ASCI', b'UTF-')
 
     def open_in_txtview(self, filename):
         """Replace contents of msg TextView's TextBuffer with contents of file."""
@@ -594,14 +593,9 @@ class Pyrite:
         self.g_plaintext.set_sensitive(True)
 
         if self.p['txtoutput'] == 0:  # Autodetect
-            if self.test_file_isbinary(infile):
-                self.g_plaintext.set_active(False)
-            else:
-                self.g_plaintext.set_active(True)
-
+            self.g_plaintext.set_active(self.test_file_is_plain_text(infile))
         elif self.p['txtoutput'] == 1:  # Always Binary
             self.g_plaintext.set_active(False)
-
         elif self.p['txtoutput'] == 2:  # Always Text
             self.g_plaintext.set_active(True)
 
