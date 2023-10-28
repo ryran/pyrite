@@ -852,11 +852,6 @@ class Pyrite:
     # Called by Encrypt/Sign toolbar btn
     def action_encrypt(self, w):
         """Encrypt or sign input."""
-        # DEBUG
-        # self.g_chooserbtn.select_filename('/etc/passwd')
-        # self.g_expander.set_expanded(True)
-        # Gtk.main_iteration()
-        # return
         if self.g_signverify.get_active():
             # If in sign-only mode, figure out which sig-type
             if self.g_sigmode.get_active() == 0:
@@ -1296,7 +1291,8 @@ class Pyrite:
                     self.infobar('x_verify_success')
                 else:
                     # Set TextBuffer to gpg stdout
-                    self.buff.set_text(self.x.io['stdout'].decode('utf-8'))
+                    b = self.x.io['stdout'].decode('utf-8')
+                    self.buff.set_text(b)
                     self.x.io['stdout'] = 0
                     if self.engine in 'OpenSSL' and action in 'enc':
                         self.infobar('x_opensslenc_success_textmode', customtext=cipher)
@@ -1321,16 +1317,14 @@ class Pyrite:
 
         # If there's data to be read, let's read it
         if condition == GLib.IOCondition.IN:
+            b = read(fd, 1024).decode('utf-8')
             if output in 'task':
                 # Output to Task Status
-                b = read(fd, 1024).decode('utf-8')
                 self.buff2.insert(self.buff2.get_end_iter(), b)
             else:
                 # Output to stderr (will show if run from terminal)
-                b = read(fd, 1024).decode('utf-8')
                 stderr.write(b)
             return True
-
         # If other end of pipe hangs up, close our fd and destroy the watcher
         elif condition == GLib.IOCondition.HUP:
             if output in 'term':
