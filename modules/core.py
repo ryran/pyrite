@@ -439,7 +439,7 @@ class Pyrite:
 
     # HELPER FUNCTIONS
 
-    def fix_msgtxtviewcolor(self, sensitive):
+    def fix_msgtxtview_color(self, sensitive):
         """Change Message area text to black when TextView insensitive."""
         if sensitive:
             fg_color = Gdk.Color(0, 0, 0)
@@ -498,7 +498,7 @@ class Pyrite:
                    self.g_mpaste, self.g_msgtxtview]
         for w in widgets:
             w.set_sensitive(x)
-        self.fix_msgtxtviewcolor(x)
+        self.fix_msgtxtview_color(x)
 
     # This is called when user tries to copyall, save, or {en,de}crypt/sign/verify
     def test_msgbuff_isempty(self, message):
@@ -1122,7 +1122,7 @@ class Pyrite:
                 return False
             # Make TextView immutable to changes
             self.g_msgtxtview.set_sensitive(False)
-            self.fix_msgtxtviewcolor(False)
+            self.fix_msgtxtview_color(False)
 
         # enctoself
         enctoself = self.g_enctoself.get_active()
@@ -1292,7 +1292,7 @@ class Pyrite:
         else:
             self.set_stdstatus()
             self.g_msgtxtview.set_sensitive(True)
-            self.fix_msgtxtviewcolor(True)
+            self.fix_msgtxtview_color(True)
             if self.canceled:  # User Canceled!
                 if action in {'enc', 'dec'}:
                     action = "{}rypt".format(action.title())
