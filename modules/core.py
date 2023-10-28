@@ -993,12 +993,8 @@ class Pyrite:
     def action_toggle_defaultkey(self, w):
         """Hide/show Entry widget for setting gpg 'localuser' argument."""
 
-        if w.get_active():
-            # If entering toggled state, show default key TextEntry
-            self.g_defaultkey.set_visible(True)
-        else:
-            # If leaving toggled state, hide default key TextEntry
-            self.g_defaultkey.set_visible(False)
+        # If entering toggled state, show default key TextEntry
+        self.g_defaultkey.set_visible(w.get_active())
 
     # Called by 'Add Signature' checkbox toggle
     def action_toggle_signature(self, w):
@@ -1006,24 +1002,16 @@ class Pyrite:
 
         sig_widgets = [self.g_sigmode, self.g_digest, self.g_digestlabel]
 
-        if w.get_active():
-            # If entering toggled state, show sig toolbar widgets
-            for widget in sig_widgets:
-                widget.set_visible(True)
-        else:
-            # If leaving toggled state, hide sig toolbar widgets
-            for widget in sig_widgets:
-                widget.set_visible(False)
+        active = w.get_active()
+        # If entering toggled state, show sig toolbar widgets
+        for widget in sig_widgets:
+            widget.set_visible(active)
 
     # Called by 'Task Status Side Panel' checkbox toggle
     def action_toggle_taskstatus(self, w):
         """Show/hide side pane containing gpg stderr output."""
-        if w.get_active():
-            # If entering toggled state, show Task Status TextView frame
-            self.g_frame2.set_visible(True)
-        else:
-            # If leaving toggled state, hide Task Status TextView frame
-            self.g_frame2.set_visible(False)
+        # If entering toggled state, show Task Status TextView frame
+        self.g_frame2.set_visible(w.get_active())
 
     # Called by 'Text Wrapping' checkbox toggle
     def action_toggle_wordwrap(self, w):
