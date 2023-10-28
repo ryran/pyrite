@@ -23,7 +23,7 @@ from gi.repository import Gtk
 from os import getenv
 
 # Important variables
-VERSION = 'v1.0.2'
+VERSION = 'v2.0.0'
 ASSETDIR = './'
 USERPREF_FILE = getenv('HOME') + '/.pyrite'
 USERPREF_FORMAT_INFO = {'version': 'Must6fa'}
