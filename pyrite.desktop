@@ -4,7 +4,6 @@ Comment=OpenSSL & GnuPG (gpg) encryption/signing front-end
 Exec=pyrite
 Terminal=false
 Type=Application
-Icon=/usr/share/pixmaps/password.png
-# NEEEEEEED a real icon
+Icon=/usr/share/icons/hicolor/scalable/apps/pyrite.svg
 Categories=GNOME;Security
 
