@@ -41,7 +41,7 @@ Requirements and package names:
 - GTK3: `gtk3`
 - Python3: `python3`
 - `python3-gi`, `python3-gi-cairo`
-- PGP `gnupg2` or OpenSSL `openssl`
+- PGP `gnupg` or OpenSSL `openssl`
 
 
 ## DEBIAN/UBUNTU/OTHER LINUX INSTALLATION
