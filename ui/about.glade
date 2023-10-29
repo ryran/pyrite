@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.24"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAboutDialog" id="aboutdialog">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="skip_taskbar_hint">True</property>
-    <property name="program_name">Pyrite</property>
-    <property name="copyright" translatable="yes">Copyright © 2012, 2013 Ryan Sawhill Aroha</property>
-    <property name="comments" translatable="yes">GnuPG (gpg/gpg2) encrypting, decrypting, signing, and verifying</property>
-    <property name="website">http://github.com/ryran/pyrite</property>
+    <property name="can-focus">False</property>
+    <property name="border-width">5</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="type-hint">dialog</property>
+    <property name="skip-taskbar-hint">True</property>
+    <property name="program-name">Pyrite</property>
+    <property name="copyright" translatable="yes">Copyright © 2012, 2013 Ryan Sawhill Aroha;
+    Maintainer: Sergey Ponomarev &lt;stokito@gmail.com&gt;</property>
+    <property name="comments" translatable="yes">GnuPG (gpg) encrypting, decrypting, signing, and verifying</property>
+    <property name="website">https://github.com/stokito/pyrite</property>
     <property name="license" translatable="yes">This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -25,23 +25,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://gnu.org/licenses/gpl.html&gt;.</property>
     <property name="authors">Ryan Sawhill Aroha &lt;rsaw@redhat.com&gt;</property>
-    <property name="translator_credits" translatable="yes">We need translators!</property>
+    <property name="translator-credits" translatable="yes">We need translators!</property>
     <property name="artists">We need someone to design some good icons!</property>
+    <property name="logo-icon-name">image-missing</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox1">
+      <object class="GtkBox" id="dialog-vbox1">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area1">
+          <object class="GtkButtonBox" id="dialog-action_area1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
+            <property name="can-focus">False</property>
+            <property name="layout-style">end</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="pack_type">end</property>
+            <property name="pack-type">end</property>
             <property name="position">0</property>
           </packing>
         </child>

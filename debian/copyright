@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pyrite-crypt
+Source: https://github.com/stokito/pyrite
+
+Files: *
+Copyright: 2012 Ryan Sawhill Aroha
+   2023 Sergey Ponomarev
+License: GPLv3
