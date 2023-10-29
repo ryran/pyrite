@@ -1,0 +1,13 @@
+Source: pyrite-crypt
+Section: utils
+Priority: optional
+Maintainer: Sergey Ponomarev <stokito@gmail.com>
+Build-Depends: debhelper (>=10)
+Standards-Version: 4.1.4
+Homepage: https://github.com/stokito/pyrite
+
+Package: pyrite-crypt
+Architecture: any
+Depends: python3, python3-gi, python3-gi-cairo, gnupg, openssl
+Description: Encryption/signing application
+ GUI frontend for GnuPG (gpg) encrypting, decrypting, signing, and verifying.
