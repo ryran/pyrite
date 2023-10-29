@@ -19,7 +19,7 @@
 import argparse
 from sys import argv
 
-import modules.core
+import pyrite.core
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(
@@ -67,9 +67,9 @@ if len(argv) == 1:
 
 if __name__ == "__main__":
 
-    FeS2 = modules.core.Pyrite(args)
+    p = pyrite.core.Pyrite(args)
     try:
-        FeS2.main()
+        p.main()
     except KeyboardInterrupt:
         print()
         exit()
