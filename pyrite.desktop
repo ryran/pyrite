@@ -1,9 +1,10 @@
 [Desktop Entry]
 Name=Pyrite
 Comment=OpenSSL & GnuPG (gpg) encryption/signing front-end
+Keywords=encryption;security;sign;signature;gpg;pgp;openssl;
 Exec=pyrite
 Terminal=false
 Type=Application
 Icon=/usr/share/icons/hicolor/scalable/apps/pyrite.svg
-Categories=GNOME;Security
-
+Categories=GNOME;GTK;Security;Utility;
+MimeType=application/pgp-encrypted;
