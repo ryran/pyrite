@@ -33,7 +33,7 @@ import glib
 from threading import Thread
 from sys import stderr
 from os import access, R_OK, read, close, pipe
-from os.path import isfile
+from os.path import isfile, exists
 from urllib.request import url2pathname
 from shlex import split
 from subprocess import check_output
@@ -72,6 +72,9 @@ class Pyrite:
         self.canceled = False
         self.paused = False
 
+        # local ui folder overrides system /usr/share/pyrite/
+        if exists('./ui'):
+            cfg.ASSETDIR = './'
         # Use GtkBuilder to build our GUI from the XML file 
         builder = Gtk.Builder()
         try:

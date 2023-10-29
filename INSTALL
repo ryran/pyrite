@@ -55,9 +55,6 @@ rm -r "$install_dir"/* 2>/dev/null
 # Copy files to install dir
 cp -rv --preserve=mode,timestamps modules ui pyrite.py  "$install_dir"
 
-# Modify assetdir variable in cfg.py to point to the proper install dir
-sed -i "/^ASSETDIR/s,'.*','$install_dir/',"  "$install_dir/modules/cfg.py"
-
 # Copy desktop shortcut
 cp -v --preserve=mode,timestamps pyrite.desktop  "$shortcut_dir"
 

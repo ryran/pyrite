@@ -24,7 +24,7 @@ from os import getenv
 
 # Important variables
 VERSION = 'v2.0.0'
-ASSETDIR = './'
+ASSETDIR = '/usr/share/pyrite/'
 USERPREF_FILE = getenv('HOME') + '/.pyrite'
 USERPREF_FORMAT_INFO = {'version': 'Must6fa'}
 
